@@ -1,0 +1,20 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\babel@toc {american}{}
+\babel@toc {ngerman}{}
+\babel@toc {american}{}
+\babel@toc {ngerman}{}
+\babel@toc {american}{}
+\babel@toc {ngerman}{}
+\babel@toc {american}{}
+\babel@toc {ngerman}{}
+\babel@toc {american}{}
+\babel@toc {ngerman}{}
+\babel@toc {american}{}
+\babel@toc {ngerman}{}
+\babel@toc {american}{}
+\contentsline {chapter}{Abstract}{iii}{chapter*.1}
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}
+\contentsline {chapter}{\numberline {2}Fundamentals}{2}{chapter.2}
+\contentsline {chapter}{\numberline {3}Developed architecture / System design / Implementation / ...}{3}{chapter.3}
+\contentsline {chapter}{\numberline {4}Evaluation}{4}{chapter.4}
+\contentsline {chapter}{\numberline {5}Conclusion}{5}{chapter.5}

@@ -1,0 +1,143 @@
+\documentclass[]{ccs-thesis}
+% options:
+% [germanthesis] - Thesis is written in German
+% [plainunnumbered] - Don't print numbers on plain pages
+% [earlydraft] - Settings for quick draft printouts
+% [watermark] - Print current time/date at bottom of each page
+% [phdthesis] - switch to PhD thesis style
+% [twoside] - double sided
+% [cutmargins] - text body fills complete page
+
+
+% Author name. Separate multiple authors with commas.
+\author{Gaurav Kumar Singh}
+\birthday{10. November 1989}
+\birthplace{Danapur}
+
+% Title of your thesis.
+\title{Clustering in Vehicular Networks}
+
+% Choose one of the following lines. Feel free to change the word "Informatik" to match your degree program.
+%\thesistype{Masterarbeit im Fach Informatik}\thesiscite{Master's Thesis~(Masterarbeit)}
+%\thesistype{Bachelorarbeit im Fach Informatik}\thesiscite{Bachelor Thesis~(Bachelorarbeit)}
+\thesistype{Seminararbeit im Fach Informatik}\thesiscite{Seminar Thesis~(Seminararbeit)}
+
+% List of advisors, separated by commas.
+\advisors{Christoph Sommer, Falko Dressler}
+
+% List of referees, separated by commas.
+\referees{Christoph Sommer, Falko Dressler}
+
+
+% Define abbreviations used in the thesis here.
+\acrodef{WSN}{Wireless Sensor Network}
+\acrodef{MANET}{Mobile Ad Hoc Network}
+
+\begin{document}
+
+\pagenumbering{roman}
+
+\maketitle
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\begin{otherlanguage*}{american}
+
+This paper captures an overview of ideas, techniques, results and future possibilities of clustering in vehicular networks.
+Clustering is a technique to group nodes based on a selected criteria
+which defines certain level of similarities among the nodes.
+Grouping the nodes together in such a way helps define or design certain set of functionalities which can only be applicable to the
+groups and can be applied to smaller sub-set.
+In a vehicular networking environment clustering can be used to group vehicles to reduce the network traffic and achieve better network throughput.
+
+Clustering in vehicular network is 
+
+\end{otherlanguage*}
+
+
+\acresetall
+
+\cleardoublepage
+\tableofcontents
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+%\chapter{Einleitung}
+\label{sec:introduction}
+
+\begin{itemize}
+\item general motivation for your work, context and goals.
+\item context: make sure to link where your work fits in
+\item problem: gap in knowledge, too expensive, too slow, a deficiency, superseded technology
+\item strategy: the way you will address the problem
+\item recommended length: 1-2 pages.
+\end{itemize}
+
+
+\chapter{Fundamentals}
+\label{sec:fundamentals}
+
+
+\begin{itemize}
+\item describe methods and techniques that build the basis of your work
+\item include what's needed to understand your work (e.g., techniques, protocols, models, hardware, software, ...)
+\item exclude what's not (e.g., anything you yourself did, anything your reader can be expected to know, ...)
+\item review related work(!)
+\item recommended length: approximately one third of the thesis.
+\end{itemize}
+
+
+\chapter{Developed architecture / System design / Implementation / ...}
+
+
+\begin{itemize}
+\item describe everything you yourself did (as opposed to the fundamentals chapter, which explains what you built on)
+\item start with a theoretical approach
+\item describe the developed system/algorithm/method from a high-level point of view
+\item go ahead in presenting your developments in more detail
+\item recommended length: approximately one third of the thesis.
+\end{itemize}
+
+
+
+\chapter{Evaluation}
+
+
+\begin{itemize}
+\item measurement setup / results / evaluation / discussion
+\item whatever you have done, you must comment it, compare it to other systems, evaluate it
+\item usually, adequate graphs help to show the benefits of your approach
+\item each result/graph must not only be described, but also discussed (What's the reason for this peak? Why have you observed this effect? What does this tell about your architecture/system/implementation?)
+\item recommended length: approximately one third of the thesis.
+\end{itemize}
+
+
+
+\chapter{Conclusion}
+
+
+\begin{itemize}
+\item summarize again what your paper did, but now emphasize more the results, and comparisons
+\item write conclusions that can be drawn from the results found and the discussion presented in the paper
+\item future work (be very brief, explain what, but not much how, do not speculate about results or impact)
+\item recommended length: one page.
+\end{itemize}
+
+
+
+\cleardoublepage
+
+\listofabbreviations
+\clearpage
+
+\listoffigures
+\clearpage
+
+\listoftables
+\clearpage
+
+\printbibliography
+
+\end{document}
