@@ -1,8 +1,8 @@
-PWD c:/Users/gaura/sciebo/Sem2/Seminar/SeminarPaper
+PWD c:/Users/gaura/sciebo/Sem2/Seminar/SeminarPaper/SeminarThesis
 INPUT c:/texlive/2017/texmf.cnf
 INPUT c:/texlive/2017/texmf-dist/web2c/texmf.cnf
 INPUT c:/texlive/2017/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT c:/Users/gaura/sciebo/Sem2/Seminar/SeminarPaper/thesis.tex
+INPUT c:/Users/gaura/sciebo/Sem2/Seminar/SeminarPaper/SeminarThesis/thesis.tex
 OUTPUT thesis.log
 INPUT ccs-thesis.cls
 INPUT ccs-thesis.cls
@@ -534,12 +534,9 @@ INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/mdbchrma.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/mdbchrma.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/mdbchrmb.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/mdbchrmb.tfm
-INPUT c:/texlive/2017/texmf-dist/fonts/vf/public/mathdesign/mdbch/mdbchr8t.vf
-INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chr8y.tfm
-INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chr8t.tfm
-INPUT c:/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT c:/texlive/2017/texmf-dist/fonts/vf/adobe/helvetic/phvr8t.vf
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm
+INPUT c:/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT c:/texlive/2017/texmf-dist/fonts/vf/adobe/helvetic/phvr8t.vf
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/vf/adobe/helvetic/phvr8t.vf
@@ -561,6 +558,9 @@ INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chr8t.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/vf/public/mathdesign/mdbch/mdbchb8t.vf
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chb8y.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chb8t.tfm
+INPUT c:/texlive/2017/texmf-dist/fonts/vf/public/mathdesign/mdbch/mdbchr8t.vf
+INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chr8y.tfm
+INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chr8t.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/vf/public/mathdesign/mdbch/mdbchb8t.vf
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chb8y.tfm
 INPUT c:/texlive/2017/texmf-dist/fonts/tfm/public/mathdesign/mdbch/md-chb8t.tfm
