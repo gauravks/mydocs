@@ -31,7 +31,12 @@
 
 % Define abbreviations used in the thesis here.
 \acrodef{WSN}{Wireless Sensor Network}
+\acrodef{WANET}{Wireless Ad Hoc Network}
 \acrodef{MANET}{Mobile Ad Hoc Network}
+\acrodef{VANET}{Vehicular Ad Hoc Network}
+\acrodef{CH}{Cluster Head}
+\acrodef{CM}{Cluster Member}
+\acrodef{CHP}{Cluster Head Pending}
 
 \begin{document}
 
@@ -46,15 +51,17 @@
 This thesis captures an overview of ideas, techniques, results and future possibilities of clustering in vehicular networks.
 Clustering is a technique to group nodes based on a selected criteria which defines certain level of similarities among the nodes.
 Grouping the nodes together in such a way helps define or design a set of functionalities applicable only to the
-group and can be applied to smaller sub-set. In a vehicular networking environment clustering presents possibilities
-to group vehicles based on a parametr of interest and help to reduce the network traffic, achieve better network throughput,
+group and can be applied to the smaller sub-set. In a \ac{VANET} environment clustering presents possibilities
+to group vehicles based on a parameter of interest and help to reduce the network traffic, achieve better network throughput,
 effective information dissemination.
 
-The thesis presents a set of parameter and respective algorithm based on them for vehicular networks as a comparitive study.
+The thesis presents a set of parameter and respective methodologies based on them for \ac{VANET}s as a comparative study.
 First chapter presents the motivation behind the clustering and outlines the basic set of problems which is presented by vehicular
-Networks which the algorithm try to address. The second chapter describes the algorithms grouping them based on the main parameters
-used for clustering. The third chapter captures a comparative study, highlighting benefits and drawbacks of different approaches based
-on simulation results. Finally the thesis captures some ideas which will give an overview of the future research work on the topic.
+Networks which the researches are trying to address. The second chapter describes the methodologies grouping them based on the main
+parameters used for clustering. The third chapter introduces the evaluation techniques used to evaluate the methods along with some
+important metrics used to compare the effectiveness of the algorithms. The fourth chapter captures a comparative study based on
+the results, highlighting benefits and drawbacks of different approaches based on simulation results. Finally the thesis captures
+some ideas which will give an overview of the future research work on the topic.
  
  
 \end{otherlanguage*}
@@ -72,56 +79,73 @@ on simulation results. Finally the thesis captures some ideas which will give an
 %\chapter{Einleitung}
 \label{sec:introduction}
 
-\begin{itemize}
-\item general motivation for your work, context and goals.
-\item context: make sure to link where your work fits in
-\item problem: gap in knowledge, too expensive, too slow, a deficiency, superseded technology
-\item strategy: the way you will address the problem
-\item recommended length: 1-2 pages.
-\end{itemize}
+Along with the advancement in wireless networking in the past two decades, there has been a lot of research targeted
+towards developing techniques to minimize the network overhead and achieve effectiveness within the system. A special
+class of wireless network, \ac{WANET},  which allowed nodes to communicate with each other without the need of
+special infrastructure such as bridges and routers was developed. \ac{WANET} lead to use of wireless communication
+for special applications with needs of distributed control. Shortly use of \ac{MANET} increased which allowed
+continuos movement of the nodes. This was followed by use of wireless networking among vehicles to create \ac{VANET}
+which allows communication of various parameters among vehicular focussed towards application for safety and cooperative
+driving. The use of wireless networks in various domains has lead to a lot of research focussed towards improvements
+and optimization which are often valid for all domains.
+
+Clustering in wireless networks involves grouping nodes together which are geographically close to each other based on a
+certain set of parameters. Parameter selection for clustering depends mostly on the type of application which would use
+the clustered network. In \ac{VANET}s clustering of vehicles into groups provides a basis for limiting the networking
+overhead and interference by efficiently defining the target nodes and designing filters to limit the traffic. Due to
+the possibility of selecting huge range of parameters, there are a lot of solutions presented which target various
+scenarios in the \ac{VANET}s. \cite{6256251} and \cite{BALI2014134} presents a detailed overview of research work in this
+field in past years. In the following sections we would look at some of the important terminologies and parameters to create
+a general overview of clustering in \ac{VANET} and help us to discuss and understand the methodologies better.
+
+\section{Terminologies}
+
+<Basic terminologies used in VANETs clustering>
+
+\section{Clustering Parameters}
 
 
-\chapter{Fundamentals}
-\label{sec:fundamentals}
+\chapter{Clustering methodologies}
+\label{sec:methodologies}
+
+<overview of clustering methodologies and criterions for clustering>
+
+\section{Typical clustering steps}
+
+\section{Method 1: Clustering using vehicular mobility}
+\section{Method 2: Clustering using abstracted trajectory}
+\section{Method 3: Clustering using vehicular density}
+\section{Method 4: Hybrid clustering}
 
 
-\begin{itemize}
-\item describe methods and techniques that build the basis of your work
-\item include what's needed to understand your work (e.g., techniques, protocols, models, hardware, software, ...)
-\item exclude what's not (e.g., anything you yourself did, anything your reader can be expected to know, ...)
-\item review related work(!)
-\item recommended length: approximately one third of the thesis.
-\end{itemize}
+\chapter{Evaluation techniques}
+\label{sec:evaluation}
 
+<General simulation steps for evaluation>
 
-\chapter{Developed architecture / System design / Implementation / ...}
-
-
-\begin{itemize}
-\item describe everything you yourself did (as opposed to the fundamentals chapter, which explains what you built on)
-\item start with a theoretical approach
-\item describe the developed system/algorithm/method from a high-level point of view
-\item go ahead in presenting your developments in more detail
-\item recommended length: approximately one third of the thesis.
-\end{itemize}
+\section{Important metrics for evaluation}
 
 
 
-\chapter{Evaluation}
-
-
-\begin{itemize}
-\item measurement setup / results / evaluation / discussion
-\item whatever you have done, you must comment it, compare it to other systems, evaluate it
-\item usually, adequate graphs help to show the benefits of your approach
-\item each result/graph must not only be described, but also discussed (What's the reason for this peak? Why have you observed this effect? What does this tell about your architecture/system/implementation?)
-\item recommended length: approximately one third of the thesis.
-\end{itemize}
+\chapter{Comparison of results}
+\label{sec:comparison}
 
 
 
 \chapter{Conclusion}
+\label{sec:conclusions}
 
+foo~\cite{6256251}
+foo~\cite{ARKIAN2014197}
+foo~\cite{6737622}
+foo~\cite{6685518}
+foo~\cite{4976256}
+foo~\cite{5416361}
+foo~\cite{5735785}
+bar~\cite{6379136}
+bar~\cite{HASSANABADI2014535}
+bar~\cite{sommer2011bidirectionally}
+bar~\cite{6407446}
 
 \begin{itemize}
 \item summarize again what your paper did, but now emphasize more the results, and comparisons

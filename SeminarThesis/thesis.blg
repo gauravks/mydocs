@@ -1,9 +1,35 @@
-[0] Config.pm:302> INFO - This is Biber 2.10
-[1] Config.pm:305> INFO - Logfile is 'thesis.blg'
-[95] biber-MSWIN32:313> INFO - === 
-[155] Biber.pm:371> INFO - Reading 'thesis.bcf'
-[364] Biber.pm:857> INFO - Found 0 citekeys in bib section 0
-[378] Utils.pm:193> WARN - The file 'thesis.bcf' does not contain any citations!
-[393] bbl.pm:617> INFO - Writing 'thesis.bbl' with encoding 'UTF-8'
-[393] bbl.pm:720> INFO - Output to thesis.bbl
-[394] Biber.pm:110> INFO - WARNINGS: 1
+[0] Config.pm:340> INFO - This is Biber 2.4
+[0] Config.pm:343> INFO - Logfile is 'thesis.blg'
+[56] biber:287> INFO - === Sun Jan 21, 2018, 16:03:45
+[166] Biber.pm:348> INFO - Reading 'thesis.bcf'
+[334] Biber.pm:742> INFO - Found 12 citekeys in bib section 0
+[342] Biber.pm:3151> INFO - Processing section 0
+[380] Biber.pm:3308> INFO - Looking for bibtex format file 'references.bib' for section 0
+[506] bibtex.pm:1113> INFO - Decoding LaTeX character macros into UTF-8
+[585] bibtex.pm:974> INFO - Found BibTeX data source 'references.bib'
+[767] Utils.pm:147> WARN - The field 'issn' in entry '6256251' cannot be null, deleting it
+[767] Utils.pm:147> WARN - The field 'number' in entry '6256251' cannot be null, deleting it
+[767] Utils.pm:147> WARN - The field 'volume' in entry '6256251' cannot be null, deleting it
+[768] Utils.pm:147> WARN - The field 'number' in entry '6737622' cannot be null, deleting it
+[768] Utils.pm:147> WARN - The field 'volume' in entry '6737622' cannot be null, deleting it
+[768] Utils.pm:147> WARN - The field 'issn' in entry '6685518' cannot be null, deleting it
+[768] Utils.pm:147> WARN - The field 'number' in entry '6685518' cannot be null, deleting it
+[768] Utils.pm:147> WARN - The field 'volume' in entry '6685518' cannot be null, deleting it
+[768] Utils.pm:147> WARN - The field 'issn' in entry '4976256' cannot be null, deleting it
+[769] Utils.pm:147> WARN - The field 'number' in entry '4976256' cannot be null, deleting it
+[769] Utils.pm:147> WARN - The field 'volume' in entry '4976256' cannot be null, deleting it
+[769] Utils.pm:147> WARN - The field 'number' in entry '5416361' cannot be null, deleting it
+[769] Utils.pm:147> WARN - The field 'volume' in entry '5416361' cannot be null, deleting it
+[769] Utils.pm:147> WARN - The field 'number' in entry '5735785' cannot be null, deleting it
+[770] Utils.pm:147> WARN - The field 'volume' in entry '5735785' cannot be null, deleting it
+[770] Utils.pm:147> WARN - The field 'number' in entry '6379136' cannot be null, deleting it
+[770] Utils.pm:147> WARN - The field 'volume' in entry '6379136' cannot be null, deleting it
+[771] Utils.pm:147> WARN - The field 'number' in entry '6407446' cannot be null, deleting it
+[771] Utils.pm:147> WARN - The field 'volume' in entry '6407446' cannot be null, deleting it
+[887] UCollate.pm:65> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[888] UCollate.pm:65> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[888] Biber.pm:3028> INFO - Sorting list 'none/global' of type 'entry' with scheme 'none' and locale 'en-US'
+[888] Biber.pm:3032> INFO - No sort tailoring available for locale 'en-US'
+[906] bbl.pm:519> INFO - Writing 'thesis.bbl' with encoding 'UTF-8'
+[1047] bbl.pm:615> INFO - Output to thesis.bbl
+[1048] Biber.pm:109> INFO - WARNINGS: 19
