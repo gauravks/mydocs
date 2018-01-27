@@ -1,0 +1,12 @@
+*.bcf
+*.aux
+*.bbl
+*.blg
+*.fdb*
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.gz
+*.toc
