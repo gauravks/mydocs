@@ -292,7 +292,7 @@
 
 % Nag about deprecated LaTeX packages and commands
 \RequirePackage[l2tabu, orthodox]{nag}
-
+\usepackage{longtable}
 % Define command that will return current filename
 \RequirePackage{currfile}
 
