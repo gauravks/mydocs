@@ -169,6 +169,8 @@
 }{
 }
 \DeclareSIUnit\byte{Byte}
+\DeclareSIUnit\bits{b}
+\DeclareSIUnit\vehicle{vehicles}
 \DeclareSIUnit\decibelm{dBm}
 \DeclareSIUnit\mph{mph}
 
