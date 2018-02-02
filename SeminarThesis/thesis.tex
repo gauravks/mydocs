@@ -54,17 +54,17 @@
 \begin{otherlanguage*}{american}
 
     This thesis captures an overview of ideas, techniques, results and future possibilities of clustering in vehicular networks.
-    Clustering is a technique to group nodes based on a selected criteria which defines certain level of similarities among the nodes.
-    Grouping the nodes together in such a way helps define or design a set of functionalities applicable only to the
+    Clustering is a technique to group nodes based on a selected criterion which defines certain level of similarities among the nodes.
+    Grouping the nodes together in such a way helps to define or design a set of functionalities applicable only to the
     group and can be applied to the smaller sub-set. In a \ac{VANET} environment, clustering presents possibilities
     to group vehicles based on a parameter of interest and help to reduce the network traffic, achieve better network throughput and
     effective information dissemination.
 
-    This thesis presents a set of parameter and respective methodologies based on them for \ac{VANET}s as a comparative study.
+    In this thesis, I try to present some of the parameter and methodologies used for clustering in \ac{VANET}s along with some evaluation criterion.
     First chapter presents the motivation behind the clustering and outlines the basic set of problems which is presented by vehicular
     networks which the researches are trying to address. The second chapter describes the methodologies grouping them based on the main
     parameters used for clustering. The third chapter introduces the evaluation techniques along with some important metrics used to
-    compare the effectiveness of the algorithms and analysis of results. Finally the thesis captures some ideas which will give an
+    compare the effectiveness of the algorithms and analysis of results. Finally, the thesis captures some ideas which will give an
     overview of the future research work on this topic.
 
 
@@ -85,12 +85,12 @@
 
 Along with the advancement in wireless networking in the past two decades, there has been a lot of research targeted
 towards developing techniques to minimize the network overhead and achieve effectiveness within the system. A special
-class of wireless network, \ac{WANET},  which allowed nodes to communicate with each other without the need of
-special infrastructure such as bridges and routers was developed. \ac{WANET} lead to use of wireless communication
+class of wireless network was developed called \ac{WANET}, which allowed nodes to communicate with each other without the need of
+special infrastructure such as bridges and routers. \ac{WANET} led to use of wireless communication
 for special applications with needs of distributed control. Shortly, use of \ac{MANET} increased which allowed
 continuous movement of the nodes. This was followed by use of wireless networking among vehicles to create \ac{VANET}
-which allows communication of various parameters among vehicles focussed towards applications for safety and cooperative
-driving. The use of wireless networks in various domains has lead to a lot of research focussed towards improvements
+which allows communication of various parameters among vehicles focused towards applications for safety and cooperative
+driving. The use of wireless networks in various domains has led to a lot of research focused towards improvements
 and optimization which are often valid for all domains.
 
 Clustering in wireless networks involves grouping nodes together which are geographically close to each other based on a
@@ -112,8 +112,8 @@ for clustering in \ac{VANET}s.
           communication within the cluster.
     \item \textbf{\ac{CH}:} Each cluster is supposed to elect one of the \ac{CM} to act as the \ac{CH}
           based on some rules. It is possible for any \ac{CM} to be elected as the \ac{CH} but some of the algorithms
-          may apply special requirements for a \ac{CM} to be elected to ensure stability of the cluster. The responsibilities
-          of a \ac{CH} may vary but in general it is responsible for the maintenance of the cluster
+          may apply specific requirements for a \ac{CM} to be elected to ensure stability of the cluster. The responsibilities
+          of a \ac{CH} may vary but in general, it is responsible for the maintenance of the cluster
           (addition and removal of nodes) and communication with the external nodes (other \ac{CH}s and \ac{RSU}s).
     \item \textbf{\texttt{HELLO} Message:} Also referred as \texttt{DISCOVER}, is the first message sent by a vehicle to identify
           the presence of existing cluster. This is mostly a broadcast frame.
@@ -133,7 +133,7 @@ for clustering in \ac{VANET}s.
 \chapter{Clustering methodologies}
 \label{sec:methodologies}
 
-In order to achieve a robust and effective communication in the high mobility environment, \ac{VANET} applications use various
+To achieve a robust and effective communication in the high mobility environment, \ac{VANET} applications use various
 parameters to cluster the nodes into meaningful sub-groups based on the application requirement. This leads to a wide
 range of clustering methodologies which define applications specific algorithms useful for respective application or
 a generic algorithm with possibility to handle different requirements. In this chapter, we discuss some of the common
@@ -152,10 +152,9 @@ form basis for threshold calculation are summarized in \cref{tab:parameters}.
     \hline
     \endhead
     \hline
-    \caption{Common clustering parameters}\label{tab:parameters}                                                                                   \\
     \endfoot
     \hline
-    \caption{Common clustering parameters contd...}                                                                                                \\
+    \caption{Common clustering parameters}\label{tab:parameters}                                                                                                \\
     \endlastfoot
     Vehicular mobility      & This is the most common parameter used in the algorithms. Mobility of the vehicles are measured in terms of
     relative velocity and average velocity over time of the vehicle                                                                                \\
@@ -165,16 +164,16 @@ form basis for threshold calculation are summarized in \cref{tab:parameters}.
     Destination             & Used by applications which give importance to route taken by the vehicles to provide longer stable cluster            \\
     Density                 & Mostly used to differentiate sparse and dense networks and define different communication model to ensure reliable
     communication in both scenarios                                                                                                                \\
-    Unique ID               & Simplest clustering parameter. Commonly used to identify and cluster vehicles requiring multi-hop reliable communication \\
+    Unique ID               & Simplest clustering parameter, commonly used to identify and cluster vehicles requiring multi-hop reliable communication \\
     Location                & Used with application requiring location based information such as intersection support and congestion avoidance     \\
 \end{longtable}
 
 \section{Typical clustering Operations}
 
-To group vehicles togethers there are two main set of operations used by the clustering algorithms. First is the cluster creation operations
+To group vehicles together, there are two main set of operations used by the clustering algorithms. First are the cluster creation operations
 as shown in \cref{fig:creation}.
 
-\begin{figure}[h]
+\begin{figure}
     \centering
     \subfloat[Cluster creation with single vehicle]{\label{fig:operation1}\includegraphics[width=0.9\textwidth]{figures/cluster-step1}}%
     \vfill%
@@ -186,12 +185,12 @@ as shown in \cref{fig:creation}.
 
 As the name suggest these operations are used to create a new cluster after verifying the fitness of the
 participants. \cref{fig:operation1} shows a case where there is no vehicle around. The vehicle first sends the \texttt{HELLO} messages to
-discover presence of other cluster and after a certain timeout identifies that there is no one around and starts a new cluster, becoming the
+discover presence of another cluster and after a certain timeout identifies that there is no one around and starts a new cluster, becoming the
 new \ac{CH}. The second operation depicted in \cref{fig:operation2} is used when there are vehicles in the vicinity which have not yet formed
 any cluster. In this case the vehicles discover each other via \texttt{HELLO} messages and form a cluster followed by an election of the
 \ac{CH}.
 
-The second set of operations are used for cluster maintenance shown in \cref{fig:maintenance}. Cluster joining operations shown in \cref{fig:operation3}
+The second set of operations are used for cluster maintenance shown in \cref{fig:maintenance}. Cluster joining operation shown in \cref{fig:operation3}
 is used to add new members to the cluster. The request to join is initiated by the vehicle by sending the \texttt{HELLO} message. When the \ac{CH} receives
 this message, it verifies if the vehicle is fit to join the cluster and then invites it using \texttt{INVITE} message. Cluster merging happens when two
 \ac{CH} come in contact with each other as shown in \cref{fig:operation4}. At this point the \ac{CH}s decide to merge the clusters if the current state of
@@ -201,7 +200,7 @@ the other \ac{CH} becomes a \ac{CM}.
 It should be noted that the actual implementation of these operations may change from one methodology to another depending upon the parameter and the
 use case for the clustering.
 
-\begin{figure}[h]
+\begin{figure}
     \centering
     \subfloat[Cluster joining]{\label{fig:operation3}\includegraphics[width=0.9\textwidth]{figures/cluster-step2}}%
     \vfill%
@@ -213,7 +212,7 @@ use case for the clustering.
 
 \section{Methodologies}
 
-This section would present some of the methodologies which are popular and used as the basis for several algorithms designed for clustering
+This section presents some of the methodologies which are popular and used as the basis for several algorithms designed for clustering
 in \ac{VANET}.
 
 \subsection{Clustering using vehicular mobility}
@@ -238,7 +237,7 @@ by \textcite{5416361} calculates the direction at intersection points based on t
 \subsection{Clustering using vehicular density}
 
 Density of the vehicles varies based on the environment considered. This is often utilized by the clustering
-algorithm as a important parameter to define different communication methodologies for dense network in city vs
+algorithm as an important parameter to define different communication methodologies for dense network in city vs
 sparse network on highways. Aim of such algorithms is to reduce network congestion in cities by avoiding unnecessary
 flooding and provide longer network coverage on highways using long range communication. \textcite{4976256} discusses
 one such algorithm which uses density based clustering to define different communication model based on connectivity and
@@ -255,12 +254,12 @@ between the vehicles to share real-time information.
 \subsection{Multi-hop clustering}
 
 The methodologies summarized till now in this section relies on one hop communication i.e. direct communication between
-the \ac{CH} and the \ac{CM}. The one hop based communication clustered face the problem of frequent handoffs between
+the \ac{CH} and the \ac{CM}. The one hop based communication clusters face the problem of frequent handoffs between
 the clusters for members with high mobility. Multi-hop clustering methods try to address this issue by including N-hop
 members to the cluster. As shown in \ref{fig:2hop} and \ref{fig:3hop}, the multi-hop members communicate to the \ac{CH}
 via the intermediate members and can be located a maximum of N-hop distance away from the \ac{CH}. In a multi-hop
 clustering methodology, the \texttt{HELLO} messages contain additionally the number of current hops and are re-broadcasted
-by a node after adding themselves as a intermediate node. This forms the basis for identifying routes to the N-hop nodes
+by a node after adding themselves as an intermediate node. This forms the basis for identifying routes to the N-hop nodes
 after clustering. \textcite{Zhang2069135} and \textcite{6554933} present clustering methods based on multi-hop schemes
 along with vehicular mobility.
 
@@ -284,23 +283,23 @@ Implementing a proposed solution for \ac{VANET} with real vehicles for testing i
 It always requires availability of various equipment and testing environment to implement a prototype system which
 would be suitable for evaluating the proposed method. Due to this, most of the authors of the proposed solution use
 simulation as the main method of evaluation and producing data for evaluation. This chapter will discuss some of
-the important tools and techniques used for evaluation of clustering methodologies for \ac{VANET} and also present
+the important tools and techniques used for evaluation of clustering methodologies for \ac{VANET} and present
 the common metrics derived from the simulation data for comparison.
 
 Simulation for \ac{VANET} involves two aspects, first is modelling the vehicular mobility and second is modelling the
 network communication between the vehicles. Another major challenge is to define the interlink between these models
 to build a realistic simulation environment. Some of the popular network simulators used are OMNET++\footnote{\url{https://www.omnetpp.org/}},
-ns3\footnote{\url{https://www.nsnam.org/}} and VanetMobiSim~\cite{4127230}. Vehicular mobility can defined by SUMO~\cite{dlr71460}
+ns3\footnote{\url{https://www.nsnam.org/}} and VanetMobiSim~\cite{4127230}. Vehicular mobility can be defined by SUMO~\cite{dlr71460}
 which is most popular tool capable of managing vehicular mobility via predefined traffic scenarios or some specific mobility model.
 \textcite{sommer2011bidirectionally} presented \ac{VEINS} which defines extensions to interconnect OMNET++ and SUMO. A combination of
-these tools are used to provide simulation environments for evaluating the clustering methodologies.
+these tools is used to provide simulation environments for evaluating the clustering methodologies.
 
 \section{Important parameters for evaluation}
 
-The simulation parameters play important role in effectively producing data which is suitable to derive metrics for evaluation.
+Choosing correct simulation parameters is important for producing data which is suitable to derive metrics for evaluation.
 It mostly depends on the characteristics of the simulated model which in this case is clustering methods so mostly depends
-on the parameters~\cref{tab:parameters} chosen for clustering and the some typical networking and vehicular mobility
-characteristics. \cref{tab:simparams} lists down some of the parameters along with there typical values in simulation environment.
+on the parameters~\cref{tab:parameters} chosen for clustering and some typical networking and vehicular mobility
+characteristics. \cref{tab:simparams} lists down some of the parameters along with their typical values in simulation environment.
 
 \begin{table}[h]
     \centering
@@ -351,12 +350,12 @@ the reader.
 Currently, there is a huge advancement being made in the wireless communication technologies which will open
 various new opportunities for improving the communication environment for \ac{VANET}s in the future.
 Improved communication mechanisms for \ac{V2V} and \ac{V2I} communication would provide more stable and
-reliable communication channels. Thus providing basis for improving existing clustering methodologies by
+reliable communication channels. Thus, providing basis for improving existing clustering methodologies by
 extending them to use new technology and design new methodologies to achieve better performance in terms
 of stability and networking connectivity.
 
 I believe this thesis should be a good starting point for introducing the concept of clustering in vehicular
-network and highlighting the important areas which the reader can further explore based on their needs.
+network and highlighting the major areas which the reader can further explore based on their needs.
 
 \cleardoublepage
 
