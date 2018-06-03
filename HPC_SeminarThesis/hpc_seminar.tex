@@ -1,0 +1,136 @@
+% Seminar paper for High-Performance Computing with FPGAs (SS2018)
+% Gaurav Kumar Singh <gauravks@mail.uni-paderborn.de>
+%
+% based on a template by Holger Karl, (c) 2001
+
+\documentclass[12pt,twoside]{article}
+\usepackage{url}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% configure these settings and you are good to go %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\participant}{Gaurav Kumar Singh}
+\newcommand{\affiliation}{Paderborn University}
+\urldef{\emailaddress}\url{gauravks@mail.uni-paderborn.de}
+\newcommand{\topic}{Designs for accelerating Bioinformatic problem solving using FPGAs based HPC system}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% don't make any other changes in the following   %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% preamble unless you know what you are doing     %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\RequirePackage[style=ieee,doi=true,isbn=false,url=false,mincitenames=1,maxcitenames=3,minbibnames=10,maxbibnames=10]{biblatex}
+\usepackage{geometry}
+\geometry{a4paper,body={15cm,22cm}}
+\RequirePackage{xpatch}
+\xpatchbibmacro{textcite}{\addspace}{\addnbspace}{}{}
+\xpatchbibmacro{Textcite}{\addspace}{\addnbspace}{}{}
+
+\usepackage{graphicx}
+\usepackage{paralist}
+\usepackage{fancyhdr}
+\bibliography{references}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[LE]{ \slshape \participant}
+\fancyhead[LO]{}
+\fancyhead[RE]{}
+\fancyhead[RO]{ \slshape \topic}
+\fancyfoot[C]{}
+
+\begin{document}
+
+\title{\topic}
+\author{\Large{\participant}\\ \affiliation \\ {\small \emailaddress}}
+\date{}
+\maketitle
+\thispagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% here starts the actual text                     %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Abstract gives a brief summary of the main points of a paper:
+\begin{abstract}
+
+  The abstract to summarize
+
+  \begin{enumerate}
+	\item What Bioinformatic problem try to solve
+	\item Why are they important to us (Diversity, uses)
+	\item How FPGA based systems can help (Complexity, speed etc.)
+\end{enumerate}
+\end{abstract}
+
+% the actual content, usually separated over a number of sections
+% each section is assigned a label, in order to be able to put a
+% crossreference to it
+
+\section{Introduction}
+\label{sec:introduction}
+
+This section would introduce the topic of Bioinformaticss and HPC with FPGA and highlight the interdependence to create the base for the
+rest of the paper.
+\begin{enumerate}
+	\item Some references to exiting known HPC systems used for solving Bioinformatic problems
+	\item Introduce the structure of the thesis
+\end{enumerate}
+
+Reference for the section \cite{perez-sanchez_role_2014}, \cite{karanam_using_2006}
+
+Also use a general example to capture general terminologies used in the domain
+
+\section{Related Work}
+\label{sec:relwork}
+
+Should discuss if this should remain as a separate section or the related work can already be introduced in previous section?
+
+\section{System Designs and Techniques}
+\label{sec:designtech}
+
+This section would give specific example for Techniques and related system designs which
+use FPGA based HPC systems to accelerate the solution finding.
+
+Add subsection to describe the techniques along with references.
+
+\subsection{Smith-Waterman Algorithm}
+
+References \cite{rucci_smith-waterman_2014}, \cite{smith_identification_1981}
+
+\subsection{BLAST}
+\label{sec:blast}
+
+Reference \cite{mahram_fast_2010}, \cite{altschul_basic_1990}
+
+\subsection{HMMER}
+
+References \cite{oliver_integrating_2008} \cite{abbas_combining_2015}
+
+\subsection{RIVYERA}
+
+Reference \cite{wienbrandt_improvement_2012}, \cite{wienbrandt_fpga-based_2014}
+\section{Evaluation and comparison}
+\label{sec:eval}
+
+This section should highlight the possible acceleration which is possible with the FPGA based system
+using the Evaluation data of different techniques and present a comparative study of how this techniques
+vary to each other and to traditional HPC and serial computing.
+
+This should be able to highlight the advantages of using FPGAs for certain problem to reduce cost and time for
+for the problems.
+
+\section{Conclusion}
+\label{sec:concl}
+
+%% the following commands include the biliographic information (in BibTeX format) from the
+%% file template.bib
+
+\printbibliography
+
+\end{document}
