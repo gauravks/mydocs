@@ -13,7 +13,7 @@
 \newcommand{\participant}{Gaurav Kumar Singh}
 \newcommand{\affiliation}{Paderborn University}
 \urldef{\emailaddress}\url{gauravks@mail.uni-paderborn.de}
-\newcommand{\topic}{Designs for accelerating Bioinformatic problem solving using FPGAs based HPC system}
+\newcommand{\topic}{Designs for accelerating Bioinformatic applications using FPGAs based HPC system}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,6 +37,7 @@
 \usepackage{paralist}
 \usepackage{fancyhdr}
 \usepackage{cleveref}
+\RequirePackage[margin=0cm]{subfig}
 \bibliography{references}
 \pagestyle{fancy}
 \fancyhead{}
@@ -204,7 +205,7 @@ including human genome as shown in \cref{fig:sequence}.
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.9\textwidth]{fig/sequence}
+    \includegraphics[width=0.8\textwidth]{fig/sequence}
     \caption{Sequencing process \cite[Figure 2.4]{mount_bioinformatics:_2004}}
     \label{fig:sequence}
 \end{figure}
@@ -295,11 +296,11 @@ to identify the individual and sequence of bp which match in each of the strings
 identify and estimate the cost of transformation of individual strings. \cite{gokhale_reconfigurable_2010} states the three
 condition which can occur while estimation the alignment at a given position which are shown in \cref{fig:alignment}:
 
-\begin{enumerate}
+\begin{itemize}
 	\item a match occurs when the same character 'x' is present in both strings
 	\item a mismatch, also called a substitution, when there are two different characters 'x' and 'y'
 	\item a gap, when there is an insertion of one character in only one string, or symmetrically a deletion in the other string
-\end{enumerate}
+\end{itemize}
 
 \begin{figure}%
     \centering
@@ -314,7 +315,7 @@ the sequence as shown in \cref{localglobal}.
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.\textwidth]{fig/localglobal}
+    \includegraphics[width=0.6\textwidth]{fig/localglobal}
     \caption{Distinction between local and global alignment \cite[Figure 3.1]{mount_bioinformatics:_2004}}
     \label{fig:localglobal}
 \end{figure}
@@ -346,9 +347,18 @@ Smitth-Waterman \cite{smith_identification_1981} equation as follows:
 \begin{cases}
 	0							  & \quad \text{(local align. starts here)} \\
 	H(i - 1, j - 1) + d(x_i, y_j) & \quad \text{(match or substitution)} \\
-	H(i - 1, j) - g_{penalty} 	  & \quad \text{(insertion)}\\
-	H(i, j - 1) - g_{penalty}     & \quad \text{(deletion)}
+	E(i,j)	  & \quad \text{(insertion)}\\
+	F(i,J)    & \quad \text{(deletion)}
 \end{cases}
+\]
+
+where
+
+\[
+E(i,j) = max \begin{cases} H(i - k, j) - g_{penalty}(k), & \quad for \,\, 0 < k < i, \end{cases} 
+\]
+\[
+F(i,j) = max \begin{cases} H(i,j - l) - g_{penalty}(l), & \quad for \,\, 0 < l < j, \end{cases}
 \]
 
 An example of both global and local alignment calculation is shown in \cref{fig:alignexample}
@@ -385,12 +395,8 @@ modify the seed selection criteria to improve the performance.
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.9\textwidth]{fig/blastview}
-    \caption{Schematic view of the BLAST 3-stages algorithm. Stage 1: localizes
-	exact seeds (black). Stage 2: extends of the seeds with a few error tolerance (dark
-	gray). The majority of detected seeds doesn’t extend at this stage. Stage 3: performs
-	full DP calculations (light gray) on extremely few sequences. Here only the seed (b)
-	leads to a positive sequence \cite[Figure 8.11]{gokhale_reconfigurable_2010}}
+    \includegraphics[width=0.8\textwidth]{fig/blastview}
+    \caption{Schematic view of the BLAST 3-stages algorithm \cite[Figure 8.11]{gokhale_reconfigurable_2010}}
     \label{fig:blastview}
 \end{figure}
 
@@ -402,19 +408,17 @@ to decrease the search time of a string in databases by categorizing them based 
 to develop a generic profile which can be inferred over all the sequences.
 
 \begin{flushleft}
-\textbf{Hidden Markov Models (HMM)}
-\end{flushleft}
-
-Markovian process are processes whose future states are only dependant on current state and has no effect by past states.
+\textbf{Hidden Markov Models (HMM)}: Markovian process are processes whose future states are only dependant on current state and has no effect by past states.
 "HMM \cite{hughey_hidden_1996} is an statistical model which considers all the possible combination of matches, mis-matches and gaps to generate an
 alignment of a set of sequences" \cite{mount_bioinformatics:_2004}. HMM needs to be trained with some initial data of known
 sequences. The initial data is selected based on the family of the amino acids required to be identified. The trained HMM 
 can then be used to identify sequences of the same family. \cref{fig:hmm} shows a HMM states which can be used for multiple
 sequence alignment.
+\end{flushleft}
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.9\textwidth]{fig/hmm}
+    \includegraphics[width=0.7\textwidth]{fig/hmm}
     \caption{Hidden Markov model for sequence alignment \cite[Figure 4.16]{mount_bioinformatics:_2004}}
     \label{fig:hmm}
 \end{figure}
@@ -447,7 +451,7 @@ searched, the PEs are able to complete the comparison in $ M + K-1 $ steps with 
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.6\textwidth]{fig/systollicarray}
+    \includegraphics[width=0.7\textwidth]{fig/systollicarray}
     \caption{Systolic comparator on a linear processor array \cite[Figure 2]{oliver_hyper_2005}}
     \label{fig:systollicarray}
 \end{figure}
@@ -459,7 +463,7 @@ individual PEs to different gap penalty functions, variation of the data width, 
 
 Assuming a sequence query A of length M $ A = a_1a_2 .. a_M $ and B database sequence of length K $B = b_1b_2 .. b_K $ is to be mapped on a linear array of
 M PEs with affine gap penalities, then during initialization $ PE i $ would be initialized with character $ a_i $ along with corresponding
-gap penalities. After this the sequence B can pass through the array in $M+K-1$ steps. In each iteration k, the values H(i,j) is calculated by
+gap penalities. After this the sequence B can pass through the array in $M+K-1$ steps. In each iteration k, the values H, E and F is calculated by
 each PE parallely in single clock cycle. 
 
 The above operation assume that query string size and the number of PEs are equal (M) which is not often the case. The string size will vary and 
@@ -471,36 +475,110 @@ with gap penalities to avoid memory operation. The complete system design is sho
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.9\textwidth]{fig/systemdesign}
+    \includegraphics[width=1.0\textwidth]{fig/systemdesign}
     \caption{System design of the accelerator \cite[Figure 4]{oliver_hyper_2005}}
     \label{fig:systemdesign}
 \end{figure}
 
-\subsection{Heterogenous system designs}
+\subsection{Heterogenous system design}
 
-Using the FPGA accelerator described in the \cref{fpgaaccelerator}
+Using the FPGA accelerator described in the \cref{fpgaaccelerator}, \textcite{meng_high-performance_2010} implemented a heterogenous system
+along with other accelerators for the Smith-Waterman algorithm which is capable of performing very fast database searches for sequence analyse.
+In this section, the system would be described briefly to understand the capabilities and advantages of using a FPGA based system in a 
+High performance cluster.
+
+The system implemented by \textcite{meng_high-performance_2010} targets high speed biological sequence analysis by utilizing different accelerators
+in a distributed High performance cluster environment. The target system architecture of the system is shown in \cref{fig:hetero}. The system is able
+to achieve huge speed ups which will be presented in the next section. The main components of the system include SIMD calculation capable
+SSE2 vector computing units, FPGA coprocessor for fast processing and legacy computer system for backward compatibility.
 
 \begin{figure}%
     \centering
-    \includegraphics[width=0.9\textwidth]{fig/hetero}
-    \caption{Heterogeneous computing system arc \cite[Figure 1]{meng_high-performance_2010}}
+    \includegraphics[width=0.7\textwidth]{fig/hetero}
+    \caption{Heterogeneous computing system architecture \cite[Figure 1]{meng_high-performance_2010}}
     \label{fig:hetero}
 \end{figure}
+
+\textbf{SSE2 Vector computing} is achieved in ths system by using Intel's Pentium IV and AMD Opeteron processor capable of performing SIMD calculations
+on vectors using SSE2 instruction set. This allows the nodes to perform operations on 128-bit IEEE double-precision floating data types. This is used 
+to perform vector calculation to compute H, E and F by transforming the calculations to utilize SIMD operations efficiently. The minor modification in
+the calculation helps to bring excellent speed up to the calculation.
+
+\textbf{FPGA coprocessor} is integrated into the host processor. The FPGA implement the systolic array design explained in \cref{fig:systollicarray}.
+To control and exchange data between host and FPGA system, board specific application interface is used. As explained the array calculates the 
+similarity scores for the given query string and the database sequence and writes back them into the host memory. These flow can be used to
+perform fine grained calculation on the FPGA and then using the scores to accumulate over the entire system by the host system. The mapping of the 
+PEs is shown in \cref{fig:hetrosw}
+
+\begin{figure}%
+    \centering
+    \includegraphics[width=0.6\textwidth]{fig/hetrosw}
+    \caption{FPGA coprocessor mapping for linear systolic processor array \cite[Figure 3]{meng_high-performance_2010}}
+    \label{fig:hetrosw}
+\end{figure}
+
+\textbf{Legacy system} are the nodes which do not support the SSE2 instruction sets. Such system are still capable of performing
+sequential processing along with some software optimization. They join the computation as worker nodes and can be used to parallelize
+the computation in order to utilize the full capability of the cluster.
+
+In order to efficiently utilize the heterogenous computing resources to maximize the computation capability,
+specialized scheduling and load balancing schemes were developed. The comunication and control between the node is done via MPI library.
+A MPI master node is used to allocate workers and distribute the workload after identification and mapping the capabilities of the node.
 
 \section{Evaluation and comparison}
 \label{sec:eval}
 
-This section should highlight the possible acceleration which is possible with the FPGA based system
-using the Evaluation data of different techniques and present a comparative study of how this techniques
-vary to each other and to traditional HPC and serial computing.
+The evaluation of the system is essential to estimate the benefits against the cost of the system. This section will present the evaluation
+strategy to estimate the performance improvement for the heterogenous system described in the previous section and highlight the major
+benefits from such system.
 
-This should be able to highlight the advantages of using FPGAs for certain problem to reduce cost and time for
-for the problems.
+The system was evaluated using the available genome database from NCBI and EBI. Three databases were used. First FASTA format database
+containing 2,974,038 characters in 6,298 sequences. Uniref50 format containing 586,687,758 characters in
+846,716 sequences and month.aa database contains 122,650 sequences and 43,531,487 characters  \cite{meng_high-performance_2010}.
+Using various sources of database guarantees
+the robustness of the system over variable sequence size distribution. In this evaluation only one node was equipped with FPGA co-processor
+which had 119 affine PEs.
+
+As shown in the \cref{fig:perform1} a speed up of 110x is achievable with a combination of FPGA, SSE2 and MPI nodes when compared
+to a serial implementation on a single Pentium IV 1.9 GHz processor. Also tests were performed to compare the speedup achieved by the 
+Heterogeneous processing element compared to uniform cluster environment with multiple similar processing nodes working using MPI.
+In this case as well, for the same number of nodes a 16x speed up is observed. A comparison of the speed up for a 1233 size query on month.aa and 
+uniref50 database is shown in \cref{fig:perform2} to show the speed ups for different worker nodes sizes.
+
+\begin{figure}%
+    \centering
+    \includegraphics[width=0.8\textwidth]{fig/perform1}
+    \caption{Speedup of various query lengths for various configurations \cite[Figure 10]{meng_high-performance_2010}}
+    \label{fig:perform1}
+\end{figure}
+
+\begin{figure}%
+    \centering
+    \subfloat[month.aa]{\label{fig:perform2a}\includegraphics[width=0.5\textwidth]{fig/perform2a}}
+	\subfloat[uniref50]{\label{fig:perform2b}\includegraphics[width=0.5\textwidth]{fig/perform2b}}
+    \caption{Performance comparison of heterogeneous \cite[Figure 12 (e,f)]{meng_high-performance_2010}}
+    \label{fig:perform2}
+\end{figure}
 
 \section{Conclusion}
 \label{sec:concl}
 
-Timelogic accelerators
+This paper introduces the various bioinformatic application and algorithm which are popular in the domain along with the optimization
+which has been done by the use of FPGA and HPC system to achieve high speed up. As it is shown, a single FPGA coprocessor
+posses very high potential for accelerating the algorthmic calculation required for the sequence analysis by a factors of 16. FPGA based 
+acceleration has been a prime research area in the bioinformatic community and the capabilities demonstrated in this paper with a heterogeneous
+system makes it very suitable for future. Various research have been carried out to accelerate other algorithms such as BLAST using
+specific implementations.
+
+Currently various organizations provide products which are based on FPGA and can be integrated in th existing HPC system to provide the additional accelerations.
+\emph{Timelogic}\footnote{\url{http://www.timelogic.com/}} provides DeCypher\footnote{\url{http://www.timelogic.com/catalog/755/decypher}} suite which include
+hardware accelerators for Smith-Waterman (\emph{DeCypherSW\texttrademark}), BLAST (\emph{Tera-BLAST\texttrademark}) and HMM (\emph{DeCypherHMM\texttrademark})
+which can be used to accelerate the genome analysis. Similarly there are various other accelerators and projects which are aimed at integrating the FPGA coprocessor into existing HPC systems or creating new
+ones to benefit from this acceleration.
+
+Looking at such improvements, it would be possible in near future to use the genome analysis tools for analyzing data in real-time and use it to
+discover therapeutic remedies for many diseases and uncover many mysteries of the human and biological world. 
+
 %% the following commands include the biliographic information (in BibTeX format) from the
 %% file template.bib
 
