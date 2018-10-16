@@ -1,0 +1,7 @@
+*.aux
+*.bcf
+*.fls
+*.log
+*.pdf
+*.xml
+*.fdb*
