@@ -28,8 +28,8 @@
 
 \author{Gaurav Kumar Singh \\ \textit{\href{mailto:gauravks@mail.uni-paderborn.de}{gauravks@mail.uni-paderborn.de}}}
 \title{Proposal for Master Thesis on topic \\
-		Acceleration of Discontinuous Galerkin method using multiple
-		array of FPGA accelerators}
+		Acceleration of Discontinuous Galerkin method \\
+		using FPGAs communicating via IO channels}
 \date{\today}
 
 
@@ -40,19 +40,130 @@
 %%%----------------------------------------------------------
 
 \begin{abstract}\noindent
-Abstract giving a overview of the aim of the thesis
+	Abstract giving a overview of the aim of the thesis
 \end{abstract}
 
 \section{Introduction}
 
-Motivation behind the thesis
+FPGA based accelerators provides the flexibility to design application specific hardware accelerators and re-use the same
+hardware for different kinds of problems. Such advantages has shown a increased popularity of the FPGA accelerators among
+the high performance computing (HPC) researchers in recent times. FPGAs are mostly used to develop highly
+optimized accelerators for common operations such as matrix multiplication, fast fourier transformation,
+and sparse-matrix optimization which serve as the main computing blocks for many of the applications. These accelerators
+mostly rely on the features such as pipelining for data re-use, replication for parallelization and memory localization
+for lower memory latency.
 
-\subsection{Discontinuous Galerkin Method}	% title of a subtask
-Introduce the DG method to solve maxwell equation along with current implementation
+The new Noctua high performance computing (HPC) cluster at Paderborn Center for Parallel Computing  (PC\textsuperscript{2})
+which is equipped with additional Stratrix 10 FPGA accelerators provides an excellent opportunity to demonstrate the benefits
+of using FPGA accelerators for applications from different domains. Along with the usual benefits mentioned previously, the
+Nallatech 520N accelerator boards which are installed in the Noctua cluster, provides opportunities to use multiple
+FPGA in parallel for the same application by using the four 100/40/25/10G QSFP28 network ports. This can be used to offload
+the network communication required in some applications for data exchange while using MPI or similar distributed computing
+algorithms such as the MIDG2\footnote{\url{https://github.com/tcew/MIDG2}}.
 
-\subsection{FPGA accelerators}
- 
+MIDG2 is a MPI based parallel computation implementation of the Discontinuous Galerikin (DG) \cite{hesthaven_nodal_2008} method.
+DG method is a commonly used operation in many applications simulations to solve partial differential equations (PDE).
+\textcite{kenter_opencl-based_2018} presents an openCL based FPGA accelerator which works for a single node and is 2x faster
+when compared to a multithreaded CPU implementation. \textcite{kobayashi_opencl-ready_2018} has shown the benefits of using
+FPGA network communication over the InfiBand network. Such implementation highlights the benefits of a FPGA based distributed
+computing system which would be the mail goal of this thesis.
+
+In the rest of the document, the objectives of the thesis would be defined introducing some of the components involved followed
+by the timeline and initial outline of the thesis work.
+
+
 \section{Objectives}
+
+The Noctua being first of the academic HPC cluster equipped with FPGAs, we don't know of any implementation
+utilizing FPGA in network configuration for more than two FPGAs. The proposed master thesis aims at presenting
+such a system which evaluates the achievable acceleration with multiple FPGAs in point-to-point communication
+in different network topologies using the MIDG2 as the base application for the evaluation. In respect to achieve
+the goal following objectives is required to be achieved:
+
+\begin{enumerate}
+	\item \textbf{Objective 1}: Extend the openCL kernels of the MIDG2 FPGA implementation to use IO channels
+	\item \textbf{Objective 2}: Identify and evaluate possible topologies using the 4 IO channels on Nallatech 520N boards
+	\item \textbf{Objective 3}: Devise an effective partitioning scheme for the mesh to reduce communication overheads for the target topologies
+\end{enumerate}
+
+\subsection{Objective 1}
+
+The first objective requires the understanding of following components
+
+\subsubsection{Nodal Discontinuous Galerikin Method}	% title of a subtask
+
+The nodal discontinuous Galerikin time domain method (DGTD) \cite{hesthaven_nodal_2008} is used to find solutions
+for partial differential equations (PDE) numerically. The method is proved to be efficient in
+producing results with computers as it relies on mathematical calculations on elemental basis.
+This allows to perform computation in parallel on similar or different hardware helping to
+solve problems from different domains quickly. DGTD method have particularly popular for applications
+in the domains such as fluid mechanics, plasma physics and electrodynamics.
+
+\textcite{Hesthaven_190449} presents the use of DGTD to solve time-domain Maxwell's equations with an 1D example.
+These equations serve as the base for solving many of the electrodynamics problems and is adopted by
+many computer based algorithms as well. \cite{} presents an algorithm implemented in C++ for computing
+the fields using such equations in a simulation for K non-overlapping tetrahedra elements. As highlighted 
+in \cite{} many other implementation have also been developed such as MIDG2
+which has been ported for various platforms to utilize different kinds of hardware and software environments.
+A extended version of MIDG2 which used openCL and MPI to provide acceleration will be used as the reference design.
+
+\subsubsection{MIDG2 MPI FPGA implementation}
+MIDG2 MPI FPGA is extended version of MIDG2 application utilizing openCL kernels to perform the
+computation and MPI for communication between multiple nodes. The openCL kernels are
+highly optimized to achieve maximum performance on a single FPGA using pipelining using
+standard Intel channels. This implementation will be used as the reference design and
+the existing architecture of the application is shown in figure .
+The DG time domain computation are performed in time steps using multiple kernels.
+Volume and the surface kernel is used to compute the volume and surface RHS field
+contributions of the elements respectively. The RK kernel accumulates the RHS
+field contribution computed in volume and surface kernel. Partial kernel reads in
+the intermediate fields value of last time step from the FPGA memory and fills them
+in a contiguous memory which is then distributed to the respective neighbors using
+MPI asynchronous communication.
+
+In order to achieve communication between multiple FPGAs, IO channels would be used
+in the partial kernel to send the data directly to the neighboring FPGA.
+
+\subsection{Objective 2}
+
+The current Nallatech BSP for 520N supports 4 openCL IO channels based communication between
+multiple FPGA using the 100/40/25/10G QSFP28 network ports. The second objective of
+the thesis is to utilize these network ports to evaluate and identify a point-to-point
+topology for the FPGA which is most effective for the MIDG2 implementation.
+
+\subsubsection{IO Channels}
+
+The openCL IO channels provided by the BSP are and extension of the standard Intel channels \cite{noauthor_intel_2018}
+and can be used in similar way to provide blocking communication between multiple FPGAs.
+Currents version of the channels support a maximum datarate of 40 Gbits/s using 256 bits per cycle.
+As there is no MAC mechanism available yet, only point-to-point communication is possible between
+two FPGAs.
+
+\subsubsection{Proposed Topologies}
+
+To identify a suitable topology for the application, multiple topologies
+as shown in fig would be evaluated. The main criterions for the evaluation
+would be latency and the overall bandwidth of the channels achieved in each
+configuration. As the topology shall be know prior to execution of the application,
+the topological information should be provided by a suitable topological file
+to enable the FPGAs identify their neighbors.
+
+
+\subsection{Objective 3}
+
+The third objective is to identify a suitable partitioning configuration for the mesh elements so that
+the distribution of the elements among the FPGAs utilizes the topological information. This is critical
+as a good distribution scheme would reduce the overall network communication by placing neighboring elements
+on neighboring nodes. The partitioning is currently done by the ParMETIS\footnote{\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}}
+library. 
+
+\subsubsection{ParMETIS}
+
+ParMETIS is a MPI-based parallel library which is capable of partitioning a variety of unstructured graphs and meshes. MIDG2
+uses the ParMETIS to partition the mesh elements among the MPI nodes. The partitioning api uses a set of parameters such as element
+size, partitioning surface criteria and weights for distribution considering capabilities of the node. These parameters allows
+ParMETIS to partition the mesh into section which reduces the overall shared elements among nodes and reduce the communication requirement.
+The partitioning scheme would require to be updated in order to provide the ParMETIS library the information of the topology of the FPGA.
 
 \section{Preliminary Outline}
 
@@ -60,7 +171,7 @@ Introduce the DG method to solve maxwell equation along with current implementat
 
 
 %%%----------------------------------------------------------
-  
+
 \section*{References}
 
 \printbibliography[heading=noheader]
