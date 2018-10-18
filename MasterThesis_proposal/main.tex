@@ -9,7 +9,11 @@
 % !BIB program = biber
 
 \documentclass[english,notitlepage]{hgbreport}
-
+\usepackage{pgfgantt}
+\usepackage{array}
+\newcounter{gantttask}
+\newcounter{ganttsubtask}
+\newcommand*{\alignmiddle}[2]{\multicolumn{1}{#1}{#2}}
 \RequirePackage[utf8]{inputenc}		% remove when using lualatex oder xelatex!
 \renewcommand{\chapter}[1]{}	% \chapter is deactivated
 \renewcommand{\thesection}{\arabic{section}}
@@ -38,10 +42,6 @@
 %%%----------------------------------------------------------
 \maketitle
 %%%----------------------------------------------------------
-
-\begin{abstract}\noindent
-	Abstract giving a overview of the aim of the thesis
-\end{abstract}
 
 \section{Introduction}
 
@@ -148,36 +148,28 @@ two FPGAs.
 \subsubsection{Proposed Topologies}
 
 To identify a suitable topology for the application, multiple topologies
-as shown in fig would be evaluated. The main criterions for the evaluation
+as shown in figure \ref{fig:topologies} would be evaluated. The main criterions for the evaluation
 would be latency and the overall bandwidth of the channels achieved in each
 configuration. As the topology shall be know prior to execution of the application,
 the topological information should be provided by a suitable topological file
 to enable the FPGAs identify their neighbors.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering\small
-	\begin{tabular}{cc}
-		\fbox{\includegraphics[width=0.4\textwidth]{topo1}} &		% JPEG file
-		\fbox{\includegraphics[width=0.4\textwidth]{topo2}} \\	% PNG file
-		(a) & (b)
+	\begin{tabular}{c@{\hskip 0.5in}c}
+		\includegraphics[width=0.35\textwidth]{topo1} &		% JPEG file
+		\includegraphics[width=0.35\textwidth]{topo2} \\	% PNG file
+		(a) Within Node & (b) Fully connected no HOPS \\ \\
+		\alignmiddle{m{0.35\textwidth}@{\hskip 0.5in}}{\includegraphics[width=0.35\textwidth]{topo3}} &		% JPEG file
+		\alignmiddle{m{0.35\textwidth}}{\includegraphics[width=0.35\textwidth]{topo4}} \\	% PNG file
+		(c) Fully connected with HOPS & (d) Toroidal
 	\end{tabular}
-	\caption{Example for including images in a figure. Explain what is shown
-	in (a) and (b), respectively.} 
-	\label{fig:example}
+	\caption{Proposed topologies. (a) and (b) are partially connected and (c) and (d)
+	fully connected topologies} 
+	\label{fig:topologies}
 \end{figure}
 
 
-\begin{figure}[htbp]
-	\centering\small
-	\begin{tabular}{cc}
-		\fbox{\includegraphics[width=0.4\textwidth]{topo3}} &		% JPEG file
-		\fbox{\includegraphics[width=0.4\textwidth]{topo4}} \\	% PNG file
-		(c) & (d) 
-	\end{tabular}
-	\caption{Example for including images in a figure. Explain what is shown
-	in (a) and (b), respectively.} 
-	\label{fig:example}
-\end{figure}
 \subsection{Objective 3}
 
 The third objective is to identify a suitable partitioning configuration for the mesh elements so that
@@ -195,12 +187,73 @@ ParMETIS to partition the mesh into section which reduces the overall shared ele
 The partitioning scheme would require to be updated in order to provide the ParMETIS library the information of the topology of the FPGA.
 
 \section{Preliminary Outline}
+\begin{enumerate}
+	\item Introduction
+	\item Fundamentals and Related Work
+	\begin{enumerate}
+		\item Nodal Galerikin Discontinuous method
+		\item Fundamental of openCL
+		\item IO channels
+	\end{enumerate}
+	\item System Architecture of updated design
+	\begin{enumerate}
+		\item Topology configurations
+		\item openCL kernel structure
+		\item Host application updates
+	\end{enumerate}
+	\item Evaluation
+	\begin{enumerate}
+		\item Comparision of topologies
+		\item Comparision with reference design
+	\end{enumerate}
+	\item Conclusion
+
+\end{enumerate}
 
 \section{Proposed Time Schedule}
+
+The time plan scheduled considering 22 weeks of work time starting from 1st of November 2018.
+Approach is to first prototype the topological evaluation to identify possibilities and test them,
+followed by implementation of the changes required in the MIDG2 MPI FPGA application to support
+multiple FPGA using IO channels. In the last a detailed evaluation and final thesis preparation is
+planned. The propesed Schedule is presented below.
+
+\begin{ganttchart}[
+	vgrid,
+	bar label node/.append style={text width=4cm},
+	group label node/.append style={text width=4cm},
+	bar label text={\refstepcounter{ganttsubtask}\arabic{gantttask}.\arabic{ganttsubtask} \strut#1},
+	group label text={\setcounter{ganttsubtask}{0}\refstepcounter{gantttask}\arabic{gantttask}. \strut#1},
+	]{1}{24}
+    \ganttset{bar height=.25}
+    \gantttitle{Master's Thesis Timeline - Week Numbers}{24} \\
+    \gantttitlelist{44,...,52}{1}
+    \gantttitlelist{1,...,15}{1} \\
+
+    \ganttgroup{Prototype kernels to test IO Channels}{1}{5} \\
+	\ganttbar{basic IO channel communication}{1}{2} \\
+	\ganttbar{prototype for\\ selected topologies}{3}{5} \\
+
+	\ganttgroup{MIDG2 application Update}{6}{15} \\
+    \ganttbar{update kernel with IO channel}{6}{8} \\
+    \ganttbar{implement for 2 FPGA}{9}{10} \\
+    \ganttbar{update for multiple FPGA}{11}{13} \\
+    \ganttbar{devise partitioning scheme}{14}{15} \\
+
+    \ganttgroup{Evaluation}{16}{19} \\
+    \ganttbar{add evaluation code}{16}{16} \\
+    \ganttbar{test different topologies}{17}{18} \\
+    \ganttbar{consolidate results}{19}{19} \\
+
+    \ganttgroup{Final report}{20}{22} \\
+    
+    % \ganttmilestone{review}{36} \ganttnewline
+\end{ganttchart}
 
 
 %%%----------------------------------------------------------
 
+\pagebreak
 \section*{References}
 
 \printbibliography[heading=noheader]
