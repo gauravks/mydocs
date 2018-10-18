@@ -112,7 +112,7 @@ MIDG2 MPI FPGA is extended version of MIDG2 application utilizing openCL kernels
 computation and MPI for communication between multiple nodes. The openCL kernels are
 highly optimized to achieve maximum performance on a single FPGA using pipelining using
 standard Intel channels. This implementation will be used as the reference design and
-the existing architecture of the application is shown in figure .
+the existing architecture of the application is shown in figure \ref{fig:kernels}.
 The DG time domain computation are performed in time steps using multiple kernels.
 Volume and the surface kernel is used to compute the volume and surface RHS field
 contributions of the elements respectively. The RK kernel accumulates the RHS
@@ -121,6 +121,12 @@ the intermediate fields value of last time step from the FPGA memory and fills t
 in a contiguous memory which is then distributed to the respective neighbors using
 MPI asynchronous communication.
 
+\begin{figure}[h]%
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/kernels}
+    \caption{openCL kernels for MIDG2 MPI FPGA implementation}
+    \label{fig:kernels}
+\end{figure}
 In order to achieve communication between multiple FPGAs, IO channels would be used
 in the partial kernel to send the data directly to the neighboring FPGA.
 
@@ -148,7 +154,30 @@ configuration. As the topology shall be know prior to execution of the applicati
 the topological information should be provided by a suitable topological file
 to enable the FPGAs identify their neighbors.
 
+\begin{figure}[htbp]
+	\centering\small
+	\begin{tabular}{cc}
+		\fbox{\includegraphics[width=0.4\textwidth]{topo1}} &		% JPEG file
+		\fbox{\includegraphics[width=0.4\textwidth]{topo2}} \\	% PNG file
+		(a) & (b)
+	\end{tabular}
+	\caption{Example for including images in a figure. Explain what is shown
+	in (a) and (b), respectively.} 
+	\label{fig:example}
+\end{figure}
 
+
+\begin{figure}[htbp]
+	\centering\small
+	\begin{tabular}{cc}
+		\fbox{\includegraphics[width=0.4\textwidth]{topo3}} &		% JPEG file
+		\fbox{\includegraphics[width=0.4\textwidth]{topo4}} \\	% PNG file
+		(c) & (d) 
+	\end{tabular}
+	\caption{Example for including images in a figure. Explain what is shown
+	in (a) and (b), respectively.} 
+	\label{fig:example}
+\end{figure}
 \subsection{Objective 3}
 
 The third objective is to identify a suitable partitioning configuration for the mesh elements so that
