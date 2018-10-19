@@ -130,3 +130,80 @@
 	year = {2018},
 	file = {Intel® FPGA SDK for OpenCL™ Pro Edition  Programmi.pdf:/home/gauravks/Zotero/storage/C4UM9AZC/Intel® FPGA SDK for OpenCL™ Pro Edition  Programmi.pdf:application/pdf}
 }
+
+@article{klockner_nodal_2009,
+	title = {Nodal discontinuous {Galerkin} methods on graphics processors},
+	volume = {228},
+	issn = {0021-9991},
+	url = {http://www.sciencedirect.com/science/article/pii/S0021999109003647},
+	doi = {10.1016/j.jcp.2009.06.041},
+	abstract = {Discontinuous Galerkin (DG) methods for the numerical solution of partial differential equations have enjoyed considerable success because they are both flexible and robust: They allow arbitrary unstructured geometries and easy control of accuracy without compromising simulation stability. Lately, another property of DG has been growing in importance: The majority of a DG operator is applied in an element-local way, with weak penalty-based element-to-element coupling. The resulting locality in memory access is one of the factors that enables DG to run on off-the-shelf, massively parallel graphics processors (GPUs). In addition, DG’s high-order nature lets it require fewer data points per represented wavelength and hence fewer memory accesses, in exchange for higher arithmetic intensity. Both of these factors work significantly in favor of a GPU implementation of DG. Using a single US\$400 Nvidia GTX 280 GPU, we accelerate a solver for Maxwell’s equations on a general 3D unstructured grid by a factor of around 50 relative to a serial computation on a current-generation CPU. In many cases, our algorithms exhibit full use of the device’s available memory bandwidth. Example computations achieve and surpass 200gigaflops/s of net application-level floating point work. In this article, we describe and derive the techniques used to reach this level of performance. In addition, we present comprehensive data on the accuracy and runtime behavior of the method.},
+	number = {21},
+	urldate = {2018-10-19},
+	journal = {Journal of Computational Physics},
+	author = {Klöckner, A. and Warburton, T. and Bridge, J. and Hesthaven, J. S.},
+	month = nov,
+	year = {2009},
+	keywords = {Discontinuous Galerkin, GPU, High order, Many-core, Maxwell’s equations, Parallel computation},
+	pages = {7863--7882},
+	file = {ScienceDirect Full Text PDF:C\:\\Users\\gaura\\Zotero\\storage\\TWWMAVJ3\\Klöckner et al. - 2009 - Nodal discontinuous Galerkin methods on graphics p.pdf:application/pdf;ScienceDirect Snapshot:C\:\\Users\\gaura\\Zotero\\storage\\NH87864T\\S0021999109003647.html:text/html}
+}
+
+@inproceedings{ye_discontinuous_2011,
+	title = {Discontinuous galerkin implementation of domain decomposition time-domain finite-element method},
+	doi = {10.1109/APS.2011.5996988},
+	abstract = {A discontinuous Galerkin time-domain finite-element method (DG-TDFEM) is developed for modeling wideband EM response of dielectric loaded waveguide structures. It can be considered as a kind of domain decomposition method (DDM). The hierarchical vector basis functions are used to expand the electric and magnetic fields to maintain high order accuracy and Crank-Nicolson (CN) difference scheme is utilized for the time-partial equation for each subdomain. The fields in adjacent subdomains are directly related to each other by the fields on their interfaces. Thus, there is no need to solve a global matrix equation related to all boundary values. The complex frequency-shifted perfectly matched layers (CFS-PML) are used for the truncation of solution domain. 3-dimensional cavity and waveguide structure with dielectric loading are simulated to demonstrate the accuracy and efficiency of the proposed method.},
+	booktitle = {2011 {IEEE} {International} {Symposium} on {Antennas} and {Propagation} ({APSURSI})},
+	author = {Ye, Z. and Wang, C.},
+	month = jul,
+	year = {2011},
+	keywords = {3D cavity, boundary value, boundary-value problems, complex frequency-shifted perfectly matched layer, Crank-Nicolson (CN) algorithm, Crank-Nicolson difference scheme, DG-TDFEM, dielectric loaded waveguide structure, dielectric loading, dielectric waveguides, discontinuous Galerkin time-domain finite-element method, Disontinuous Galerkin method, domain decomposition method, electric field, electric fields, Electric fields, Equations, finite element analysis, Finite element methods, Galerkin method, global matrix equation, hierarchical vector basis function, hierarchical vector basis functions, magnetic field, magnetic fields, Mathematical model, Moment methods, Time domain analysis, time-domain analysis, time-domain finite-element method (TDFEM), time-partial equation, Transmission line matrix methods, wideband EM response},
+	pages = {2338--2341},
+	file = {IEEE Xplore Abstract Record:C\:\\Users\\gaura\\Zotero\\storage\\6JIKJ83Q\\5996988.html:text/html;IEEE Xplore Full Text PDF:C\:\\Users\\gaura\\Zotero\\storage\\XLUKABMF\\Ye and Wang - 2011 - Discontinuous galerkin implementation of domain de.pdf:application/pdf}
+}
+
+@article{wilcox_high-order_2010,
+	title = {A high-order discontinuous {Galerkin} method for wave propagation through coupled elastic–acoustic media},
+	volume = {229},
+	issn = {0021-9991},
+	url = {http://www.sciencedirect.com/science/article/pii/S0021999110005024},
+	doi = {10.1016/j.jcp.2010.09.008},
+	abstract = {We introduce a high-order discontinuous Galerkin (dG) scheme for the numerical solution of three-dimensional (3D) wave propagation problems in coupled elastic–acoustic media. A velocity–strain formulation is used, which allows for the solution of the acoustic and elastic wave equations within the same unified framework. Careful attention is directed at the derivation of a numerical flux that preserves high-order accuracy in the presence of material discontinuities, including elastic–acoustic interfaces. Explicit expressions for the 3D upwind numerical flux, derived as an exact solution for the relevant Riemann problem, are provided. The method supports h-non-conforming meshes, which are particularly effective at allowing local adaptation of the mesh size to resolve strong contrasts in the local wavelength, as well as dynamic adaptivity to track solution features. The use of high-order elements controls numerical dispersion, enabling propagation over many wave periods. We prove consistency and stability of the proposed dG scheme. To study the numerical accuracy and convergence of the proposed method, we compare against analytical solutions for wave propagation problems with interfaces, including Rayleigh, Lamb, Scholte, and Stoneley waves as well as plane waves impinging on an elastic–acoustic interface. Spectral rates of convergence are demonstrated for these problems, which include a non-conforming mesh case. Finally, we present scalability results for a parallel implementation of the proposed high-order dG scheme for large-scale seismic wave propagation in a simplified earth model, demonstrating high parallel efficiency for strong scaling to the full size of the Jaguar Cray XT5 supercomputer.},
+	number = {24},
+	urldate = {2018-10-19},
+	journal = {Journal of Computational Physics},
+	author = {Wilcox, Lucas C. and Stadler, Georg and Burstedde, Carsten and Ghattas, Omar},
+	month = dec,
+	year = {2010},
+	keywords = {-Non-conforming mesh, Discontinuous Galerkin, Elastodynamic–acoustic interaction, High-order accuracy, Parallel computing, Upwind numerical flux, Wave propagation},
+	pages = {9373--9396},
+	file = {ScienceDirect Full Text PDF:C\:\\Users\\gaura\\Zotero\\storage\\WSNXNVQ8\\Wilcox et al. - 2010 - A high-order discontinuous Galerkin method for wav.pdf:application/pdf;ScienceDirect Snapshot:C\:\\Users\\gaura\\Zotero\\storage\\FFYFKGHW\\S0021999110005024.html:text/html}
+}
+
+@unpublished{baggag_parallel_1999,
+	title = {Parallel {Implementation} of the {Discontinuous} {Galerkin} {Method}},
+	url = {https://ntrs.nasa.gov/search.jsp?R=19990100667},
+	abstract = {This paper describes a parallel implementation of the discontinuous Galerkin method. Discontinuous Galerkin is a spatially compact method that retains its accuracy and robustness on non-smooth unstructured grids and is well suited for time dependent simulations. Several parallelization approaches are studied and evaluated. The most natural and symmetric of the approaches has been implemented in all object-oriented code used to simulate aeroacoustic scattering. The parallel implementation is MPI-based and has been tested on various parallel platforms such as the SGI Origin, IBM SP2, and clusters of SGI and Sun workstations. The scalability results presented for the SGI Origin show slightly superlinear speedup on a fixed-size problem due to cache effects.},
+	urldate = {2018-10-19},
+	author = {Baggag, AbdalkaderAtkins},
+	month = aug,
+	year = {1999},
+	keywords = {aeroacoustics, euler equations of motion, galerkin method, linearization, object-oriented programming, robustness, scattering, simulation, time dependence, unstructured grids},
+	annote = {Document ID: 19990100667; Subject Category: COMPUTER PROGRAMMING AND SOFTWARE; Financial Sponsor: NASA Langley Research Center; Hampton, VA United States; Organization Source: Institute for Computer Applications in Science and Engineering; Hampton, VA United States; Description: 12p; In English},
+	annote = {Report/Patent Number: NASA/CR-1999-209546, NAS 1.26:209546, ICASE-99-35},
+	file = {NASA NTRS Full Text PDF:C\:\\Users\\gaura\\Zotero\\storage\\SIT96XVE\\Baggag - 1999 - Parallel Implementation of the Discontinuous Galer.pdf:application/pdf;Snapshot:C\:\\Users\\gaura\\Zotero\\storage\\F2EXDR32\\search.html:text/html}
+}
+
+@inproceedings{collis_discontinuous_2002,
+	title = {Discontinuous {Galerkin} {Methods} for {Turbulence} {Simulation}},
+	url = {https://ntrs.nasa.gov/search.jsp?R=20030020461},
+	abstract = {A discontinuous Galerkin  method is formulated, implemented, and tested for simulation of compressible turbulent flows. The method is applied to turbulent channel flow at low Reynolds number, where it is found to successfully predict low-order statistics with fewer degrees of freedom than traditional numerical methods. This reduction is achieved by utilizing local hp-refinement such that the computational grid is refined simultaneously in all three spatial coordinates with decreasing distance from the wall. Another advantage of DG is that Dirichlet boundary conditions can be enforced weakly through integrals of the numerical fluxes. Both for a model advection-diffusion problem and for turbulent channel flow, weak enforcement of wall boundaries is found to improve results at low resolution. Such weak boundary conditions may play a pivotal role in wall modeling for large-eddy simulation.},
+	urldate = {2018-10-19},
+	author = {Collis, S. Scott},
+	month = dec,
+	year = {2002},
+	keywords = {boundary conditions, channel flow, circular cylinders, computational grids, degrees of freedom, dirichlet problem, discontinuity, galerkin method, low reynolds number, mathematical models, navier-stokes equation, simulation, steady flow, turbulent flow, vortex shedding},
+	annote = {Document ID: 20030020461; Subject Category: FLUID MECHANICS AND THERMODYNAMICS; Financial Sponsor: NASA Ames Research Center; Moffett Field, CA United StatesNational Science Foundation; Arlington, VA United StatesTexas Advanced Technology Program; Austin, TX United States; Organization Source: Rice Univ.; Houston, TX United States; Description: 14p; In English},
+	annote = {Publication Information: SEE  parent document record,  "Studying Turbulence Using Numerical Simulation Databases - IX: Proceedings of the 2002 Summer Program"; p. 155-167},
+	file = {NASA NTRS Full Text PDF:C\:\\Users\\gaura\\Zotero\\storage\\MJ2P3S9V\\Collis - 2002 - Discontinuous Galerkin Methods for Turbulence Simu.pdf:application/pdf;Snapshot:C\:\\Users\\gaura\\Zotero\\storage\\W888M8UH\\search.html:text/html}
+}

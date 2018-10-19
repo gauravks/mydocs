@@ -47,26 +47,30 @@
 
 FPGA based accelerators provides the flexibility to design application specific hardware accelerators and re-use the same
 hardware for different kinds of problems. Such advantages has shown a increased popularity of the FPGA accelerators among
-the high performance computing (HPC) researchers in recent times. FPGAs are mostly used to develop highly
-optimized accelerators for common operations such as matrix multiplication, fast fourier transformation,
+the high performance computing (HPC) researchers in recent times. The FPGAs are mostly used to develop highly
+optimized accelerators for common operations such as matrix multiplication, fast fourier transformation
 and sparse-matrix optimization which serve as the main computing blocks for many of the applications. These accelerators
-mostly rely on the features such as pipelining for data re-use, replication for parallelization and memory localization
+mostly rely on the FPGA features such as pipelining for data re-use, replication for parallelization and memory localization
 for lower memory latency.
 
 The new Noctua high performance computing (HPC) cluster at Paderborn Center for Parallel Computing  (PC\textsuperscript{2})
 which is equipped with additional Stratrix 10 FPGA accelerators provides an excellent opportunity to demonstrate the benefits
 of using FPGA accelerators for applications from different domains. Along with the usual benefits mentioned previously, the
-Nallatech 520N accelerator boards which are installed in the Noctua cluster, provides opportunities to use multiple
-FPGA in parallel for the same application by using the four 100/40/25/10G QSFP28 network ports. This can be used to offload
-the network communication required in some applications for data exchange while using MPI or similar distributed computing
-algorithms such as the MIDG2\footnote{\url{https://github.com/tcew/MIDG2}}.
+Nallatech 520N accelerator boards provides opportunities to use multiple FPGA in parallel for the same application by
+using the four 100/40/25/10G QSFP28 network ports. These ports can be used to offload the network communication required in
+some applications for data exchange via the MPI or similar distributed computing libraries. One such application
+is MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} which uses MPI to parallelize the computation on CPUs and GPUs.
 
-MIDG2 is a MPI based parallel computation implementation of the Discontinuous Galerikin (DG) \cite{hesthaven_nodal_2008} method.
-DG method is a commonly used operation in many applications simulations to solve partial differential equations (PDE).
-\textcite{kenter_opencl-based_2018} presents an openCL based FPGA accelerator which works for a single node and is 2x faster
-when compared to a multithreaded CPU implementation. \textcite{kobayashi_opencl-ready_2018} has shown the benefits of using
-FPGA network communication over the InfiBand network. Such implementation highlights the benefits of a FPGA based distributed
-computing system which would be the mail goal of this thesis.
+MIDG2 is a MPI based parallel computation implementation of the Discontinuous Galerikin (DG) \cite{hesthaven_nodal_2008} method
+to solve Maxwell's equation in time domain. DG method is a commonly used operation in many applications simulations to solve
+partial differential equations (PDE). As it requires individual computation on the elements, many implementation
+has been developed which are utilized by applicationa in different domains presented in \cite{ye_discontinuous_2011, wilcox_high-order_2010,
+collis_discontinuous_2002}. There are other parallel implementation as well which utilize GPUs \cite{afzal_solving_2018, klockner_nodal_2009}
+and multiple CPUs \cite{baggag_parallel_1999} for acceleration. \textcite{kenter_opencl-based_2018} presents an openCL based
+FPGA accelerator which works for a single node and is 2x faster when compared to a multithreaded CPU implementation. Futher acceleration
+is possible using multiple FPGAs as shown by \textcite{kobayashi_opencl-ready_2018} where the authors compare the latency and bandwidth
+of the communication between two FPGAs using FPGA-FPGA direct Etherent communication and communication via CPU+InfiBand.
+These implementation highlights the benefits of a FPGA based distributed computing system which is the main goal of this thesis.
 
 In the rest of the document, the objectives of the thesis would be defined introducing some of the components involved followed
 by the timeline and initial outline of the thesis work.
@@ -74,21 +78,62 @@ by the timeline and initial outline of the thesis work.
 
 \section{Objectives}
 
-The Noctua being first of the academic HPC cluster equipped with FPGAs, we don't know of any implementation
+The Noctua being first of the academic HPC cluster equipped with FPGAs, there is no known mplementation
 utilizing FPGA in network configuration for more than two FPGAs. The proposed master thesis aims at presenting
-such a system which evaluates the achievable acceleration with multiple FPGAs in point-to-point communication
-in different network topologies using the MIDG2 as the base application for the evaluation. In respect to achieve
-the goal following objectives is required to be achieved:
+such a system which evaluates the achievable acceleration with multiple FPGAs using point-to-point communication
+in different network topologies for the MIDG2 application. To reach the final aim following objectives are
+required to be achieved as part of this thesis:
 
 \begin{enumerate}
-	\item \textbf{Objective 1}: Extend the openCL kernels of the MIDG2 FPGA implementation to use IO channels
-	\item \textbf{Objective 2}: Identify and evaluate possible topologies using the 4 IO channels on Nallatech 520N boards
+	\item \textbf{Objective 1}: Identify and evaluate possible topologies using the 4 IO channels on Nallatech 520N boards
+	\item \textbf{Objective 2}: Extend the openCL kernels of the MIDG2 FPGA implementation to use IO channels
 	\item \textbf{Objective 3}: Devise an effective partitioning scheme for the mesh to reduce communication overheads for the target topologies
 \end{enumerate}
 
 \subsection{Objective 1}
 
-The first objective requires the understanding of following components
+The current Nallatech BSP for 520N supports 4 openCL IO channels based communication between
+multiple FPGA using the 100/40/25/10G QSFP28 network ports. The first objective of
+the thesis is to utilize these network ports to evaluate and identify a point-to-point
+topology for the FPGA which is most effective for the MIDG2 implementation.
+
+\subsubsection{IO Channels}
+
+The openCL IO channels provided by the BSP are an extension of the standard Intel channels \cite{noauthor_intel_2018}
+and can be used in similar way to provide blocking communication between multiple FPGAs.
+Current version of the IO channels support a maximum datarate of 40 Gbits/s using 256 bits per cycle.
+As there is no MAC mechanism available yet, only point-to-point communication is possible between
+two FPGAs.
+
+\subsubsection{Proposed Topologies}
+
+To identify a suitable topology for the application, multiple topologies
+as shown in figure \ref{fig:topologies} would be evaluated. The main criterions for the evaluation
+would be latency and the overall bandwidth of the channels achieved in each
+configuration. As the topology shall be know prior to execution of the application,
+the topological information should be provided by a suitable topological file
+to enable the FPGAs identify their neighbors.
+
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{c@{\hskip 0.5in}c}
+		\includegraphics[width=0.35\textwidth]{topo1} &		% JPEG file
+		\includegraphics[width=0.35\textwidth]{topo2} \\	% PNG file
+		(a) Within Node & (b) Fully connected no HOPS \\ \\
+		\alignmiddle{m{0.35\textwidth}@{\hskip 0.5in}}{\includegraphics[width=0.35\textwidth]{topo3}} &		% JPEG file
+		\alignmiddle{m{0.35\textwidth}}{\includegraphics[width=0.35\textwidth]{topo4}} \\	% PNG file
+		(c) Fully connected with HOPS & (d) Toroidal
+	\end{tabular}
+	\caption{Proposed topologies. (a), (b) and (d) are partially connected and (c) is
+	fully connected topologies} 
+	\label{fig:topologies}
+\end{figure}
+
+\subsection{Objective 2}
+
+The second objective is to extend the MIDG2 FPGA implementation to use IO Channels for communicating
+the shared elements information using the topologies identified in previous step.
+This step requires understanding of following components.
 
 \subsubsection{Nodal Discontinuous Galerikin Method}	% title of a subtask
 
@@ -127,48 +172,9 @@ MPI asynchronous communication.
     \caption{openCL kernels for MIDG2 MPI FPGA implementation}
     \label{fig:kernels}
 \end{figure}
+
 In order to achieve communication between multiple FPGAs, IO channels would be used
 in the partial kernel to send the data directly to the neighboring FPGA.
-
-\subsection{Objective 2}
-
-The current Nallatech BSP for 520N supports 4 openCL IO channels based communication between
-multiple FPGA using the 100/40/25/10G QSFP28 network ports. The second objective of
-the thesis is to utilize these network ports to evaluate and identify a point-to-point
-topology for the FPGA which is most effective for the MIDG2 implementation.
-
-\subsubsection{IO Channels}
-
-The openCL IO channels provided by the BSP are and extension of the standard Intel channels \cite{noauthor_intel_2018}
-and can be used in similar way to provide blocking communication between multiple FPGAs.
-Currents version of the channels support a maximum datarate of 40 Gbits/s using 256 bits per cycle.
-As there is no MAC mechanism available yet, only point-to-point communication is possible between
-two FPGAs.
-
-\subsubsection{Proposed Topologies}
-
-To identify a suitable topology for the application, multiple topologies
-as shown in figure \ref{fig:topologies} would be evaluated. The main criterions for the evaluation
-would be latency and the overall bandwidth of the channels achieved in each
-configuration. As the topology shall be know prior to execution of the application,
-the topological information should be provided by a suitable topological file
-to enable the FPGAs identify their neighbors.
-
-\begin{figure}[h]
-	\centering\small
-	\begin{tabular}{c@{\hskip 0.5in}c}
-		\includegraphics[width=0.35\textwidth]{topo1} &		% JPEG file
-		\includegraphics[width=0.35\textwidth]{topo2} \\	% PNG file
-		(a) Within Node & (b) Fully connected no HOPS \\ \\
-		\alignmiddle{m{0.35\textwidth}@{\hskip 0.5in}}{\includegraphics[width=0.35\textwidth]{topo3}} &		% JPEG file
-		\alignmiddle{m{0.35\textwidth}}{\includegraphics[width=0.35\textwidth]{topo4}} \\	% PNG file
-		(c) Fully connected with HOPS & (d) Toroidal
-	\end{tabular}
-	\caption{Proposed topologies. (a) and (b) are partially connected and (c) and (d)
-	fully connected topologies} 
-	\label{fig:topologies}
-\end{figure}
-
 
 \subsection{Objective 3}
 
@@ -212,11 +218,6 @@ The partitioning scheme would require to be updated in order to provide the ParM
 
 \section{Proposed Time Schedule}
 
-The time plan scheduled considering 22 weeks of work time starting from 1st of November 2018.
-Approach is to first prototype the topological evaluation to identify possibilities and test them,
-followed by implementation of the changes required in the MIDG2 MPI FPGA application to support
-multiple FPGA using IO channels. In the last a detailed evaluation and final thesis preparation is
-planned. The propesed Schedule is presented below.
 
 \begin{ganttchart}[
 	vgrid,
@@ -250,7 +251,11 @@ planned. The propesed Schedule is presented below.
     % \ganttmilestone{review}{36} \ganttnewline
 \end{ganttchart}
 
-
+The time plan is scheduled considering 22 weeks of work time starting from 1st of November 2018.
+Approach is to first prototype the topological evaluation to identify possibilities and test them,
+followed by implementation of the changes required in the MIDG2 MPI FPGA application to support
+multiple FPGA using IO channels. In the last a detailed evaluation and final thesis preparation is
+planned.
 %%%----------------------------------------------------------
 
 \pagebreak
