@@ -46,9 +46,9 @@
 \section{Introduction}
 
 FPGA based accelerators provides the flexibility to design application specific hardware accelerators and re-use the same
-hardware for different kinds of problems. Such advantages has shown a increased popularity of the FPGA accelerators among
+hardware for different kinds of problems. Such advantages have shown an increased popularity of the FPGA accelerators among
 the high performance computing (HPC) researchers in recent times. The FPGAs are mostly used to develop highly
-optimized accelerators for common operations such as matrix multiplication, fast fourier transformation
+optimized accelerators for common operations such as matrix multiplication, fast Fourier transformation
 and sparse-matrix optimization which serve as the main computing blocks for many of the applications. These accelerators
 mostly rely on the FPGA features such as pipelining for data re-use, replication for parallelization and memory localization
 for lower memory latency.
@@ -64,12 +64,12 @@ is MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} which uses MPI to paralle
 MIDG2 is a MPI based parallel computation implementation of the Discontinuous Galerikin (DG) \cite{hesthaven_nodal_2008} method
 to solve Maxwell's equation in time domain. DG method is a commonly used operation in many applications simulations to solve
 partial differential equations (PDE). As it requires individual computation on the elements, many implementation
-has been developed which are utilized by applicationa in different domains presented in \cite{ye_discontinuous_2011, wilcox_high-order_2010,
+has been developed which are utilized by applications in different domains presented in \cite{ye_discontinuous_2011, wilcox_high-order_2010,
 collis_discontinuous_2002}. There are other parallel implementation as well which utilize GPUs \cite{afzal_solving_2018, klockner_nodal_2009}
 and multiple CPUs \cite{baggag_parallel_1999} for acceleration. \textcite{kenter_opencl-based_2018} presents an openCL based
-FPGA accelerator which works for a single node and is 2x faster when compared to a multithreaded CPU implementation. Futher acceleration
+FPGA accelerator which works for a single node and is 2x faster when compared to a multithreaded CPU implementation. Further acceleration
 is possible using multiple FPGAs as shown by \textcite{kobayashi_opencl-ready_2018} where the authors compare the latency and bandwidth
-of the communication between two FPGAs using FPGA-FPGA direct Etherent communication and communication via CPU+InfiBand.
+of the communication between two FPGAs using FPGA-FPGA direct Ethernet communication and communication via CPU+InfiBand.
 These implementation highlights the benefits of a FPGA based distributed computing system which is the main goal of this thesis.
 
 In the rest of the document, the objectives of the thesis would be defined introducing some of the components involved followed
@@ -78,7 +78,7 @@ by the timeline and initial outline of the thesis work.
 
 \section{Objectives}
 
-The Noctua being first of the academic HPC cluster equipped with FPGAs, there is no known mplementation
+The Noctua being first of the academic HPC cluster equipped with FPGAs, there is no known implementation
 utilizing FPGA in network configuration for more than two FPGAs. The proposed master thesis aims at presenting
 such a system which evaluates the achievable acceleration with multiple FPGAs using point-to-point communication
 in different network topologies for the MIDG2 application. To reach the final aim following objectives are
@@ -101,16 +101,16 @@ topology for the FPGA which is most effective for the MIDG2 implementation.
 
 The openCL IO channels provided by the BSP are an extension of the standard Intel channels \cite{noauthor_intel_2018}
 and can be used in similar way to provide blocking communication between multiple FPGAs.
-Current version of the IO channels support a maximum datarate of 40 Gbits/s using 256 bits per cycle.
+Current version of the IO channels supports a maximum data rate of 40 Gbits/s using 256 bits per cycle.
 As there is no MAC mechanism available yet, only point-to-point communication is possible between
 two FPGAs.
 
 \subsubsection{Proposed Topologies}
 
 To identify a suitable topology for the application, multiple topologies
-as shown in figure \ref{fig:topologies} would be evaluated. The main criterions for the evaluation
+as shown in figure \ref{fig:topologies} would be evaluated. The main criteria for the evaluation
 would be latency and the overall bandwidth of the channels achieved in each
-configuration. As the topology shall be know prior to execution of the application,
+configuration. As the topology shall be known prior to execution of the application,
 the topological information should be provided by a suitable topological file
 to enable the FPGAs identify their neighbors.
 
@@ -141,16 +141,16 @@ The nodal discontinuous Galerikin time domain method (DGTD) \cite{hesthaven_noda
 for partial differential equations (PDE) numerically. The method is proved to be efficient in
 producing results with computers as it relies on mathematical calculations on elemental basis.
 This allows to perform computation in parallel on similar or different hardware helping to
-solve problems from different domains quickly. DGTD method have particularly popular for applications
+solve problems from different domains quickly. DGTD method is particularly popular for applications
 in the domains such as fluid mechanics, plasma physics and electrodynamics.
 
 \textcite{Hesthaven_190449} presents the use of DGTD to solve time-domain Maxwell's equations with an 1D example.
 These equations serve as the base for solving many of the electrodynamics problems and is adopted by
-many computer based algorithms as well. \cite{} presents an algorithm implemented in C++ for computing
-the fields using such equations in a simulation for K non-overlapping tetrahedra elements. As highlighted 
-in \cite{} many other implementation have also been developed such as MIDG2
-which has been ported for various platforms to utilize different kinds of hardware and software environments.
-A extended version of MIDG2 which used openCL and MPI to provide acceleration will be used as the reference design.
+many computer based algorithms as well. MIDG2 is once such implementation which uses K non-overlapping tetrahedra elements
+for computing the fields value using Maxwell's equations. The original MIDG2 implementation supports
+parallelization using MPI for multiple CPUs and uses OCCA \footnote{\url{https://libocca.org}} to provide
+support for acceleration with GPU using CUDA and openCL. An extended version of MIDG2 which used openCL and
+MPI to provide acceleration will be used as the reference design.
 
 \subsubsection{MIDG2 MPI FPGA implementation}
 MIDG2 MPI FPGA is extended version of MIDG2 application utilizing openCL kernels to perform the
@@ -159,7 +159,7 @@ highly optimized to achieve maximum performance on a single FPGA using pipelinin
 standard Intel channels. This implementation will be used as the reference design and
 the existing architecture of the application is shown in figure \ref{fig:kernels}.
 The DG time domain computation are performed in time steps using multiple kernels.
-Volume and the surface kernel is used to compute the volume and surface RHS field
+Volume and the surface kernel are used to compute the volume and surface RHS field
 contributions of the elements respectively. The RK kernel accumulates the RHS
 field contribution computed in volume and surface kernel. Partial kernel reads in
 the intermediate fields value of last time step from the FPGA memory and fills them
@@ -188,7 +188,7 @@ library.
 
 ParMETIS is a MPI-based parallel library which is capable of partitioning a variety of unstructured graphs and meshes. MIDG2
 uses the ParMETIS to partition the mesh elements among the MPI nodes. The partitioning api uses a set of parameters such as element
-size, partitioning surface criteria and weights for distribution considering capabilities of the node. These parameters allows
+size, partitioning surface criteria and weights for distribution considering capabilities of the node. These parameters allow
 ParMETIS to partition the mesh into section which reduces the overall shared elements among nodes and reduce the communication requirement.
 The partitioning scheme would require to be updated in order to provide the ParMETIS library the information of the topology of the FPGA.
 
