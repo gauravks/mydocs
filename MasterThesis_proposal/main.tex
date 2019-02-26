@@ -31,9 +31,9 @@
 %%-----------------------------------------------------------
 
 \author{Gaurav Kumar Singh \\ \textit{\href{mailto:gauravks@mail.uni-paderborn.de}{gauravks@mail.uni-paderborn.de}}}
-\title{Proposal for Master Thesis on topic \\
-		Acceleration of Discontinuous Galerkin method \\
-		using FPGAs communicating via IO channels}
+\title{Proposal for Master Thesis on topic\\
+	Adding point-to-point communication between FPGAs\\
+	to an accelerator for the Discontinuous Galerkin method}
 \date{\today}
 
 
@@ -45,9 +45,9 @@
 
 \section{Introduction}
 
-FPGA based accelerators provides the flexibility to design application specific hardware accelerators and re-use the same
-hardware for different kinds of problems. Such advantages have shown an increased popularity of the FPGA accelerators among
-the high performance computing (HPC) researchers in recent times. The FPGAs are mostly used to develop highly
+FPGA based accelerators provide the flexibility to design application specific hardware accelerators and re-use the same
+hardware for different kinds of problems. Due to such advantages, FPGA accelerators are becoming popular among
+the high performance computing (HPC) researchers in recent times. FPGAs are mostly used to develop highly
 optimized accelerators for common operations such as matrix multiplication, fast Fourier transformation
 and sparse-matrix optimization which serve as the main computing blocks for many of the applications. These accelerators
 mostly rely on the FPGA features such as pipelining for data re-use, replication for parallelization and memory localization
@@ -56,20 +56,20 @@ for lower memory latency.
 The new Noctua high performance computing (HPC) cluster at Paderborn Center for Parallel Computing  (PC\textsuperscript{2})
 which is equipped with additional Stratrix 10 FPGA accelerators provides an excellent opportunity to demonstrate the benefits
 of using FPGA accelerators for applications from different domains. Along with the usual benefits mentioned previously, the
-Nallatech 520N accelerator boards provides opportunities to use multiple FPGA in parallel for the same application by
+Nallatech 520N accelerator boards can be configured to use multiple FPGAs in parallel for the same application by
 using the four 100/40/25/10G QSFP28 network ports. These ports can be used to offload the network communication required in
 some applications for data exchange via the MPI or similar distributed computing libraries. One such application
 is MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} which uses MPI to parallelize the computation on CPUs and GPUs.
 
-MIDG2 is a MPI based parallel computation implementation of the Discontinuous Galerikin (DG) \cite{hesthaven_nodal_2008} method
-to solve Maxwell's equation in time domain. DG method is a commonly used operation in many applications simulations to solve
-partial differential equations (PDE). As it requires individual computation on the elements, many implementation
-has been developed which are utilized by applications in different domains presented in \cite{ye_discontinuous_2011, wilcox_high-order_2010,
-collis_discontinuous_2002}. There are other parallel implementation as well which utilize GPUs \cite{afzal_solving_2018, klockner_nodal_2009}
-and multiple CPUs \cite{baggag_parallel_1999} for acceleration. \textcite{kenter_opencl-based_2018} presents an OpenCL™ based
+MIDG2 is an MPI based parallel computation implementation of the Discontinuous Galerkin (DG) \cite{hesthaven_nodal_2008} method
+to solve Maxwell's equation in time domain. DG method is a commonly used operation in many simulation applications to solve
+partial differential equations (PDE). As it requires individual computation on the elements, many implementations
+have been developed which are utilized by applications in different domains as presented in \cite{ye_discontinuous_2011, wilcox_high-order_2010,
+collis_discontinuous_2002}. There are other parallel implementations as well which utilize GPUs \cite{afzal_solving_2018, klockner_nodal_2009}
+and multiple CPUs \cite{baggag_parallel_1999} for acceleration. \textcite{kenter_opencl-based_2018} presented an OpenCL™ based
 FPGA accelerator which works for a single node and is 2x faster when compared to a multithreaded CPU implementation. Further acceleration
 is possible using multiple FPGAs as shown by \textcite{kobayashi_opencl-ready_2018} where the authors compare the latency and bandwidth
-of the communication between two FPGAs using FPGA-FPGA direct Ethernet communication and communication via CPU+InfiBand.
+of the communication between two FPGAs using FPGA-FPGA direct Ethernet communication and communication via CPU+InfiniBand.
 These implementation highlights the benefits of a FPGA based distributed computing system which is the main goal of this thesis.
 
 In the rest of the document, the objectives of the thesis would be defined introducing some of the components involved followed
@@ -112,72 +112,77 @@ two FPGAs.
 To identify a suitable topology for the application, multiple topologies
 as shown in figure \ref{fig:topologies} would be evaluated. The topology (a)
 considers connection between the FPGA within the same node. The connection can be via single channel
-or via all 4 channels and the communication between the nodes would rely on MPI. Topology (b) and (c)
-are completely connected topologies where each of the channel of the FPGA is connected to another FPGA
-either from same node or from another node. As in (a) the inter node communication in (b) for more than two nodes
-would be done via MPI but for topology (c) this could be done with multiple hops between the FGPAs which shall be evaluated
-for feasibility for the MIDG2 application from the FPGA resource utilization perspective. The last topology
-to be considered is 4 X 4 toroidal (d) which would provide a completely connected sets of two toroidal network where
-communication completely depends on the channels. The evaluation would be carried out considering the typical 
-data sizes in the MIDG2 application for the MPI based data exchange and with synthetic data sizes
-to measure the latency and the overall bandwidth of the channels achieved in different configuration 
-with or without MPI communication compared to pure MPI communication.
-As the topology shall be known prior to execution of the application, the topological information should
-be provided by a suitable topological file to enable the FPGAs identify their neighbors.
+or via all 4 channels and the communication between the nodes would rely on MPI. Topology (b) extends
+the topology (a) by adding two FPGAs from another node to create a group of 4 fully connected FPGAs.
+The FPGAs within the group communicate directly to each other via the channels and the communication to another
+group should be performed via the nodes using MPI. In topology (c) the groups in (b) is also connected using the
+remaining channel such that each group shares 2 links between them. This will allow to communicate between
+the groups using the channels with multiple hops over the groups. The hops based communication should be evaluated
+with the MIDG2 application to identify the FPGA resource utilization and decide feasibility of this topology
+with the application. The last topology to be considered is a toroidal interconnect (d) configured to create
+two sets of 4 X 4 2D torus networks. The communication within the torus would be done completely using the channels.
+The two tori would communicate via the MPI if communication is required.
+
+The evaluation would be carried out considering the typical data sizes in the MIDG2 application for the
+MPI based data exchange and with synthetic data sizes to measure the latency and the overall bandwidth
+of the channels achieved in different configuration with or without MPI communication compared to pure
+MPI communication. As the topology shall be known prior to execution of the application, the
+topological information should be provided by a suitable topological file to enable the FPGAs identify their neighbors.
 
 \begin{figure}[h]
 	\centering\small
 	\begin{tabular}{c@{\hskip 0.5in}c}
 		\includegraphics[width=0.35\textwidth]{topo1} &		% JPEG file
 		\includegraphics[width=0.35\textwidth]{topo2} \\	% PNG file
-		(a) Within Node with MPI & (b) Fully connected with MPI \\ \\
+		(a) Within Node with MPI & \alignmiddle{m{0.35\textwidth}@{\hskip 0.5in}}{(b) Fully connected groups of 4 FPGAs, MPI between groups} \\ \\
 		\alignmiddle{m{0.35\textwidth}@{\hskip 0.5in}}{\includegraphics[width=0.35\textwidth]{topo3}} &		% JPEG file
 		\alignmiddle{m{0.35\textwidth}}{\includegraphics[width=0.35\textwidth]{topo4}} \\	% PNG file
-		(c) Fully connected with HOPS & (d) Toroidal
+		\alignmiddle{m{0.35\textwidth}@{\hskip 0.5in}}{(c) Connected Graph with HOPs between fully connected groups} & (d) Toroidal
 	\end{tabular}
-	\caption{Proposed topologies. (a), (b) and (d) are partially connected and (c) is
-	fully connected topologies} 
+	\caption{Proposed topologies. (a), (b) and (d) should use MPI for communication between non-connected
+	nodes and (c) can use IO channels or MPI} 
 	\label{fig:topologies}
 \end{figure}
 
 \subsection{Objective 2}
 
 The second objective is to extend the MIDG2 FPGA implementation to use IO Channels for communicating
-the shared elements information using the topologies identified in previous step.
+the information of shared elements using the topology identified in previous step.
 This step requires understanding of following components.
 
-\subsubsection{Nodal Discontinuous Galerikin Method}	% title of a subtask
+\subsubsection{Nodal Discontinuous Galerkin Method}	% title of a subtask
 
-The nodal discontinuous Galerikin time domain method (DGTD) \cite{hesthaven_nodal_2008} is used to find solutions
+The nodal discontinuous Galerkin time domain method (DGTD) \cite{hesthaven_nodal_2008} is used to find solutions
 for partial differential equations (PDE) numerically. This method is efficient in
 producing results with computers as it relies on mathematical calculations on elemental basis.
 This allows to perform computation in parallel on similar or different hardware helping to
 solve problems from different domains quickly. DGTD method is particularly popular for applications
 in the domains such as fluid mechanics, plasma physics and electrodynamics.
 
-\textcite{Hesthaven_190449} presents the use of DGTD to solve time-domain Maxwell's equations with an 1D example.
+\textcite{Hesthaven_190449} present the use of DGTD to solve time-domain Maxwell's equations with an 1D example.
 These equations serve as the base for solving many of the electrodynamics problems and is adopted by
-many computer based algorithms as well. MIDG2 is once such implementation which uses K non-overlapping tetrahedra elements
-for computing the fields value using Maxwell's equations. The original MIDG2 implementation supports
+many computer based algorithms as well. MIDG2 is one such implementation which uses K non-overlapping tetrahedra elements
+for computing the field values using Maxwell's equations. The original MIDG2 implementation supports
 parallelization using MPI for multiple CPUs and uses OCCA \footnote{\url{https://libocca.org}} to provide
-support for acceleration with GPU using CUDA and OpenCL™. An extended version of MIDG2 which is capable of using
+support for acceleration with GPU using CUDA and OpenCL™. An extended version of MIDG2 which can use
 multiple FPGAs as accelerators connected to CPU nodes and using MPI for communication between multiple nodes will
 be used as the reference design.
 
 
 \subsubsection{MIDG2 MPI FPGA implementation}
+
 MIDG2 MPI FPGA is extended version of MIDG2 application utilizing OpenCL™ kernels to perform the
 computation and MPI for communication between multiple nodes. The OpenCL™ kernels are
-highly optimized to achieve maximum performance on a single FPGA using pipelining using
-standard Intel channels. This implementation will be used as the reference design and
+highly optimized to achieve maximum performance on a single FPGA using pipelining through
+standard Intel® FPGA SDK for OpenCL™ channels. This implementation will be used as the reference design and
 the existing architecture of the application is shown in figure \ref{fig:kernels}.
 The DG time domain computation are performed in time steps using multiple kernels.
-Volume and the surface kernel are used to compute the volume and surface RHS field
-contributions of the elements respectively. The RK kernel accumulates the RHS
-field contribution computed in volume and surface kernel. Partial kernel reads in
-the intermediate fields value of last time step from the FPGA memory and fills them
-in a contiguous memory which is then distributed to the respective neighbors using
-MPI asynchronous communication.
+Volume and the surface kernel are used to compute the volume and surface right hand side (RHS) field
+contributions of the elements. The RK kernel accumulates these RHS
+field contributions computed in volume and surface kernel to give the final values after each time step.
+Partial kernel is an additional kernel which reads in the intermediate field values of shared elements in
+the last time step from the FPGA memory and fills them in a contiguous memory which is then distributed
+to the respective neighbors using MPI asynchronous communication.
 
 \begin{figure}[h]%
     \centering
@@ -188,10 +193,10 @@ MPI asynchronous communication.
 
 As part of the thesis, implementation of the PARTIAL GET DATA kernel would be extended to utilize the IO channels
 for communicating the partial data to the neighboring FPGAs along with MPI for inter-node communication.
-Another set of changes which depends on the streaming channels
-implementation could be introduced which would require reorganization of the RK and PARTIAL kernel and
-can optimize the communication further. This change though is dependant
-completely on the availability and is to be considered optional in current context. 
+Another set of changes which depends on the streaming channels implementation could be introduced which
+would require reorganization of the RK and PARTIAL kernel and can optimize the communication further.
+This change is dependent completely on the availability of the updated MIDG2 reference with streaming
+interface and is to be considered optional in current context. 
 
 \subsection{Objective 3}
 
@@ -199,14 +204,14 @@ The third objective is to identify a suitable partitioning configuration for the
 the distribution of the elements among the nodes and FPGAs utilizes the topological information. 
 This objective is an optimization step to produce a good distribution scheme which would reduce
 the overall network communication by placing neighboring elements on neighboring nodes. This optimization
-step is and optional step as it depends upon the requirements of the topology which would be selected after the
+step is an optional step as it depends upon the requirements of the topology which would be selected after the
 evaluation. The partitioning is currently done by the ParMETIS\footnote{\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}}
-library and to achieve a optimized partitioning the main steps would be define strategies for hierarchical partitioning.
+library and to achieve an optimized partitioning the main steps would be define strategies for hierarchical partitioning.
 
 \subsubsection{ParMETIS}
 
-ParMETIS is a MPI-based parallel library which is capable of partitioning a variety of unstructured graphs and meshes. MIDG2
-uses the ParMETIS to partition the mesh elements among the MPI nodes. The partitioning api uses a set of parameters such as element
+ParMETIS is an MPI-based parallel library which is capable of partitioning a variety of unstructured graphs and meshes. MIDG2
+uses the ParMETIS to partition the mesh elements among the MPI nodes. The partitioning API uses a set of parameters such as element
 size, partitioning surface criteria and weights for distribution considering capabilities of the node. These parameters allow
 ParMETIS to partition the mesh into section which reduces the overall shared elements among nodes and reduce the communication requirement.
 The partitioning scheme would require to be updated in order to use the ParMETIS library to perform hierarchical partitioning
@@ -214,11 +219,11 @@ utilizing the neighborhood information from the topology of the FPGA and the nod
 
 \section{Evaluation}
 
-The evaluation would be divided into two parts. The first set of evaluation is target towards the first objective.
-As explained in section \ref{sub:topologies}, different topologies would be evaluated to highlight the benefits
-and drawbacks in terms of latency and bandwidth by comparing the results with the original MIDG2 which uses MPI
-for communications. The second set of evaluation would be done to compare the speedup achieved by the proposed
-design over the reference designs in terms of overall runtime of the MIDG2 application for different mesh
+The evaluation would be divided into two parts. The first set of evaluation is targeted towards the first objective.
+As explained in section \ref{sub:topologies}, different topologies would be evaluated using a prototype to highlight the benefits
+and drawbacks in terms of latency and bandwidth using the data sizes from original MIDG2 along with some
+synthetic data sizes. The second set of evaluation would be done to compare the speedup achieved by the proposed
+design over the reference design in terms of overall runtime of the MIDG2 application for different mesh
 sizes, varying order and number of nodes and FPGAs.  
 
 \section{Preliminary Outline}
@@ -226,7 +231,7 @@ sizes, varying order and number of nodes and FPGAs.
 	\item Introduction
 	\item Fundamentals and Related Work
 	\begin{enumerate}
-		\item Nodal Galerikin Discontinuous method
+		\item Nodal Galerkin Discontinuous method
 		\item Fundamental of OpenCL™
 		\item IO channels
 	\end{enumerate}
@@ -238,20 +243,14 @@ sizes, varying order and number of nodes and FPGAs.
 	\end{enumerate}
 	\item Evaluation
 	\begin{enumerate}
-		\item Comparision of topologies
-		\item Comparision with reference design
+		\item Comparison of topologies
+		\item Comparison with reference design
 	\end{enumerate}
 	\item Conclusion
 
 \end{enumerate}
 
 \section{Proposed Time Schedule}
-
-The time plan is scheduled considering 22 weeks of work time starting from 1st of November 2018.
-Approach is to first prototype the topological evaluation to identify possibilities and test them,
-followed by implementation of the changes required in the MIDG2 MPI FPGA application to support
-multiple FPGA using IO channels. In the last a detailed evaluation and final thesis preparation is
-planned.
 
 \begin{ganttchart}[
 	vgrid,
@@ -287,7 +286,12 @@ planned.
 
 %%%----------------------------------------------------------
 
-\pagebreak
+The time plan is scheduled considering 22 weeks of work time starting from 1st of November 2018.
+Approach is to first prototype the topological evaluation to identify possibilities and test them,
+followed by implementation of the changes required in the MIDG2 MPI FPGA application to support
+multiple FPGA using IO channels. In the last a detailed evaluation and final thesis preparation is
+planned.
+
 \section*{References}
 
 \printbibliography[heading=noheader]
