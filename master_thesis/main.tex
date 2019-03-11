@@ -17,9 +17,12 @@
 \RequirePackage{acro}
 \NewDocumentCommand\acrodef{mO{#1}mG{}}{\DeclareAcronym{#1}{short={#2}, long={#3}, #4}}
 \graphicspath{{images/}}    % location of images and graphics
-\logofile{logo}				% logo file = images/logo.pdf (use \logofile{} for no logo)
+\logofile{logo}				% logo file = images/logo.pdf (use \logofile{} for
 \bibliography{references}  	% name of bibliography file (references.bib)
-
+\usepackage[colorinlistoftodos]{todonotes}% marking open todos in text/on 
+\newcommand{\TODO}[1]{\vspace{0.5em}\todo[inline, color=orange]{#1}}
+\newcommand{\FIXME}[1]{\vspace{0.5em}\todo[inline, color=red]{#1}}
+% \usepackage{mathrsfs} 
 %%%----------------------------------------------------------
 % Title page entries
 %%%----------------------------------------------------------
@@ -30,7 +33,7 @@ to an accelerator for the Discontinuous Galerkin method}
 \author{Gaurav Kumar Singh}
 \programname{Master of Science}
 \placeofstudy{Paderborn}
-\dateofsubmission{2019}{04}{20}	% {YYYY}{MM}{DD}
+\dateofsubmission{\year}{\month}{\day}	% {YYYY}{MM}{DD}
 
 %%% Entries for Bachelor theses only: -----------------------
 \advisor{Dr Tobias Kenter, PhD}

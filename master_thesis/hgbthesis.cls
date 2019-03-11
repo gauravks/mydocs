@@ -127,13 +127,28 @@
 \newcommand{\logofile}[1]{%
 	\renewcommand{\@logofile}{#1}
 }
+\newcommand{\@logofilesec}[0]{}
+\newcommand{\logofilesec}[1]{%
+	\renewcommand{\@logofilesec}{#1}
+}
+
+% \newcommand{\makelogo}[0]{%
+% \ifthenelse{\equal{\@logofile}{}}%
+% 	{\vspace*{30mm}}%
+% 	{\includegraphics[height=30mm]{\@logofile}}%
+% }
 
 \newcommand{\makelogo}[0]{%
 \ifthenelse{\equal{\@logofile}{}}%
-	{\vspace*{30mm}}%
+	{\vspace*{5mm}}%
 	{\includegraphics[height=30mm]{\@logofile}}%
 }
 
+\newcommand{\makelogosec}[0]{%
+\ifthenelse{\equal{\@logofilesec}{}}%
+	{\vspace*{5mm}}%
+	{\includegraphics[height=30mm]{\@logofilesec}}%
+}
 % Submission Commands
 
 \newcounter{@dayofsubmission}
