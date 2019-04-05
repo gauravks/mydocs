@@ -6,6 +6,9 @@
 *.bcf
 *.fls
 *.log
-*.pdf
+main.pdf
 *.xml
 *.fdb*
+*.lot
+*.lof
+*.toc
