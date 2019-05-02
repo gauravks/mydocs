@@ -67,7 +67,7 @@ to overlap the communication via MPI with the computation of the fields for the 
 and reducing the effects of delayed communication. The kernel structure for base MPI MIDG2 FPGA
 is shown in Figure \ref{fig:base_kernstruc}.
 
-\begin{figure}[h]%
+\begin{figure}[ht]%
     \centering
     \includegraphics[width=1.0\textwidth]{images/base_kernstruc}
     \caption{Structure for MPI FPGA OpenCL™ kernels showing the partial get kernel used to gather
@@ -203,11 +203,11 @@ easily executed on the FPGA device.
 Another important modification is done in the host application to get the information about
 the mapping of the MPI ranks to the FPGA devices on the node. This mapping is required for the
 fully connect topology to setup the correct offsets and number of elements for each of the channels.
-The mapping information allows to associate a specific channel with a MPI rank and hence the
+The mapping information allows to associate a specific external channel with a MPI rank and hence the
 offsets within the \texttt{g\_index} buffer which contains the index values in the \texttt{g\_Q}
 buffer for the shared elements. To map the channels, additional information
 regarding the MPI rank and associated FPGA device is required. This information is shared using
 a structure which contains the MPI host id and associated FPGA device Id which is exchanged
-using MPI. After receiving the information about all the ranks, the channel mapping
+using MPI. After receiving the information about all the ranks, the external channel mapping
 is computed locally using a decision tree. The flow chart in figure \todo{add flowchart to explain the selection}
-shows the logic of the channel assignment at each node.
+shows the logic of the external channel assignment at each node.
