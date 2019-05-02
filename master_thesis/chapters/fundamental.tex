@@ -5,9 +5,10 @@ This chapter would discuss the details of the various components involved highli
 the use of the components for the completion of this thesis. The last section
 would give a overview of related work which provide some details of systems which
 are either partially related to this thesis or form the basis for the thesis to improve
-upon. 
+upon.
 
 \section{Nodal Discontinuous Galerkin Method}
+\label{sec:dgtd}
 
 The \ac{DGTD} \cite{hesthaven_nodal_2008} is used to find solutions
 for partial differential equations (PDE) numerically. This method is efficient in
@@ -25,7 +26,7 @@ would briefly describe the formulations and steps involved for getting the solut
 used as the basis for implementation in the application used in this thesis to simulate
 electromagnetic flux values for a given material.
 
-The basic equation involved in computation of the electromagnetic flux is Maxwell's equations. The 
+The basic equation involved in computation of the electromagnetic flux is Maxwell's equations. The
 three dimensional time-dependent Maxwell's equations \cite{hesthaven_nodal_2008} is written as:
 \begin{equation}\label{eqn:maxwellbase}
     \mu \frac{\partial{\textbf{H}}}{\partial{t}} = - \nabla \times \textbf{E},\varepsilon \frac{\partial{\textbf{E}}}{ \partial{t}} = - \nabla  \times \textbf{H}
@@ -37,7 +38,7 @@ the conservation form of the equation can be expressed as:
 where
 \begin{equation}\label{eqn:maxwellexpansion}
 \textbf{q} =  \begin{bmatrix}\textbf{H} \\ \textbf{E} \end{bmatrix},
-\mathcal{Q} =  \begin{bmatrix} \mu & 0 \\ 0 &  \varepsilon \end{bmatrix}, 
+\mathcal{Q} =  \begin{bmatrix} \mu & 0 \\ 0 &  \varepsilon \end{bmatrix},
 \mathcal{F} = \begin{bmatrix}  - \widehat{n} \times \textbf{E} \\ \widehat{n} \times \textbf{H} \end{bmatrix} = \begin{bmatrix} \textbf{F}_H \\ \textbf{F}_E \end{bmatrix}
 \end{equation}
 
@@ -99,7 +100,7 @@ in this thesis, the timestep is computed by calculating the smallest distance be
 \ac{MIDG2} is a open source C/C++ based application which implements the \ac{DGTD} method for solving
 Maxwell's equations for 1D, 2D and 3D. It uses K non-overlapping tetrahedra elements as described in
 section \ref{sec:dgtd_maxwell} for computing the flux values for a given object. This section
-will give an overview of the application implementation along with improvements done to use 
+will give an overview of the application implementation along with improvements done to use
 multiple FPGAs to offload the computation and speed up the execution time.
 
 The original MIDG2 implementation supports parallelization using \ac{MPI} for multiple CPUs and
@@ -140,6 +141,7 @@ The whole process for partitioning and distribution is shown in fig \ref{fig:par
 \end{figure}
 
 \subsection{FPGA implementation for DGTD}
+\label{sec:fpga_dg}
 
 \textcite{kenter_opencl-based_2018} extended the original MIDG2 implementation to use
 FPGAs to accelerate the computation for a single FPGA system. This implementation
@@ -148,16 +150,24 @@ surface kernel and RK kernel which perform the computation steps for the \ac{DG}
 The kernels developed were optimized to utilize the capabilities of the FPGA such
 as parallelization of operations by replication, optimizing memory access by using
 local memory for storing constant data, using memory banks to allow parallel data
-reads/writes for higher bandwidth lower stalls. 
+reads/writes for higher bandwidth lower stalls.
 The structure of the OpenCL™ kernels for this implementation is shown in figure.
 The IO kernels for surface and volume act as memory interface kernels which
 access the global memory as source and sink for data. Use for multiple
 kernels in such way along with the Intel™ FPGA OpenCL™
 channels, create a pipeline structure for the volume and surface compute kernels
-which allows to start computation on a nodal point in each cycle.
-The complete implementation details along with
-performance evaluation for the design is described in \cite{kenter_opencl-based_2018}.
-\TODO{Add image of the kernel structure}
+which allows to start computation on a nodal point in each cycle. The kernel
+structure of the implementation is shown in figure \ref{fig:singlefpga_kernstruc}
+which shows pipeline structure developed for acceleration with the single FPGA.
+The complete implementation details along with performance evaluation for the design
+is described in \cite{kenter_opencl-based_2018}.
+
+\begin{figure}[h]%
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/nb_kernstruc}
+    \caption{Block level structure for OpenCL™ kernels developed for single FPGA by \textcite{kenter_opencl-based_2018}}
+    \label{fig:singlefpga_kernstruc}
+\end{figure}
 
 Further improvements to this design was made by extending the capabilities to work
 with multiple FPGAs along with \ac{MPI}. The \ac{MPI} FPGA design works similar to the original
@@ -179,7 +189,7 @@ memory. The host processor then reads this data from the FPGA memory and uses
 
 Using this design multiple FPGAs can be used to speed up the computing even further.
 Though speed ups can be achieved with this design, the communication which involves
-movement of data though \ac{PCIe} bus and the network interface two times which
+movement of data through \ac{PCIe} bus and the network interface two times,
 reduces the communication bandwidth a lot. This communication setup also
 requires to have synchronization constructs between the FPGA and the host
 processor to ensure data correctness which adds a lot of overhead in the overall
@@ -193,12 +203,12 @@ execution even further.
 This section would describe the hardware and the software platform used in the
 thesis for implementing and evaluating the extended design. The first subsection
 gives an overview of Nallatech 520N board followed by and description of software
-setup using Intel™ FPGA SDK for OpenCL™ used to implement the kernels for the 
+setup using Intel™ FPGA SDK for OpenCL™ used to implement the kernels for the
 features.
 
 \subsection{Nallatech 520N}
 
-The Nallatech 520N boards used for the evaluation are equipped with 
+The Nallatech 520N boards used for the evaluation are equipped with
 
 \begin{enumerate}
     \item Intel™ Stratix 10 FPGA GX2800 capable for providing up to 10 TFLOPS of single
@@ -219,7 +229,7 @@ which shows the high computation capabilities of the FPGAs
 Along with huge processing power, the Nallatech board also contains 4 QSFP Network Ports which
 are connected to the FPGA transceivers to provide high speed network communication. As mentioned
 previously these ports are used in this thesis to setup FPGA-to-FPGA networks to transfers data
-and reduce communication latency. The connections in the used setup are done using 
+and reduce communication latency. The connections in the used setup are done using
 Finisar's FTL410QE2C and Edge's FTL410QE3C QSFP+ optical transceivers modules which support a
 maximum link length of 150 meters. The maximum data rate varies from 39.8 Gbits/s to 44.8 Gbits/s.
 As the Nallatech BSP supports 40 Gbits/s speeds, this is used for all calculation in this thesis.
@@ -235,12 +245,12 @@ Intel™ FPGA SDK for OpenCL™ is used for the extending the existing kernels.
 The communication over the QSFP ports can be implemented in the OpenCL™ by using the
 Intel's OpenCL™ IO channels support. The IO channels can be used to stream data
 directly between kernels and I/O using explicitly named channels. The declaration
-of these channels should be included in the \texttt{board\_spec.xml} using the 
+of these channels should be included in the \texttt{board\_spec.xml} using the
 \texttt{channels} element. The Nallatech BSP provide 4 Tx and 4 Rx IO channels for the 520N board
 as shown in the listing {} which interface to the 4 QSFP ports on the board.
 In order to use these I/O channels in the OpenCL kernel,
 an \texttt{io} attribute is included in the channel declaration along with id of
-the interface which is specified in the \texttt{board\_spec.xml}. 
+the interface which is specified in the \texttt{board\_spec.xml}.
 
 \TODO{Revise the introduction of the IO channels to describe that is it provided by Nallatech}
 \begin{XmlCode}
@@ -257,7 +267,7 @@ the interface which is specified in the \texttt{board\_spec.xml}.
 \end{XmlCode}
 A example kernel code is shown in the listing {} which uses one TX and one RX channel to
 communicate in the \texttt{sender} and \texttt{collector}.
-\texttt{ch\_eth\_in} and \texttt{ch\_eth\_out} is declared to interface with 
+\texttt{ch\_eth\_in} and \texttt{ch\_eth\_out} is declared to interface with
 the external channels \texttt{kernel\_input\_ch0} and \texttt{kernel\_output\_ch0} respectively.
 The channels should be declared with a datatype (\texttt{float8} in this case)
 suitable to hold the 256 bits wide data which is the current width of the channels.
@@ -277,8 +287,8 @@ sender(int length, __global float8 * restrict input)
 
     for(int i=0; i<length; ++i)
         write_channel_intel(ch_eth_out, input[i]);
-        
-    
+
+
 }
 
 __kernel void __attribute__ ((max_global_work_dim(0)))
@@ -292,4 +302,6 @@ collector(int length, __global float8 * restrict output)
 \end{CppCode}
 
 
+\TODO{Add section to describe loop pipeline in nexted loops}
+\TODO{Add section to describe Memory banking and benfits in OpenCL™ kernels}
 

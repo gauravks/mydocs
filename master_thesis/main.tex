@@ -3,13 +3,13 @@
 
 %%% Magic comments for setting the correct parameters in compatible IDEs
 % !TeX encoding = utf8
-% !TeX program = pdflatex 
+% !TeX program = pdflatex
 % !TeX spellcheck = en_US
 % !BIB program = biber
 
 \documentclass[master,english]{hgbthesis}
-% Permissible options in [..]: 
-%   Type of work: diploma, master (default), bachelor, internship 
+% Permissible options in [..]:
+%   Type of work: diploma, master (default), bachelor, internship
 %   Main language: german, english (default)
 %%%----------------------------------------------------------
 
@@ -19,10 +19,10 @@
 \graphicspath{{images/}}    % location of images and graphics
 \logofile{logo}				% logo file = images/logo.pdf (use \logofile{} for
 \bibliography{references}  	% name of bibliography file (references.bib)
-\usepackage[colorinlistoftodos]{todonotes}% marking open todos in text/on 
+\usepackage[colorinlistoftodos]{todonotes}% marking open todos in text/on
 \newcommand{\TODO}[1]{\vspace{0.5em}\todo[inline, color=orange]{#1}}
 \newcommand{\FIXME}[1]{\vspace{0.5em}\todo[inline, color=red]{#1}}
-% \usepackage{mathrsfs} 
+% \usepackage{mathrsfs}
 %%%----------------------------------------------------------
 % Title page entries
 %%%----------------------------------------------------------
@@ -36,7 +36,8 @@ to an accelerator for the Discontinuous Galerkin method}
 \dateofsubmission{\year}{\month}{\day}	% {YYYY}{MM}{DD}
 
 %%% Entries for Bachelor theses only: -----------------------
-\advisor{Dr Tobias Kenter, PhD}
+\advisor{Dr Tobias Kenter, \\
+         Prof. Dr. Jens Förstner}
 
 %%% Restricted publication license instead of CC (master only):
 %\strictlicense
@@ -64,11 +65,12 @@ to an accelerator for the Discontinuous Galerkin method}
 \include{chapters/fundamental}
 \include{chapters/topologies}
 \include{chapters/arch}
+\include{chapters/fpgaonly}
 \include{chapters/evaluation}
 \include{chapters/conclusion}
 
 %%%----------------------------------------------------------
-\appendix                                         % appendix 
+\appendix                                         % appendix
 %%%----------------------------------------------------------
 
 % \include{back/appendix_a}	% technical supplements
@@ -85,7 +87,7 @@ to an accelerator for the Discontinuous Galerkin method}
 % \phantomsection
 \addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
- 
+
 \cleardoublepage
 % \phantomsection
 \addcontentsline{toc}{chapter}{\listtablename}

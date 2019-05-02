@@ -13,7 +13,7 @@ in terms of bandwidth capabilities specifically for the MIDG2 application.
 
 As the current available BSP for the Nallatech 520N boards only support serial
 point-to-point communication between the FPGAs over direct connections, the
-configurations to build a topology is limited by the number of ports which is 
+configurations to build a topology is limited by the number of ports which is
 4. The four ports would allow one FPGA to communicate simultaneously with 4
 other FPGAs. To extend the communication beyond this, the FPGAs can either
 communicate via MPI using the host processor or hop over the FPGAs via the
@@ -67,7 +67,7 @@ efficiently partitioning and distributing the data among the isles and FPGAs.
 \label{sec:fully_connect}
 
 The second topology extends the single node topology to two nodes such that
-an isle contains four nodes fully connected to each other with separated 
+an isle contains four nodes fully connected to each other with separated
 point-to-point link as shown in figure \ref{fig:fully_connect}.
 Each FPGA in this topology can communicate with three
 other FPGAs simultaneously. Scaling the topology to more nodes can be achieved
@@ -76,7 +76,7 @@ using MPI. In this design, to decrease the overhead of exchanging data via the
 MPI, the data should be collected on a single FPGA using the point-to-point
 link and then exchanged via MPI. On the receiving end the process can be
 reversed. Some more details of possible strategies to scale this design
-effectively would be discussed in section \TODO{add reference} 
+effectively would be discussed in section \TODO{add reference}
 
 \begin{figure}[h]%
     \centering
@@ -85,7 +85,7 @@ effectively would be discussed in section \TODO{add reference}
     \label{fig:fully_connect}
 \end{figure}
 
-The second way to scale the design is to use the extra link left on the 
+The second way to scale the design is to use the extra link left on the
 FPGAs to connect the isles to each other with two FPGA-to-FPGA links which is
 described in the section \ref{sec:connected_graph}.
 
@@ -142,6 +142,7 @@ and lack of hardware resources to achieve a result as part of the thesis.
 \end{figure}
 
 \section{Prototypes to evaluate topologies}
+\label{sec:proto_topo}
 
 This section would describe the prototypes developed to evaluate the topologies
 introduced in sections \ref{sec:within_node} and \ref{sec:fully_connect}.
@@ -197,13 +198,13 @@ figure \ref{fig:send_rcv} in the full duplex communication mode.
 
 The host application was implemented using OpenCL C\+\+ classes to reduce the amount
 of code and quickly test the functionality on the target platform. The host application
-is responsible for reading the synthesized binary files (\texttt{.aocx}) and use the 
+is responsible for reading the synthesized binary files (\texttt{.aocx}) and use the
 \texttt{cl::Program} class to reconfigure the FPGA with the new binaries. The host application
 is also responsible to allocate the memories for the buffers \texttt{input} and
 \texttt{output} in host memory and in device memory using \texttt{cl::Buffer} class.
 The host code then sets all parameters for the kernels using the \texttt{cl::Kernel::setArg()}
 method and queues the kernels for execution on the FPGA using \texttt{cl::CommandQueue::enqueueNDRangeKernel()}
-method. The kernel used for prototype are implemented as a single work-item as it suits the 
+method. The kernel used for prototype are implemented as a single work-item as it suits the
 serial IO channel communication.
 
 
@@ -295,7 +296,7 @@ among the three lengths, sending 256 bits in each iterations over each channel. 
 lengths for each channel is used to stop the sends for the specific channel in following
 iterations. The structure shown in the listing creates three channel write units and three
 memory load \ac{LSU} which allows sending the data parallely on all the three channels
-in each iteration. 
+in each iteration.
 
 \begin{CppCode} [caption=Sender Kernel for fully connected, frame=tlrb, label=code:send_fc]
 __kernel void __attribute__ ((max_global_work_dim(0)))
@@ -339,7 +340,7 @@ collector_all(int length, int length1, int length2,
 
         if (i < length1)
             output1[i] = read_channel_intel(ch_eth_in1);
- 
+
         if (i < length2)
             output2[i] = read_channel_intel(ch_eth_in2);
     }
@@ -365,6 +366,8 @@ method. The host waits for the completion of collector kernels on each FPGA, and
 the received data for verification. Additionally \texttt{MPI\_Barrier(MPI\_COMM\_WORLD)} functions
 is used the synchronize the hosts. This synchronization helps to reduce the stalls
 on the external channels.
+
+\TODO{Add the description of MPI PCIe prototype}
 
 
 
