@@ -23,10 +23,24 @@ The MPI MIDG2 FPGA version requires an additional \texttt{partial\_get\_kernel} 
 the main element buffer \texttt{g\_Q} into a smaller buffer partial data buffer \texttt{g\_partQ}.
 The main benefit of using the additional kernel is to avoid the large memory transaction between the
 host and the FPGA over PCIe to get the \texttt{g\_Q} and assemble the shared buffers in host.
+The addition of the partial kernel was accompanied with resshuffling of the elements in the \texttt{g\_Q}
+buffer. The distributed design requires the mesh to be partitioned into smaller meshes allocated
+to each rank. The elements of the partitioned mesh can either share a face with a neighboring
+rank or within the rank. The elements which share faces with neighboring ranks form the shared
+element group and the ones sharing faces within rank form the non-shared element group.
+To separate the computation of the these shared element group and the non-shared element group
+by reusing the same kernels required sorting of the elements into groups. This was done by
+placing the shared elements in the start of the \texttt{g\_Q} buffer followed by the shared
+elements. This allowed to use the same kernels with different start and end element parameters
+to be invoked for processing the shared and non-shared elements separately.
+
+
+\TODO{add image to show the reaarangement to }
+
 The original pipeline developed for single FPGA was further optimized by introducing separate buffers
 \texttt{volrhsQ} and \texttt{surrhsQ} instead of the the same right hand side \texttt{rhsQ} buffer
 which was earlier accumulated in surface kernel. These changes allows the volume and surface kernel
-execute parallely and write data into two separate buffers. The RK kernel reads both the buffers
+to execute parallely and write data into two separate buffers. The RK kernel reads both the buffers
 after volume and surface kernel are finished processing and accumulates the values using rungga-kutta
 constants to produce the field values for the timestep. Another improvement introduced to optimize the
 design was to use the concept of double buffers for the \texttt{g\_Q}. The \texttt{g\_Q} buffer is
@@ -112,8 +126,19 @@ the IO channels design is shown in figure. As the figure shows, the involvement 
 decreased. Also due to addition of the channels between the volume/surface and RK kernel,
 all kernels in the new design start together instead of RK following volume/surface.
 
-\TODO{Add sequence of operations}
-\TODO{what else should be added need to be discussed}
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{l@{\hskip 0.5in}}
+        \includegraphics[width=0.8\textwidth]{seq_singlefpga} \\
+        \multicolumn{1}{c}{(a) MPI MIDG2 FPGA}  \\
+        \\
+        \includegraphics[width=0.7\textwidth]{seq_iochan} \\
+        \multicolumn{1}{c}{(b) MIDG2 FPGA with IO channels}
+	\end{tabular}
+    \caption{Sequence of Kernel and host event for MPI MIDG2 FPGA
+    and MIDG2 FPGA with IO channels}
+	\label{fig:topologies}
+\end{figure}
 
 \section{Host changes for to support IO Channels}
 

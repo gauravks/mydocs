@@ -63,6 +63,7 @@ __kernel void kernelName(__private int arg1,
 \end{CppCode}
 
 \subsection{Synchronization using blocking Intel OpenCL™ channels}
+\label{sec:sync_iochan}
 
 The first design implemented utilizes the blocking Intel OpenCL™ channels
 to communicate the synchronization events via the channels between the kernels.
@@ -152,11 +153,163 @@ read is possible while using channels for synchronization.
 \end{figure}
 
 As there is no concrete information available for the target board to estimate
-the latency difference,
+the exact latency for the memory neither there is any method to block on the
+completion of the memory operation, it was not possible to fix this issue with
+a deterministic solution. Alternatively, a latency could be introduced after the
+invocation of last element write to ensure that the write memory operation complete before
+the read is invoked in the next iteration. As addition of latency in the OpenCL™
+kernels in not trivial due to lack of standard APIs to add wait or sleep in the kernel,
+a latency logic was created using loops. A loop with an \ac{II}
+of 1 can be used to create a latency for a desired amount of time by varying the
+loopcount. This is achieved by placing a channel write instruction in a loop
+as shown in the listing \ref{code:latency}. The loop is pipelined with a II=1
+is generated which is executed for \texttt{waitCount} iterations before writing
+the \texttt{token} into the channel. The \texttt{waitCount} is configured as a kernel
+parameter to vary the latency as per requirement as there is no easy deterministic way to measure
+the exact latency required. The latency in seconds added can be calculated using the
+frequency of the synthesized design using the formula
+
+$$ latency(in seconds) = \frac{waitCount}{Frequency(Hz)} $$
+
+\begin{CppCode}[caption=Loop structure used to add latency in the kernels, frame=tlrb, label=code:latency]
+for(int time = 0; time < waitCount; ++time)
+{
+    if (time == waitCount - 1)
+    {
+        write_channel_intel(channel, token);
+    }
+}
+\end{CppCode}
+
+Using this loop structure, latency was introduced
+in RK and \texttt{recv} kernels placing the channels \texttt{ch\_sync\_1},
+\texttt{ch\_sync\_2} and \texttt{ch\_sync\_3} in a wait loop in the RK kernel and \texttt{ch\_sync\_4}
+and \texttt{ch\_sync\_5} in the another wait loop in \texttt{recv} kernel to avoid
+overlapped access of \texttt{g\_Q} and \texttt{g\_partQ} buffers. Introduction
+of latency changes the sequence of operations as shown in the figure \ref{fig:resolved_latency}
+which shows no overlapping in the memory requests due to latency.
+
+\begin{figure}[ht]%
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/resolved_latency}
+    \caption{Sequence of operation with added latency to avoid overlapped
+    memory access}
+    \label{fig:resolved_latency}
+\end{figure}
+
+\subsection*{Removing channels \texttt{ch\_sync\_2} and \texttt{ch\_sync\_3}}
+
+Another issue reported by the Intel OpenCL™ compiler as warning was formation of looping
+structure within the kernels due to use of the channels for synchronization.
+Addition of the \texttt{ch\_sync\_2} between RK and \texttt{S\_IN1} kernel created
+a loop of the kernels \texttt{S\_IN1} -> \texttt{S\_IN2} -> \texttt{SURFACE} -> \texttt{RK} -> \texttt{S\_IN1}.
+Similarly addition of \texttt{ch\_sync\_3} created a loop \texttt{V\_IN} -> \texttt{VOLUME} -> \texttt{RK} -> \texttt{V\_IN}.
+Creation of these loops avoided Intel OpenCL™ compiler to optimize the channel depths
+which caused increased latency of the pipeline and decreased performance.
+
+After further analysis and tests with different kernel structure, it was identified that
+due to addition of the non-volatile memory for the buffers, an implicit synchronization of
+the memory operation would be created and the removal of channels \texttt{ch\_sync\_2} and
+\texttt{ch\_sync\_3} does not affect overall functionalities of the design in terms of speed
+and correctness. Due to this, it was decided to remove these channels which allowed the
+compiler to optimize the channel depth and improve performance.
 
 \subsection{Synchronization using locks with atomic memory operations}
 
-\section{Final Kernel structure}
+Apart from using channels for synchronization another possibility to achieve
+the desired behavior was by using atomic memory operations in the kernels
+to create an locking/unlocking structure for synchronization. Intel
+OpenCL™ FPGA SDK supports the standard OpenCL™ \textit{Atomic Functions for 32-bit Integers}
+listed in \ref{code:atomic_func}.
+
+\begin{CppCode}[caption=Interger versions of the atomic operations supported by Intel
+    OpenCL™ FPGA SDK, frame=tlrb, label=code:atomic_func]
+int atomic_add(volatile __global int *p, int val)
+int atomic_sub(volatile __global int *p, int val)
+int atomic_xchg(volatile __global int *p, int val)
+int atomic_inc(volatile __global int *p)
+int atomic_dec(volatile __global int *p)
+int atomic_cmpxchg(volatile __global int *p, int cmp, int val)
+int atomic_min(volatile __global int *p, int val)
+int atomic_max(volatile __global int *p, int val)
+int atomic_and(volatile __global int *p, int val)
+int atomic_or(volatile __global int *p, int val)
+int atomic_xor(volatile __global int *p, int val)
+\end{CppCode}
+
+The atomic operations were used to create a similar synchronization effect as done with the channels.
+\texttt{atomic\_cmpxchg} and \texttt{atomic\_xchg} functions are used to check and update the
+memory as shown in code listed in \ref{}. Four memory locations in the global memory are used
+for four synchronization behavior. The first and second location is to synchronize the access to \text{g\_Q} memory
+between RK-volume and RK-surface pairs respectively. Volume and surface kernel wait for the RK kernel
+at start of every iteration to clear the memory to mark the start of new iteration. Immediately
+after clearing the memories, both write a specific token value to denote start.
+The third and fourth memory locations are to synchronize the start of communication and
+completion of communication. Send kernel waits for the memory location to be cleared
+by the volume and surface kernel at the start of every new iteration to start the communication.
+The same memory location is checked by volume and surface kernel after completion of processing
+the non-shared elements to have a specific token value written by the recv kernel after the completion
+of communication. This creates the synchronization between the start of communication to end of communication
+for processing the shared data.
+
+\begin{CppCode}[caption=Synchronization Implementation with atomic functions, frame=tlrb, label=code:atomic_impl]
+#pragma max_concurrency 1
+for (int step = 0; step < timesteps; ++step)
+{
+    #pragma max_concurrency 1
+    for(int intrk = 0; intrk < 5; ++intrk)
+    {
+        // Wait for memory 1 to be cleared
+        while (atomic_cmpxchg(&lock[1], 0, 0xFB) == 0xFB);
+
+        // Clear memory 3
+        atomic_xchg(&lock[3], 0);
+    }
+}
+\end{CppCode}
+
+As with channels, this design also had several similar issues. The use of atomic APIs are very expensive and
+reduce the clock frequency and overall performance of the design diminishing any benefit from the improved
+structure. Also like with channels, the memory latency resulted in incorrect results and required additional
+latency to be include. As the design was not good in terms of performance further analysis to fix the issues
+identified were not carried out due to timing constraints
+
+\section{Final optimized Kernel structure}
 \label{sec:final_struc}
 
+The final design with the selected optimization to maximize the performance of the kernel and achieve
+higher speed up was created using the design introduced in section \ref{sec:sync_iochan}.
+The final optimized design is shown in figure \ref{fig:fpgaonly_kernstruc}.
+
+\begin{figure}[ht]%
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/fpgaonly_kernstruc}
+    \caption{Kernel structure of the optimized FPGA only design}
+    \label{fig:fpgaonly_kernstruc}
+\end{figure}
+
+The main changes to be noted in this design are
+
+\begin{itemize}
+\item Memory buffers \texttt{g\_Q1\_ping}, \texttt{g\_Q1\_pong}, \texttt{g\_Q2\_ping},
+\texttt{g\_Q2\_pong} and \texttt{g\_partQ} are marked as volatile memory to avoid
+caching in the read \ac{LSU}s
+\item The logic of the kernels with only
+\item As shown, the final design uses only three channels for synchronization.
+The first channel is used between RK and \texttt{send} kernel. The latency
+loop structure is used in the RK kernel which ensures that the \texttt{}
+\end{itemize}
+
+
+
+
+\subsection{Update Host code for handling multiple designs}
+
 \section{Issues identified with optimized design}
+
+issue with new tools chain
+addition of unroll
+lower occupancy in the computation kernels giving hints to be computational
+bound
+
+Kernel pipelining issue
