@@ -10,11 +10,11 @@ which require high computational performance. These systems, generally referred 
 high performance clusters, comprises of multiple individual systems known as nodes. Each node
 can contain multiple multi-core processing, GPUs and FPGAs and are connected to each other
 using high speed Ethernet to exchange data and control information. The whole system acts
-a single high performance system with distributed memory and processing elements as shown in fig
+as a single high performance system with distributed memory and processing elements as shown in fig
 
 \FIXME{add image}
 
-Traditionally multiple CPUs based supercomputers were only utilized but considering the nature
+Traditionally multiple CPU based supercomputers were only utilized but considering the nature
 of the application which mostly consists of the same operation performed on a stream of data,
 GPUs which could do multiple of these operations in parallel \ac{SIMD} were utilized
 to increase performance further. The GPUs act as accelerators and are attached to main CPUs
@@ -25,7 +25,7 @@ these are limited by the size of the cluster and the problem size. These limitat
 researchers to look for technologies which would help in decreasing the execution time for
 single step even further by using hardware based accelerators.
 
-FPGA based accelerators are thus seen the most prominent alternative. FPGAs provide the flexibility
+FPGA based accelerators are thus seen as the most prominent alternative. FPGAs provide the flexibility
 to design application specific hardware accelerators and re-use the same FPGA for different kinds
 of problem without huge programming overheads. FPGAs as an accelerator is mostly used to implement
 simple mathematical operations such as matrix multiplication, fast fourier transformation and
@@ -33,7 +33,7 @@ string manipulation which form the basis for most of the application. Using the 
 such as data and instruction pipelining, replication and memory localization, the FPGAs can be
 used to decrease the execution time of these mathematical operations.
 
-Increasing popularity of the FPGAs in the high performance computing has led new innovations for
+Increasing popularity of the FPGAs in the high performance computing has led to new innovations for
 the FPGAs. Higher memory bandwidths, increased count of logical units and bigger local memory
 are some of these. The new Noctua \ac{HPC} cluster at Paderborn Center for Parallel
 Computing (PC\textsuperscript{2}) contains the current generation of Intel Stratrix 10 FPGAs which provide
@@ -47,7 +47,7 @@ MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} is an MPI based parallel com
 implementation of the \ac{DG} \cite{hesthaven_nodal_2008} method to solve Maxwell’s equation
 in time domain. \ac{DG} method is a commonly used operation in many simulation applications to
 solve \ac{PDE} and improvements to the computation time would be an important step to
-benefit different simulation applications utilizing this method. The thesis presents
+benefit different simulation applications utilizing this method. This thesis presents
 a design which evaluates the benefits of using a parallel distributed FPGA based system
 to reduce the execution time of the application by using direct FPGA-to-FPGA communication.
 
@@ -58,18 +58,18 @@ opportunities to create systems which are accelerated with multiple FPGAs. As th
 no known implementation utilizing FPGA in network configuration for accelerating the
 DG method, this master thesis aims at presenting such a system to evaluate
 the achievable acceleration with multiple FPGAs using point-to-point communication in
-different network topologies for the MIDG2 application.Towards achieving this target,
-the evaluation can be divided into two stages. First stage which aims at identifying
+different network topologies for the MIDG2 application. Towards achieving this target,
+the evaluation can be divided into two stages. First stage aims at identifying
 and evaluating the possible topologies for point-to-point communication. In the second
 stage of the thesis, the existing openCL™ based FPGA implementation for
-the MIDG2 application should be extended to use IO channels
+the MIDG2 application would be extended to use IO channels.
 
 Considering the two stages as individual sub-tasks, the first task involves building
-prototypes using openCL™ IO channels which would utilize the 4 100/40/25/10G QSFP28
+prototypes using openCL™ IO channels which would utilize the four 100/40/25/10G QSFP28
 network ports available on the Nallatech 520N boards. These prototypes would be used
 to evaluate the point-to-point topologies using bandwidths and latency to give an
 overview of possible benefits. The prototypes would also serve as the basis for
-understanding the implementation opportunities available in the openCL™ and 
+understanding the implementation opportunities available in the openCL™ and
 Nallatech BSP for the channels. The second task would be then to utilize the
 understanding and extend the openCL™ kernels for the MIDG2 application
 such that the need for MPI communication to communicate information or the shared
@@ -117,13 +117,13 @@ This design is used as the base for this thesis.
 
 The increased popularity of the FPGAs in past as led to identify possibilities for
 using multiple FPGAs. This can be achieved by using MPI communication via the host
-to which the FPGA is connected. Though such design posses benefits in many cases, 
+to which the FPGA is connected. Though such design posses benefits in many cases,
 it performs poorly in case of multiple and large transfer due to very low bandwidths
 for the PCIe + MPI combination. Systems have been investigated where the FPGAs could
 communicate directly without the need of host. \textcite{sheng_hpc_2017} presents a design
 for 3D FFT solver which uses a 3D-torus FPGA-based network using a table-based routing
 scheme. The evaluation results of such design shows 30\% improvement over the reference design.
-\textcite{kobayashi_opencl-ready_2018} used an openCL™ based design implementation to 
+\textcite{kobayashi_opencl-ready_2018} used an openCL™ based design implementation to
 compare the latency of MPI+PCIe based system and FPGA-to-FPGA system which uses Ethernet
 IP for communication over an switch. The results show a large difference between the achievable
 bandwidths and latency for the two system proving the benefits of such system. The system

@@ -274,8 +274,17 @@ structure. Also like with channels, the memory latency resulted in incorrect res
 latency to be include. As the design was not good in terms of performance further analysis to fix the issues
 identified were not carried out due to timing constraints
 
-\section{Final optimized Kernel structure}
+\section{Final optimized Design}
 \label{sec:final_struc}
+
+The final design which is used for the evaluation and highlighting the benefits of the design includes
+options selected after multiple iterations of variations in the design in terms of kernel
+structure for synchronization, loop structure, variation in sequence of kernels and variation
+of the memory channel assignment to get the most optimized design as a whole. This section
+will present in detail individual aspect of the final design bringing the changes together
+in the kernel as well as in the host code.
+
+\subsection{Kernel Structure}
 
 The final design with the selected optimization to maximize the performance of the kernel and achieve
 higher speed up was created using the design introduced in section \ref{sec:sync_iochan}.
@@ -283,33 +292,506 @@ The final optimized design is shown in figure \ref{fig:fpgaonly_kernstruc}.
 
 \begin{figure}[ht]%
     \centering
-    \includegraphics[width=0.8\textwidth]{images/fpgaonly_kernstruc}
+    \includegraphics[width=1.0\textwidth]{images/fpgaonly_kernstruc}
     \caption{Kernel structure of the optimized FPGA only design}
     \label{fig:fpgaonly_kernstruc}
 \end{figure}
 
-The main changes to be noted in this design are
+The kernels independent of host executes for \texttt{Nsteps} timestep iterations.
+In each timestep iteration 5 RK stages are executed. Within each RK stage, \texttt{K}
+elements are read processed and written back to the memory. The kernels form a pipeline
+where the k\textsuperscript{th} element and other coefficients required are read by the
+input kernels from the global memory and forwarded to the compute kernels by channels.
+The compute kernels process the element to compute right hand side field values and
+forwards it to RK kernel. There the field values are accumulated and stored in global memory.
+In between the shared data is communicated and used for computation. Due to the long pipeline,
+multiple elements are processed simultaneously in different stage of the pipeline giving
+higher throughput and performance.
 
-\begin{itemize}
-\item Memory buffers \texttt{g\_Q1\_ping}, \texttt{g\_Q1\_pong}, \texttt{g\_Q2\_ping},
+The changes included in the final kernel structure are minor changes done to improve the performance
+and fix issues identified during testing of the different variations of the FPGA only implementation.
+Following points consolidate all the changes done to base design to achieve the final optimized
+design.
+
+\subsubsection*{Loop coalescing}
+
+The major change from the base design introduced in section \ref{sec:midge_mpi} to the
+optimized design is the introduction of the timestep loops in the kernels as shown in
+code \ref{code:timestep}. The introduction of these loops removed the dependency of the kernels
+on the host code for the timestepping but at the same time created the problem of increased
+nested loop depth. The increased nested loop depth is not ideal as it makes it harder
+for the Intel OpenCL™ compilers to optimize the loop pipelining. Another problem is the
+increase in the resource utilization as the additional control hardware resources are
+required to handle each of the nested loops. To reduce the effects of this necessary
+change, in the final design, the top two levels of the nested loops were coalesced
+using the pragma \texttt{loop\_coalesce} as shown in the kernel pseudo-code in \ref{code:coalesce}.
+Use of \texttt{loop\_coalesce} does not change the behavior of the actual loops instead
+only decreases the hardware resources required to handle the loops.
+\begin{CppCode}[caption=Loop coalescing used for additional timestep loops in FPGA only design, frame=tlrb, label=code:coalesce]
+__kernel void kernelName(__private int arg1,
+                            __private int K,
+                            __private int timesteps,
+                            __global volatile float  *restrict buffer1,
+                            __global volatile float  *restrict buffer2
+                        )
+{
+    // Outer timestep loop
+    #pragma loop_coalesce 2
+    for (int step = 0; step < timesteps; ++step)
+    {
+        // 5 RK steps
+        for(int intrk = 0; intrk < 5; ++intrk)
+        {
+            for (int k=0; k < K; k++)
+            {
+                // Old kernel code inside here
+                // Read/Process//Write k/+\textsuperscript{th}+/ element
+            }
+        }
+    }
+}
+\end{CppCode}
+
+\subsubsection*{Volatile memories and Buffer management}
+
+As it was identified during the analysis of the design with IO channels used
+for synchronization \label{sec:sync_iochan} that the caching for memory was resulting
+in wrong results. The Memory buffers \texttt{g\_Q1\_ping}, \texttt{g\_Q1\_pong}, \texttt{g\_Q2\_ping},
 \texttt{g\_Q2\_pong} and \texttt{g\_partQ} are marked as volatile memory to avoid
-caching in the read \ac{LSU}s
-\item The logic of the kernels with only
-\item As shown, the final design uses only three channels for synchronization.
-The first channel is used between RK and \texttt{send} kernel. The latency
-loop structure is used in the RK kernel which ensures that the \texttt{}
-\end{itemize}
+caching of the read \ac{LSU}s. Along with the use of volatile memory, a buffer management
+scheme explained in the Buffer Management section in the Intel FPGA SDK for OpenCL Pro Edition: Programming Guide
+\footnote{\url{https://www.intel.com/content/www/us/en/programmable/documentation/mwh1391807965224.html}}
+was implemented to complement the synchronization via channels. The \texttt{mem\_fence}
+with \texttt{CLK\_GLOBAL\_MEM\_FENCE} and \texttt{CLK\_CHANNEL\_MEM\_FENCE} flags were introduced
+after the buffer writes in the RK and \texttt{recv} kernels as explained in the document.
 
+\subsubsection*{Communication Channels}
 
+The final design uses only three channels for synchronization as shown in the kernel
+structure in figure \ref{fig:fpgaonly_kernstruc}. The first channel is used between RK and
+\texttt{send} kernel to synchronize the start of the communication with the end of last iteration.
+The latency loop structure is used in the RK kernel which ensures that the \texttt{send}
+kernel reads the correct values from the \texttt{g\_Q} buffer. Channels 2 and 3 connect from
+\texttt{recv} to \texttt{VOLUME} and \texttt{SURFACE} kernels to synchronize the end of the
+communication with the start of processing the shared elements. These channels writes are also within
+latency loop to add a delay for the read of the \texttt{g\_partQ} buffer in surface kernel.
 
+\subsubsection*{Moving RK coefficients into kernel}
+Moving timestep loops into the kernels allowed an additional minor optimization in the design.
+The Low storage Runge-Kutta coefficients used for the accumulating the right hand side field values from
+\texttt{VOLUME} and \texttt{SURFACE} kernels were passed from the host application in each time step
+iteration. This was done from host as for each of the 5 Runge-Kutta stages a different coefficient is used
+and since the timestep and RK stage control was done in host application, the host selected the respective
+timestep-RK-stage coefficient and updated in the kernel private memory. Accessing the float coefficient
+add a small latency in each iteration of the execution and as the timestep loops were shifted to the kernels,
+the coefficients which are in total 10 float values are now stored in the kernel as constant arrays as shown
+in the code listing \ref{code:rkcoeff}. This removes an additional memory access required to select the
+coefficient and improves the memory bandwidth and overall kernel performance.
 
-\subsection{Update Host code for handling multiple designs}
+\begin{CppCode}[caption=Use of Runge-Kutta coefficients inside the RK kernel, frame=tlrb, label=code:rkcoeff]
+__kernel void rkkernel(..Args..)
+{
+    const float rk4a[5] = {0.0, -0.41789047449985196221336664024539F, -1.1921516946426769261050123558462F,  -1.6977846924715278362262217893079F, -1.5141834442571557816490687954744F};
+    const float rk4b[5] = {0.14965902199922911732649140011737F, 0.37921031299962728090749818732367F, 0.82295502938698171717028537390495F, 0.69945045594912210703801758353586F, 0.15305724796815199267414240331902F};
+    // Outer timestep loop
+    #pragma loop_coalesce 2
+    for (int step = 0; step < timesteps; ++step)
+    {
+        // 5 RK steps
+        for(int intrk = 0; intrk < 5; ++intrk)
+        {
+            // Select the RK-coefficient for the stage
+            float l_fa = rk4a[intrk];
+            float l_fb = rk4b[intrk];
 
-\section{Issues identified with optimized design}
+            // Old kernel code inside here
+            // Process/Read/Write element
+        }
+    }
+}
+\end{CppCode}
 
-issue with new tools chain
-addition of unroll
-lower occupancy in the computation kernels giving hints to be computational
-bound
+\subsubsection*{Buffer Aliasing}
+
+The change in the structure of the kernels due to introduction of the timestep loops
+required to move the buffer switching for the duplicated buffers \texttt{g\_Q\_ping} and
+\texttt{g\_Q\_pong} inside the kernels since host has no interactions with FPGA anymore
+during the timesteps. The input kernels and RK kernels receive both buffers as parameters
+and implement a switching logic as shown in the pseudo-code listing \ref{code:buf_switch}.
+The switching is done to switch the input buffer and the output buffer after every iterations
+which allows parallel execution of the all the kernels for computation.
+\begin{CppCode}[caption=Buffer switching for FPGA only design within the kernel, frame=tlrb, label=code:buf_switch]
+__kernel void kernelName(__private int K,
+                        __private int arg2,
+                        __private int timesteps,
+                        __global volatile float  *restrict g_Q_ping,
+                        __global volatile float  *restrict g_Q_pong
+                        )
+{
+    // Outer timestep loop
+    #pragma loop_coalesce 2
+    for (int step = 0; step < timesteps; ++step)
+    {
+        // 5 RK steps
+        for(int intrk = 0; intrk < 5; ++intrk)
+        {
+            // compute timestep
+            int stepCount = step*5 + intrk;
+
+            // switch the buffer: Ping in EVEN step, Pong in ODD
+            __global volatile float *restrict g_Q_in = (stepCount%2 == 0)? g_Q_ping:g_Q_pong;
+            __global volatile float *restrict g_Q_out = (stepCount%2 == 0)? g_Q_pong:g_Q_ping;
+
+            // Iterate over the elements
+            for (int k = 0; k < K k++)
+            {
+                float somevalue = g_Q_in[k];
+                ...
+                somevalue = somevalue + anothervalue;
+                ...
+                g_Q_out = someothervalue; // Creates Write-ACK LSU
+            }
+            // Old kernel code inside here
+            // Process/Read/Write element
+        }
+    }
+}
+\end{CppCode}
+
+The buffer switching using the above logic works correctly though resulted in false memory
+dependencies identifications in RK kernel by the compiler. As \texttt{g\_Q\_in} and
+\texttt{g\_Q\_out} are assigned the same buffers alternatively which compiler is unable to
+identify from the above structure and reports memory dependencies between the read and write
+memory operations which follow one another as shown in the pseudo-code \ref{code:buf_switch}.
+Due to the identified memory dependencies, the compiler adds the write-ack LSU for the writing
+operations which have higher latency and ensure that write operation is completed before
+any other operation on the same buffer is started. This is a false memory dependency which
+results due to inability of the compiler to identify the specified switching behavior.
+In order to solve this problem which resulted in decreased performance, memory aliasing
+is done for \texttt{g\_Q\_ping} and \texttt{g\_Q\_pong} memories similar to one done for the
+\texttt{g\_partQ} memory. For aliasing, additional duplicate memory buffer parameters are
+assigned to kernel and used to assign the double buffers as shown in the pseudo-code \ref{code:resolve_alias}.
+In the host same OpenCL memory buffer is assigned to both the parameters instead of creating
+additional memories which is not required. This fools the compiler to accept them as two different
+memories and avoid write-ack LSU. Similar approach was used with \texttt{g\_resQ} memory also to
+avoid the same problem by aliasing the buffer into \texttt{g\_resQ\_in} and \texttt{g\_resQ\_out}.
+
+\begin{CppCode}[caption=Buffer switching for FPGA only design within the kernel, frame=tlrb, label=code:resolve_alias]
+__kernel void kernelName(__private int K,
+                        __private int arg2,
+                        __private int timesteps,
+                        __global volatile float  *restrict g_Q_ping,
+                        __global volatile float  *restrict g_Q_pong,
+                        __global volatile float  *restrict g_Q_ping_2,
+                        __global volatile float  *restrict g_Q_pong_2
+                        )
+{
+    // Outer timestep loop
+    #pragma loop_coalesce 2
+    for (int step = 0; step < timesteps; ++step)
+    {
+        // 5 RK steps
+        for(int intrk = 0; intrk < 5; ++intrk)
+        {
+            // compute timestep
+            int stepCount = step*5 + intrk;
+
+            // switch the buffer: Ping in EVEN step, Pong in ODD
+            __global volatile float *restrict g_Q_in = (stepCount%2 == 0)? g_Q_ping:g_Q_pong;
+            __global volatile float *restrict g_Q_out = (stepCount%2 == 0)? g_Q_pong_2:g_Q_ping_2;
+
+            // Iterate over the elements
+            for (int k = 0; k < K k++)
+            {
+                float somevalue = g_Q_in[k];
+                ...
+                somevalue = somevalue + anothervalue;
+                ...
+                g_Q_out = someothervalue; // Cached LSU
+            }
+            // Old kernel code inside here
+            // Process/Read/Write element
+        }
+    }
+}
+\end{CppCode}
+
+\subsection{Host code updates}
+\label{sec:hostcodeupdate}
+
+Addition of the FPGA only design required reworking of the host code in order to
+support all the designs variants with a single host code for performing the evaluation.
+Apart from the multi design support changes there are also other minor changes done in the code necessary
+to initialize the memories for the kernel buffers at aligned boundaries and some other
+changes. This section will discuss the changes in detail to give an understanding
+to the reader.
+
+\subsubsection*{Restructuring of the configuration module}
+
+The major change in the host code is done to the module structure of
+the code responsible for handling the the OpenCL™ platform initialization,
+configuration and execution. With the addition of FPGA only design,
+three variants of the kernels are available viz. MPI MIDG2 FPGA (SingleFPGA),
+FPGA-FPGA communication using IO channels with host synchronization (MultiWithHost)
+and FPGA only design (MultiFPGAOnly). Initially different versions of the same
+configuration code was used by including or excluding design specific changes
+using preprocessor directives or by selecting different files for compilation.
+These intermediate solution allows the host code to support only single design
+and requires modifications and recompilation of the code every time to use other
+design. Additionally, the designs with IO channel communication also have two variants
+with minor configuration changes which also increase the complexity of the host code.
+
+To build a simpler and understandable host code which is able to support all the three
+designs in a single binary, the host code is restructured by introducing hierarchical
+structure for the OpenCL™ handling part. The structure of the modified host code is
+shown in figure {}. The restructuring does not modify the existing interface to the
+OpenCL™ configuration routine instead splits the configuration module into device
+specific and design specific configuration modules. The \texttt{BuildRunCLDevice}
+provides the generic interface for OpenCL™ device configuration and execution.
+The design specific run modules \texttt{RunSingleFpga}, \texttt{RunMultiWithHost}
+and \texttt{RunMultiFpgaOnly} performs the design specific memory configuration
+and setup to run the specific kernels on the device. The design specific run module
+is configured at the run time by providing the command line parameter
+\texttt{-d <DESIGN>} which allows a single host code to handle all the designs
+without requirement for a recompilation.
+
+\todo{add image of the restructured modules}
+
+To achieve this restructuring additional structures were included which allows to
+group the variables into functionality based groups. One of the important structure
+which holds the function pointers to design specific routines is created
+as shown in listing \ref{code:interface_func}. This structure is initialized
+with the design specific routines to handle device functionalities which
+include creation of OpenCL™ buffers, Initialization of kernel arguments,
+writing data into the device global memory and design specific cleanup.
+Each of the design specific modules initializes individual structures
+with the specific routines. The top level \texttt{BuildRunCLDevice} requests
+a pointer to this structure at the runtime using the \texttt{XXXX\_getDeviceIntfHandlers()}
+function. The handlers for only the selected design is requested and used to configure the
+FPGA with the selected design kernels.
+\begin{CppCode}[caption=Structure to hold the design specific interface function pointers
+    and initialization example, frame=tlrb, label=code:interface_func]
+typedef struct
+{
+    void (*fnInitKernelArgs)(tClObjs* clObjs, Mesh* mesh, tChannelInfo* channelInfo,
+                             char* kernelConfig);
+    void (*fnFreeKernelMem)(tClObjs* clObjs);
+    cl_int (*fnCreateBuffers)(tClObjs* clObjs);
+    cl_int (*fnWriteToBuffers)(tClObjs clObjs, tKernelInitParams params);
+    void (*fnRunKernel)(Mesh *mesh, tKernelRunParams* runparams, tProfileInfo* profileInfo,
+                        tKernelInfo kernelinfo, tClObjs* clObjs);
+    int (*fnGetKernelData)(tClObjs clObjs, float* c_resQ, float* c_Q,
+                           tKernelInitParams params, Mesh *mesh);
+} tclIntfHandlers;
+
+static tclIntfHandlers intfHandlers =
+{
+    initKernelArgs,
+    FreeKernelMem,
+    createBuffers,
+    writeToBuffers,
+    runKernel,
+    getKernelData
+};
+
+tclIntfHandlers* XXXX_getDeviceIntfHandlers(void)
+{
+    return &intfHandlers;
+}
+\end{CppCode}
+
+This structure allows the host application to request the design specific handlers at the
+runtime and support different designs in one binary. The modifications were useful in testing
+and evaluation of the designs.
+
+\subsubsection*{Utilize all Memory channels of Nallatech 520N}
+
+The Nallatech 520N boards using Intel Stratix 10 FPGA provide 4 external memory channels
+to access the global memory as shown in the figure \todo{add memory image}. Each of the
+4 external memory channel can be used parallely by the kernels to read and write data
+into the global memory. Placing OpenCL™ buffers into different memory channels can
+improve memory bandwidth and overall performance of the kernels by reducing the stalls
+for simultaneous memory requests and reducing the latency of memory reads/writes.
+A OpenCL™ buffer can be configured in the host code to be placed in a specific channel
+by using the \texttt{CL\_CHANNEL\_X\_INTELFPGA} flag during the creation of the memory
+as shown in the code below. \texttt{X} should be replaced with the channel number in which
+the buffer has to be placed. For Stratix 10 \texttt{X} can be from 1 to 4 as it supports 4 channels.
+Earlier Arria 10 boards supported only two channels.
+\begin{CppCode}
+cl_mem clMem;
+clMem = clCreateBuffer(context, (CL_MEM_HETEROGENEOUS_INTELFPGA | CL_CHANNEL_1_INTELFPGA), size, NULL, &ret);
+checkError(ret, "Failed to create buffer");
+\end{CppCode}
+
+The MPI implementation was designed and optimized for the Nallatech 385A FPGA Accelerator Card which has a
+Intel Arria 10 GX FPGA. As the board supported only two channels, the host code used only two channels
+to distribute the memory buffers in the most optimal scheme. As there were additional two channels
+available on the Nallatech 520N board, the host code was updated for the base design to utilize
+all the 4 channels. The modifications improved the bandwidth performance of the base design
+as well as the overall execution time by small factors. The memory channel scheme
+for the base design was not suitable for the final design since all the kernels execute
+parallely as well as there are some memory buffers not used any more in the final design.
+The profile information of the final kernel design was used to come up with a
+different channel assignment scheme which distributed the memory load to all the
+four channels equally. The updated scheme uses channel 4 for \texttt{Q2 Pong} buffer
+as it was noticed to have stalls of upto 60\% to 70\% on writes to the buffer in the RK
+kernel. Stalls in the RK kernel are propagated over the complete pipeline of the kernels
+as all are connected via channels reducing the occupancy. Updating the channel reduced
+the memory stalls to 7\% to 10\% and improve the memory bandwidths and performance
+of the whole pipeline. Another change was to move the \texttt{resQ}
+to channel 3 instead of 2. As channel 3 was highly utilized due to removal
+of \texttt{volrhsQ} buffer RK kernel executes parallely The final channel assignment used for base design and the IO channels and
+FPGA only design is shown in table \ref{tab:channel_assign} and the definitions of the symbols used for size computation as below.
+\begin{verbatim}
+    N = Order of the DG nodes
+    Np = ((N + 1) * (N+2) * (N+3)/6)
+    K = Number of elements
+    BSIZE = Np
+    Nfp = Number of DG nodes on each face of tetrahedral = (N+1) * (N+2)/2
+    Ntotalout = Number of shared fields
+\end{verbatim}
+\begin{table}[h]
+    \begin{center}
+        \caption{Points awarded to the evaluated tools}
+        \label{tab:channel_assign}
+        \begin{tabular}{|l|l|C{3cm}|C{3.4cm}|} %
+          \hline
+          \textbf{Buffer} & \textbf{Size} & \textbf{MPI} & \textbf{FPGA ONLY/IO CHANNEL}\\
+          \hline
+          Q1 Ping & \texttt{K* BSIZE * pNfields}  & 1 & 1 \\
+          \hline
+          Q1 Pong & \texttt{K* BSIZE * pNfields} & 1 & 1 \\
+          \hline
+          Q2 Ping & \texttt{K* BSIZE * pNfields}  & 2 & 2 \\
+          \hline
+          Q2 Pong & \texttt{K* BSIZE * pNfields}  & 2 & 4 \\
+          \hline
+          ResQ & \texttt{K* BSIZE * pNfields}  & 3 & 2 \\
+          \hline
+          Mappping Info & \texttt{K* Nfp * NFaces * 2}  & 3 & 3 \\
+          \hline
+          Surface Info & \texttt{K* Nfp * NFaces * 5} & 3 & 3 \\
+          \hline
+          partQ & \texttt{Ntotalout} & 4 & 4 \\
+          \hline
+          parMapOut & \texttt{Ntotalout}  & 3 & 3 \\
+          \hline
+          vgeo & \texttt{12 * K}  & 3 & 3 \\
+          \hline
+          surrhsQ & \texttt{K* BSIZE * pNfields}  & 3 & - \\
+          \hline
+          volrhsQ & \texttt{K* BSIZE * pNfields}  & 4 & - \\
+          \hline
+        \end{tabular}
+    \end{center}
+ \end{table}
+
+\subsubsection*{Alignment of the memory}
+
+The external channels support only 256 bits transfers. The first version
+using the IO channels for within the node topology used all the 256 bits
+to transfer data. This required aligning the partial memory buffer
+at 32 byte boundary to receive the data correctly. As the \texttt{partial\_send}
+kernel requires to read the data from the \texttt{g\_Q} buffer from random
+locations in as a group of 6 floats (24 bytes), use of 32 byte data transfers
+was not efficient for the non-aligned memory access. To avoid this, the transfers
+were modified to send 24 bytes of actual data and pad the rest 8 bytes with 0s.
+This allowed to coalesce the 24 reads and improve the performance.
+
+The similar approach was initially used for fully connected topology where
+24 bytes of data on all 4 channels were transferred simultaneously. The send had
+no issues with this structured but as explained in section \ref{sec:struc_iochan},
+the writes to \texttt{g\_partQ} buffer were identified as dependent leading
+to a serial receives on the external channels and aliasing was used to solve this.
+The aliasing done requires the individual partitions of the shared memory to be aligned
+on a 64 byte as well as on a 24 byte aligned boundary. The 64 byte alignment is required
+to ensure that the parallel writes to each of the aliased buffer do not overlap due to
+cache line sharing. The cache is aligned on a 64 byte boundary and each non-aligned
+write should result in update of the whole cache line. The 24 byte alignment as the
+the reads from the buffer are at 24 byte aligned. To achieve this modifications
+were done in the \texttt{BuildMaps3d} function which collects the shared elements info and computes
+the indexes of the elements in the \texttt{g\_Q} buffer. The individual partitions
+are aligned to a 192 bytes (48 floats) boundary which is the \ac{LCM} of 24 and 64 using the code
+is \ref{code:align_mem}. The code adds a padding in between the partitions ensures
+that the writes to the partitioned are not overlapped and also writes of 24 bytes are
+possible.
+
+\begin{CppCode}[caption=Alignment code introduced to ensure non-overlap writes of the
+    aliased buffers, frame=tlrb, label=code:align_mem]
+mesh->parNtotalout = 0;
+int entries;
+for (p2 = 0; p2 < nprocs; ++p2)
+{
+    entries = skP[p2] * p_Nfields;
+    if (fFcdesign)
+    {
+        float value;
+        if (entries%16 != 0)
+        {
+            value = (float)entries/48;
+            entries = ceil(value)*48;
+        }
+        if (p2 != procid && entries > 0)
+            start[p2] = mesh->parNtotalout;
+            printf("[proc %d]: Start %d : %d: %d %f\n", procid, p2, start[p2], entries, value);
+    }
+
+    mesh->parNtotalout += entries;
+}
+\end{CppCode}
+
+\subsubsection*{Rearrangement of elements in \texttt{g\_Q}}
+
+The FPGA only design processes all the K elements iteratively waiting
+for the shared data to arrive in between. As this requires the elements
+to be placed in the memory sequentially to be simplify and improve memory
+operations, the elements in the \texttt{g\_Q} were sorted by arranging
+non-shared elements first followed by the shared elements. This is different
+from the initial sorting where the elements were arranged in the opposite order
+as shown in \todo{add ref to the figure}.
+
+\subsection{Issues identified with optimized design}
+
+The FPGA only implementation was initially implemented with Intel FPGA
+SDK for OpenCL™ version 18.0.1 which was supported by the Nallatech
+BSPs. The new tool chain version 18.1.1 was release in mid of the thesis
+and had modifications which promised improvements to the kernel performance.
+It was decided to evaluate the design further with the newer tool chain versions to
+utilize any improvements for the Stratix 10 in the toolchains.
+The kernels were then compiled with the newer toolchain and issues
+were noticed in the kernel memory replication and banking. The
+compiler introduced arbitration units for the local memory
+buffers used in the \texttt{VOLUME} and \texttt{SURFACE} kernels
+as shown in the figure \ref{fig:arb}. This resulted in a decrease
+of performance due to stalled local memory reads which are expensive
+and causes stalls.
+
+\begin{figure}[ht]%
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/arb}
+    \caption{Local memory structure with arbitration units (ARB)}
+    \label{fig:arb}
+\end{figure}
+
+The kernels were analysed by looking at the synthesized reports and it was noticed that
+the 18.1.1 version of the compiler, auto unrolled the loops which were used
+to write data into the local memory from constant memory in both the kernels.
+The auto-unrolling created parallel store operations which resulted in the
+different banking and replication factor of the memories. With different
+banking and replication factors, the compiler was not able to optimize
+all the memory accesses and produced stallable memory architecture for the
+local memories.
+
+This was resolved by adding explicitly \texttt{pragma unroll 1} to the
+write loops, which prevented the duplication of store operations and
+restored the memory architecture as shown in figure \ref{fig:restored}
+
+\begin{figure}[ht]%
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/fixed_arb}
+    \caption{Local memory structure after addition with pragma unroll 1}
+    \label{fig:restored}
+\end{figure}
+
 
 Kernel pipelining issue

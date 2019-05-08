@@ -18,6 +18,7 @@ in chapter \ref{cha:topologies} to allow direct communication between the FPGAs
 and reduce the communication time.
 
 \section{Kernel Structure of MPI MIDG2 FPGA Implementation}
+\label{sec:midge_mpi}
 
 The MPI MIDG2 FPGA version requires an additional \texttt{partial\_get\_kernel} to gather the shared elements from
 the main element buffer \texttt{g\_Q} into a smaller buffer partial data buffer \texttt{g\_partQ}.
@@ -81,7 +82,7 @@ to overlap the communication via MPI with the computation of the fields for the 
 and reducing the effects of delayed communication. The kernel structure for base MPI MIDG2 FPGA
 is shown in Figure \ref{fig:base_kernstruc}.
 
-\begin{figure}[ht]%
+\begin{figure}%
     \centering
     \includegraphics[width=1.0\textwidth]{images/base_kernstruc}
     \caption{Structure for MPI FPGA OpenCL™ kernels showing the partial get kernel used to gather
@@ -90,6 +91,7 @@ is shown in Figure \ref{fig:base_kernstruc}.
 \end{figure}
 
 \section{Kernel Structure with IO Channels}
+\label{sec:struc_iochan}
 
 The prototypes developed for the topologies evaluation served as the basis to implement
 the support for IO channels in the OpenCL™ kernels for the MIDG2 application. The main
@@ -99,7 +101,21 @@ was to remove the \texttt{partial\_get\_kernel} and replace with two kernels
 is similar to the prototype \texttt{send} and \texttt{recv} kernels described in
 section \ref{sec:proto_topo}. Two different set of kernels for the two topologies,
 the within node using 2 FPGAs on the same node and fully connect topology using
-4 FPGAs on two nodes was developed. An additional optimization to kernel pipeline
+4 FPGAs on two nodes was developed.
+
+\TODO{explain the channels implementation further with source code to highlight that,
+aliasing of the g\_partQ buffer for fully connect design}
+
+\begin{figure}%
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/serial_reads}
+    \caption{Memory dependency resulting in serial channel reads in the \texttt{partial\_recv}
+    for fully connected design}
+    \label{fig:serial_reads}
+\end{figure}
+
+
+An additional optimization to kernel pipeline
 was also introduced which helps to improve the performance of the kernels marginally.
 Intel® OpenCL™ channels are used to communicate the right hand side field values
 from volume and surface kernels to the RK kernel as shown in the kernel structure
@@ -120,7 +136,7 @@ As in the MPI MIDG2 FPGA design, the computation of shared elements follows the 
 non-shared elements. The major change is the independence of the OpenCL™ kernels to
 communicate the data between the FPGAs without requiring support of the host for
 communication. Though host still controls the time step iteration and performs synchronization of kernels between
-the computation of non-shared data and the completion of communication of data between two FPGAs
+the computation of non-shared data and the completion of communication of data between two FPGAs.
 A comparison of the sequence of operations performed on host and FPGA for the MPI MIDG2 FPGA and
 the IO channels design is shown in figure. As the figure shows, the involvement of the host is
 decreased. Also due to addition of the channels between the volume/surface and RK kernel,
@@ -169,11 +185,7 @@ To handle this, the structure of the existing OpenCL™ initialization code sect
 both the designs with the same host code. A hierarchical structure for the OpenCL™ initialization code
 is implemented such that, the generic functionalities which is separated from the design specific buffer
 initialization and kernel enqueue sequence setup. The new structure of the host code is shown
-in figure \todo{add image of the host code structure}. The \texttt{BuildRunCLDevice} provides the generic
-interface for OpenCL™ device configuration and execution. The design specific run modules \texttt{RunSingleFpga} and
-\texttt{RunMultiFpga} performs the design specific memory configuration and setup to run the specific kernels
-on the device. The design specific run module is configured at the run time by providing the command line parameter
-\texttt{-d <DESIGN>} which allows a single host code to handle all the designs with requirement for a recompilation.
+in figure \todo{add image of the host code structure} and would be explained in the section ref{sec:hostcodeupdate}.
 
 The host application requires an additional json file to get the information about the kernels in the binary such as
 the kernel parameter information, dependencies among the kernels and groups of kernels to be executed parallely.
@@ -236,3 +248,4 @@ a structure which contains the MPI host id and associated FPGA device Id which i
 using MPI. After receiving the information about all the ranks, the external channel mapping
 is computed locally using a decision tree. The flow chart in figure \todo{add flowchart to explain the selection}
 shows the logic of the external channel assignment at each node.
+
