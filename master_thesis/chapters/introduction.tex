@@ -38,7 +38,7 @@ the FPGAs. Higher memory bandwidths, increased count of logical units and bigger
 are some of these. The new Noctua \ac{HPC} cluster at Paderborn Center for Parallel
 Computing (PC\textsuperscript{2}) contains the current generation of Intel Stratrix 10 FPGAs which provide
 specialized high speed serial IO channels which can be used to set up communication infrastructure
-between the FPGAs. The Nallatech 520N boards used are equipped with four 100/40/25/10G
+between the FPGAs. The BittWare 520N boards used are equipped with four 100/40/25/10G
 QSFP28 network ports which use these serial IO channels and would provide a very high speed
 communication setup and opportunities to scale up application over multiple FPGAs with small
 communication latency replacing applications which use MPI for communication.
@@ -66,11 +66,11 @@ the MIDG2 application would be extended to use IO channels.
 
 Considering the two stages as individual sub-tasks, the first task involves building
 prototypes using openCL™ IO channels which would utilize the four 100/40/25/10G QSFP28
-network ports available on the Nallatech 520N boards. These prototypes would be used
+network ports available on the BittWare 520N boards. These prototypes would be used
 to evaluate the point-to-point topologies using bandwidths and latency to give an
 overview of possible benefits. The prototypes would also serve as the basis for
 understanding the implementation opportunities available in the openCL™ and
-Nallatech BSP for the channels. The second task would be then to utilize the
+BittWare BSP for the channels. The second task would be then to utilize the
 understanding and extend the openCL™ kernels for the MIDG2 application
 such that the need for MPI communication to communicate information or the shared
 surfaces is eliminated and overheads involved the removed.
@@ -129,7 +129,7 @@ IP for communication over an switch. The results show a large difference between
 bandwidths and latency for the two system proving the benefits of such system. The system
 design presented in this thesis uses a similar approach like in \cite{kobayashi_opencl-ready_2018}
 but does not utilize the Ethernet-IP core and relies on the serial communication
-support provided in the Nallatech BSP.
+support provided in the BittWare BSP.
 
 
 \TODO{Update this description if the chapter structure changes}

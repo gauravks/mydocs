@@ -202,13 +202,13 @@ execution even further.
 
 This section would describe the hardware and the software platform used in the
 thesis for implementing and evaluating the extended design. The first subsection
-gives an overview of Nallatech 520N board followed by and description of software
+gives an overview of BittWare 520N board followed by and description of software
 setup using Intel™ FPGA SDK for OpenCL™ used to implement the kernels for the
 features.
 
-\subsection{Nallatech 520N}
+\subsection{BittWare 520N}
 
-The Nallatech 520N boards used for the evaluation are equipped with
+The BittWare 520N boards used for the evaluation are equipped with
 
 \begin{enumerate}
     \item Intel™ Stratix 10 FPGA GX2800 capable for providing up to 10 TFLOPS of single
@@ -226,13 +226,13 @@ which shows the high computation capabilities of the FPGAs
 
 \subsubsection*{QSFP Network Ports}
 
-Along with huge processing power, the Nallatech board also contains 4 QSFP Network Ports which
+Along with huge processing power, the BittWare board also contains 4 QSFP Network Ports which
 are connected to the FPGA transceivers to provide high speed network communication. As mentioned
 previously these ports are used in this thesis to setup FPGA-to-FPGA networks to transfers data
 and reduce communication latency. The connections in the used setup are done using
 Finisar's FTL410QE2C and Edge's FTL410QE3C QSFP+ optical transceivers modules which support a
 maximum link length of 150 meters. The maximum data rate varies from 39.8 Gbits/s to 44.8 Gbits/s.
-As the Nallatech BSP supports 40 Gbits/s speeds, this is used for all calculation in this thesis.
+As the BittWare BSP supports 40 Gbits/s speeds, this is used for all calculation in this thesis.
 
 
 \subsection{Software Development flow}
@@ -246,13 +246,13 @@ The communication over the QSFP ports can be implemented in the OpenCL™ by usi
 Intel's OpenCL™ IO channels support. The IO channels can be used to stream data
 directly between kernels and I/O using explicitly named channels. The declaration
 of these channels should be included in the \texttt{board\_spec.xml} using the
-\texttt{channels} element. The Nallatech BSP provide 4 Tx and 4 Rx IO channels for the 520N board
+\texttt{channels} element. The BittWare BSP provide 4 Tx and 4 Rx IO channels for the 520N board
 as shown in the listing {} which interface to the 4 QSFP ports on the board.
 In order to use these I/O channels in the OpenCL kernel,
 an \texttt{io} attribute is included in the channel declaration along with id of
 the interface which is specified in the \texttt{board\_spec.xml}.
 
-\TODO{Revise the introduction of the IO channels to describe that is it provided by Nallatech}
+\TODO{Revise the introduction of the IO channels to describe that is it provided by BittWare}
 \begin{XmlCode}
 <channels>
     <interface name="board" port="io_to_dev_ch0" type="streamsource" width="256" chan_id="kernel_input_ch0"/>

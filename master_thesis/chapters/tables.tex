@@ -9,3 +9,51 @@ FPGA ONLY WN   & 265.32                 & 276.93                 \\
 FPGA ONLY FC   & 236.4                  & 239.46
 \end{tabular}
 \end{table}
+
+\begin{table}[h]
+    \begin{center}
+        \caption{Points awarded to the evaluated tools}
+        \label{tab:channel_assign}
+        \begin{tabular}{|l|l|C{3cm}|C{3.4cm}|} %
+          \hline
+          \textbf{Buffer} & \textbf{Size} & \textbf{MPI} & \textbf{FPGA ONLY/IO CHANNEL}\\
+          \hline
+          Q1 Ping & \texttt{K* BSIZE * pNfields}  & 1 & 1 \\
+          \hline
+          Q1 Pong & \texttt{K* BSIZE * pNfields} & 1 & 1 \\
+          \cline{1, 3-4}
+          Q2 Ping & \texttt{K* BSIZE * pNfields}  & 2 & 2 \\
+          \hline
+          Q2 Pong & \texttt{K* BSIZE * pNfields}  & 2 & 4 \\
+          \hline
+          surrhsQ & \texttt{K* BSIZE * pNfields}  & 3 & - \\
+          \hline
+          volrhsQ & \texttt{K* BSIZE * pNfields}  & 4 & - \\
+          \hline
+          ResQ & \texttt{K* BSIZE * pNfields}  & 3 & 2 \\
+          \hline
+          Mappping Info & \texttt{K* Nfp * NFaces * 2}  & 3 & 3 \\
+          \hline
+          Surface Info & \texttt{K* Nfp * NFaces * 5} & 3 & 3 \\
+          \hline
+          partQ & \texttt{Ntotalout} & 4 & 4 \\
+          \hline
+          parMapOut & \texttt{Ntotalout}  & 3 & 3 \\
+          \hline
+          vgeo & \texttt{12 * K}  & 3 & 3 \\
+          \hline
+
+        \end{tabular}
+    \end{center}
+ \end{table}
+
+
+ \begin{table}[]
+  \begin{tabular}{ll}
+  Configuration         & Peak Bandwidth (GB/s) \\
+  MPI+PCIe              & 2.995                 \\
+  Within Node 1 Channel & 5                     \\
+  Within Node 4 Channel & 20                    \\
+  Fully Connect         & 15
+  \end{tabular}
+\end{table}

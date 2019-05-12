@@ -604,10 +604,10 @@ This structure allows the host application to request the design specific handle
 runtime and support different designs in one binary. The modifications were useful in testing
 and evaluation of the designs.
 
-\subsubsection*{Utilize all Memory channels of Nallatech 520N}
+\subsubsection*{Utilize all Memory channels of BittWare 520N}
 
-The Nallatech 520N boards using Intel Stratix 10 FPGA provide 4 external memory channels
-to access the global memory as shown in the figure \todo{add memory image}. Each of the
+The BittWare 520N boards using Intel Stratix 10 FPGA provides 4 external memory channels
+to access the global memory. Each of the
 4 external memory channel can be used parallely by the kernels to read and write data
 into the global memory. Placing OpenCL™ buffers into different memory channels can
 improve memory bandwidth and overall performance of the kernels by reducing the stalls
@@ -623,10 +623,10 @@ clMem = clCreateBuffer(context, (CL_MEM_HETEROGENEOUS_INTELFPGA | CL_CHANNEL_1_I
 checkError(ret, "Failed to create buffer");
 \end{CppCode}
 
-The MPI implementation was designed and optimized for the Nallatech 385A FPGA Accelerator Card which has a
+The MPI implementation was designed and optimized for the BittWare 385A FPGA Accelerator Card which has a
 Intel Arria 10 GX FPGA. As the board supported only two channels, the host code used only two channels
 to distribute the memory buffers in the most optimal scheme. As there were additional two channels
-available on the Nallatech 520N board, the host code was updated for the base design to utilize
+available on the BittWare 520N board, the host code was updated for the base design to utilize
 all the 4 channels. The modifications improved the bandwidth performance of the base design
 as well as the overall execution time by small factors. The memory channel scheme
 for the base design was not suitable for the final design since all the kernels execute
@@ -650,7 +650,7 @@ FPGA only design is shown in table \ref{tab:channel_assign} and the definitions 
     Nfp = Number of DG nodes on each face of tetrahedral = (N+1) * (N+2)/2
     Ntotalout = Number of shared fields
 \end{verbatim}
-\begin{table}[h]
+\begin{table}[ht]
     \begin{center}
         \caption{Points awarded to the evaluated tools}
         \label{tab:channel_assign}
@@ -658,15 +658,19 @@ FPGA only design is shown in table \ref{tab:channel_assign} and the definitions 
           \hline
           \textbf{Buffer} & \textbf{Size} & \textbf{MPI} & \textbf{FPGA ONLY/IO CHANNEL}\\
           \hline
-          Q1 Ping & \texttt{K* BSIZE * pNfields}  & 1 & 1 \\
-          \hline
-          Q1 Pong & \texttt{K* BSIZE * pNfields} & 1 & 1 \\
-          \hline
-          Q2 Ping & \texttt{K* BSIZE * pNfields}  & 2 & 2 \\
-          \hline
+          Q1 Ping &   & 1 & 1 \\
+          \cline{1-1} \cline{3-4}
+          Q1 Pong &  & 1 & 1 \\
+          \cline{1-1} \cline{3-4}
+          Q2 Ping &   & 2 & 2 \\
+          \cline{1-1} \cline{3-4}
           Q2 Pong & \texttt{K* BSIZE * pNfields}  & 2 & 4 \\
-          \hline
-          ResQ & \texttt{K* BSIZE * pNfields}  & 3 & 2 \\
+          \cline{1-1} \cline{3-4}
+          surrhsQ &   & 3 & - \\
+          \cline{1-1} \cline{3-4}
+          volrhsQ & & 4 & - \\
+          \cline{1-1} \cline{3-4}
+          ResQ & & 3 & 2 \\
           \hline
           Mappping Info & \texttt{K* Nfp * NFaces * 2}  & 3 & 3 \\
           \hline
@@ -678,13 +682,10 @@ FPGA only design is shown in table \ref{tab:channel_assign} and the definitions 
           \hline
           vgeo & \texttt{12 * K}  & 3 & 3 \\
           \hline
-          surrhsQ & \texttt{K* BSIZE * pNfields}  & 3 & - \\
-          \hline
-          volrhsQ & \texttt{K* BSIZE * pNfields}  & 4 & - \\
-          \hline
         \end{tabular}
     \end{center}
  \end{table}
+
 
 \subsubsection*{Alignment of the memory}
 
@@ -753,7 +754,7 @@ as shown in \todo{add ref to the figure}.
 \subsection{Issues identified with optimized design}
 
 The FPGA only implementation was initially implemented with Intel FPGA
-SDK for OpenCL™ version 18.0.1 which was supported by the Nallatech
+SDK for OpenCL™ version 18.0.1 which was supported by the BittWare
 BSPs. The new tool chain version 18.1.1 was release in mid of the thesis
 and had modifications which promised improvements to the kernel performance.
 It was decided to evaluate the design further with the newer tool chain versions to
