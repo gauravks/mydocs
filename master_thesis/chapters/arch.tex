@@ -138,9 +138,10 @@ communicate the data between the FPGAs without requiring support of the host for
 communication. Though host still controls the time step iteration and performs synchronization of kernels between
 the computation of non-shared data and the completion of communication of data between two FPGAs.
 A comparison of the sequence of operations performed on host and FPGA for the MPI MIDG2 FPGA and
-the IO channels design is shown in figure. As the figure shows, the involvement of the host is
-decreased. Also due to addition of the channels between the volume/surface and RK kernel,
-all kernels in the new design start together instead of RK following volume/surface.
+the IO channels design is shown in figure \ref{fig:sequence_comp}. As the figure shows,
+the involvement of the host is decreased. Also due to addition of the channels between
+the volume/surface and RK kernel, all kernels in the new design start together instead
+of RK following volume/surface.
 
 \begin{figure}[h]
 	\centering\small
@@ -153,7 +154,7 @@ all kernels in the new design start together instead of RK following volume/surf
 	\end{tabular}
     \caption{Sequence of Kernel and host event for MPI MIDG2 FPGA
     and MIDG2 FPGA with IO channels}
-	\label{fig:topologies}
+	\label{fig:sequence_comp}
 \end{figure}
 
 \section{Host changes for to support IO Channels}

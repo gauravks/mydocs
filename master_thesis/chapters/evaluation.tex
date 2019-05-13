@@ -280,11 +280,371 @@ OpenCL FPGA SDK would be presented.
 
 \subsection{Evaluation Setup for MIDG2}
 
+The experiments like with topologies are conducted on the same
+nodes in the FPGA partition of the Noctua cluster. The kernels
+for the experiments were synthesized using Intel® FPGA SDK for OpenCL
+v18.0.1 Pro (build 261) and v18.1.1 Pro (build 263). Bittware's
+p520\_max\_sg280l BSP with both versions is used which provides support
+for 1SG280LN2F43E2VG Stratix 10 FPGA with PCIe Gen3x8, 4 memory channels
+each of 8GB (32GB total), temperature and power monitoring,
+flash programming, 4x40G external I/O channels. The detailed system
+information is provided in the table \todo{add the reference to}
+
+The runtime evaluation of the MIDG2 application is done by using
+8 different mesh sizes which starts from 1 thousand elements till
+200 thousand elements. This provides the necessary problem size
+variation for the evaluation and comparing the speedup capabilities
+over the different element sizes. The execution time evaluation
+is done for polynomial order of \texttt{p = 3} which is the default
+order of the MIDG2 application. Other orders were not evaluated as
+additional efforts were required to configure the unrolling factors
+in the kernels which was not feasible in this thesis. The table
+\ref{tab:constants} lists the values of the constants dependant
+on the polynomial order which affect the unrolling factor in the
+kernels, memory sizes of the buffers within the kernels and
+host as well as the arithmetic intensity of the kernels.
+This thesis utilizes the same unrolling factors proposed in
+\cite{kenter_opencl-based_2018} for the single FPGA implementation
+and the arithmetic intensity of the kernels remain the same.
+
+\begin{table}[ht]
+    \centering
+    \caption{Constants value as \texttt\{p = 3\}}
+    \label{tab:constants}
+    \begin{tabular}{lcc}
+    \multicolumn{1}{c}{\textbf{Constant}} & \multicolumn{1}{c}{\textbf{Computation}} & \multicolumn{1}{c}{\textbf{Value at p = 3}} \\
+    \hline
+    VOL\_UNROLL & p\_Np & 20 \\
+    SURF\_UNROLL & p\_Nfp & 10\\
+    p\_Nfp & ((p + 1)*(p+2)/2) & 10 \\
+    p\_Np & ((p + 1)*(p+2)*(p+3)/6) & 20 \\
+    p\_max\_NfpNfaces\_Np & max(p\_Nfp*p\_Nfaces,p\_Np) & 40 \\
+    BSIZE & (PFAC*((p\_Np+PFAC-1)/PFAC)) & 20 \\
+    \hline
+    \end{tabular}%
+\end{table}
+
+The runtime computation in the MIDG2 application is done using \texttt{clock\_gettime()}
+Linux time API. The same time computation is added for all the designs to
+measure the processing time in each of the designs. The processing time
+for each execution of the host application includes
+\begin{itemize}
+\item Computation time for computing field values for \texttt{K} mesh elements
+executing for \texttt{timestep = 35} and \texttt{finalTime = 0.005}. This along
+with 5 Runge-Kutta stages per timestep gives 135 iterations. The \texttt{finalTime}
+and the \texttt{timestep} values are fixed in the application instead of
+computing using the mesh size to fix the number of computation iterations for each
+mesh size. This allows to identify the effects of any latencies which other
+due to HOST - FPGA communication.
+\item Communication time for transferring \texttt{parNtotal * 4} bytes per iteration
+using either IO channels or MPI+PCIe.
+\end{itemize}
+
+The host application restructuring made the benchmarking simpler as it is
+simpler to separate common functionalities such as runtime computation
+in the top level files. The code \ref{code:runtime_comp} show the code
+for computing the run time placed in the top level \texttt{BuildCLDevice}
+module.
+\begin{CppCode}[caption=Runtime computation code for the MIDG2 Designs
+    using \texttt{clock\_gettime()}, frame=tlrb, label=code:runtime_comp]
+if (opts.profile)
+{
+    clock_gettime(CLOCK_MONOTONIC, &execStart);
+}
+// Execute the Kernels
+clIntfHandlers->fnRunKernel(mesh, runparams, profileInfo, kernelinfo, &clObjs);
+
+if (opts.profile)
+{
+    clock_gettime(CLOCK_MONOTONIC, &execEnd);
+    exectime = ((execEnd.tv_sec - execStart.tv_sec)*1E9
+            + (execEnd.tv_nsec - execStart.tv_nsec));
+
+    profileInfo->totalexectime += exectime;
+}
+\end{CppCode}
+
+The restructuring also enables to write shell scripts which are
+used to invoke the application with different parameters to test different
+designs and variants with the same binary. For the evaluation the host
+application is modified to include repeated execution of the kernels for the
+same mesh for n number of times. This allows to repeat the tests with
+same mesh for multiple times and use the arithmetic mean of the execution times
+of all the runs for the comparison purpose. All the tests performed repeat
+the tests for 30 times for each mesh size. The application code handling
+the repetition is shown in listing \ref{code:host_repeat}.
+\begin{CppCode}[caption=Test repetion implementation in the host code, frame=tlrb, label=code:host_repeat]
+for (int runs = 0; runs < opts.run; runs++)
+{
+    // Configure the FPGA
+    ret = BuildKernels(mesh, initParams, &kernelInfo);
+    if (ret != 0)
+    {
+      printf("Unable to build Kernels exiting\n");
+      MPI_Finalize();
+      fclose(fp1);
+      exit(ret);
+    }
+
+    // Run the kernels to compute field values and save execution times
+    run_kernels(runParams, initParams, mesh, kernelInfo, nb_kernel);
+    cleanup();
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+\end{CppCode}
+Every run, the application first configures the FPGA device using \texttt{BuildKernels}.
+The configuration involves identifying the platform and the device to be used, creating
+context for the device, programming the FPGA device with the provided kernels binary,
+creating OpenCL buffers in device memory and then writing the buffers with initial data.
+This is followed by setting the parameters in the kernels. Once the configuration is successful,
+the application run the kernels by calling \texttt{run\_kernels} routine which invokes the
+\texttt{RunKernel\_xxx} routine the enqueue the kernels and perform the computation. Depending
+upon the implementation, the timestep iterations are controlled in the host or the FPGA.
+The runtime for each runs are computed and after completing the computation the recorded
+run times are written into a output csv file. The output CSV contains mesh size,
+order of the execution, min, max and avg execution time for the processing, size
+of data communicated by the node, the nodal and the L2 Norm errors computed from the
+final field values.
+
+The evaluation for compute time is done for 5 different implementations which
+include the base design \ref{sec:midge_mpi}, IO channels used in within node topology
+fully connected topology with host synchronization \ref{sec:struc_iochan},
+IO channels used without host synchronization in within node and fully
+connected topologies \ref{sec:final_struc}. Each of the design was synthesized
+with both the toolchains which is done to evaluate the difference in the performance
+achieved with the newer toolchains. Additional variation due to different memory
+configuration parameters available in the Intel® FPGA SDK OpenCL v18.1.1 was
+also included. As the latencies included in the FPGA only designs contributes
+a large time to the execution of the meshes with lower sizes, another set of
+tests were performed for these designs keeping the latency to only 1 cycle.
+Table \ref{tab:midg2_designs} lists all the evaluated designs and the variations
+along with the names used in the following text, tables and plots for the variants.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[]
+    \centering
+    \caption{MIDG2 designs with the variations used to perform the run time evaluation}
+    \label{tab:midg2_designs}
+    \begin{tabular}{p{3.5cm}C{1.5cm}C{1.5cm}C{2cm}l}
+    \textbf{Design} & \textbf{FPGAs used} & \textbf{Mem flags} & \textbf{Added latency} & \textbf{Label} \\
+    \hline
+    \multirow{4}{*}{\parbox{3.5cm}{MIDG2 MPI FPGA}} & 2 & Yes & No & \textit{MPI\_N2} \\
+     & 4 & Yes & No & \textit{MPI\_N4} \\
+     \cline{2-5}
+     & 2 & No & No & \textit{MPI\_N2\_nf} \\
+     & 4 & No & No & \textit{MPI\_N4\_nf} \\
+     \hline
+    \multirow{2}{*}{\parbox{3.5cm}{Within Node with 1 IO Channel}} & 2 & Yes & No & \textit{WNIO} \\
+     & 2 & No & No & \textit{WNIO\_nf} \\
+     \hline
+    \multirow{2}{*}{\parbox{3.5cm}{Within Node with 4 IO Channels}} & 2 & Yes & No & \textit{WNIO\_4CH} \\
+     & 2 & No & No & \textit{WNIO\_4CH\_nf} \\
+     \hline
+    \multirow{2}{*}{\parbox{3.5cm}{Fully connected with IO Channel}} & 4 & Yes & No & \textit{FCIO} \\
+     & 4 & No & No & \textit{FCIO\_nf} \\
+     \hline
+    \multirow{4}{*}{\parbox{3.5cm}{Within Node FPGA Only 1 Channel}} & 2 & Yes & Yes & \textit{WN} \\
+    \cline{2-5}
+     & 2 & Yes & No & \textit{WN\_nolat} \\
+     \cline{2-5}
+     & 2 & No & Yes & \textit{WN\_nf} \\
+     \cline{2-5}
+     & 2 & No & No & \textit{WN\_nolat\_nf} \\
+     \hline
+    \multirow{4}{*}{\parbox{3.5cm}{Within Node FPGA Only 4 Channels}} & 2 & Yes & Yes & \textit{WN\_4CH} \\
+    \cline{2-5}
+     & 2 & Yes & No & \textit{WN\_4CH\_nolat} \\
+     \cline{2-5}
+     & 2 & No & Yes & \textit{WN\_4CH\_nf} \\
+     \cline{2-5}
+     & 2 & No & No & \textit{WN\_4CH\_nolat\_nf} \\
+     \hline
+    \multirow{4}{*}{\parbox{3.5cm}{Fully Conneted FPGA Only}} & 4 & Yes & Yes & \textit{FC} \\
+    \cline{2-5}
+     & 4 & Yes & No & \textit{FC\_nolat} \\
+     \cline{2-5}
+     & 4 & No & Yes & \textit{FC\_nf} \\
+     \cline{2-5}
+     & 4 & No & No & \textit{FC\_nolat\_nf} \\
+     \hline
+    \end{tabular}%
+\end{table}
+
+To perform the test with all of the designs listed in the table \ref{tab:midg2_designs},
+the kernels for each design were synthesized with both versions of the tool. To disable
+the additional memory optimization which are enabled using the flags \texttt{-global-ring -duplicate-ring}
+were disabled by removing the flags in the second synthesis. The kernel binaries for each
+of the synthesis are placed in separate directories to be available for use at the same time.
+The \ref{tab:syn_freq} lists the frequencies of the synthesized design.
+
+\begin{table}[ht]
+    \centering
+    \caption{Frequencies for the synthesized design }
+    \label{tab:syn_freq}
+    \begin{tabular}{lccc}
+    \multicolumn{1}{c}{\multirow{2}{*}{\textbf{Design}}} & \multicolumn{3}{c}{\textbf{Fmax(MHz)}} \\
+    \cline{2-4}
+    \multicolumn{1}{c}{} & \textbf{18.0.1} & \textbf{18.1.1} & \textbf{18.1.1\_nf} \\
+    \hline
+    MPI & 312.3 & 283 & 288.68 \\
+    WNIO & 281 & 287.35 & 278.86 \\
+    FCIO & 262.5 & 223.36 & 244.91 \\
+    WNIO\_4CH &  &  &  \\
+    WN\_4CH & 254.16 & 248.75 & 231.42 \\
+    FPGA ONLY WN & 265.32 & 276.93 & 254.84 \\
+    FPGA ONLY FC & 236.4 & 239.46 & 237.41
+    \end{tabular}%
+\end{table}
+
 \todo{Run test for bw with 4 channels}
 
-
-
 \subsection{Speed up Evaluation}
+
+
+\subsubsection*{MPI MIDG2 FPGA vs IO Channels}
+The first modification done as part of the thesis is the addition of
+IO channels. The aim with addition of IO channels is to reduce the communication
+overhead due to PCIe transfers involved in exchanging the non-shared elements
+between the nodes. As the communication is overlapped with the execution
+as shown in the sequence graph in the figure \ref{fig:sequence_comp},
+it is not expected to add any major processing time improvements.
+Plot \ref{plot:mpiio_comp} shows the speed up values achieved for the
+IO channels based design over the MPI designs.
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/comp_mpiio_1.pgf}} & \scalebox{0.5}{\input{data/comp_mpiio_2.pgf}} \\
+    (a) & (b)
+	\end{tabular}
+    \caption{MIDG2 MPI FPGA vs MIDG2 FPGA IO Channels designs}
+	\label{plot:mpiio_comp}
+\end{figure}
+The Within Node
+topology has higher speed up values then the fully connected designs
+for bigger mesh sizes. The speed up for the smaller mesh sizes
+are reported to be higher in all the cases as the computation
+time for the smaller meshes is smaller and the overall
+runtime is affected more by the higher delays in communication.
+On the other hand, the large computation time for large meshes
+compensates for delays in communication The speed values for the
+Within node designs vary between 1.30 to 1.40 which suggests
+could be explained as the data sizes in a two node design
+would be larger and have more effect on the overall execution
+time then in the 4 node designs. Also as it was noticed
+in the topology evaluation, the 1 channel topology is able
+to achieve higher bandwidth for smaller data sizes which
+could be another factor. Comparing the tool chain variation,
+it can be noticed that the within node design perform similar
+in both the versions whereas for fully connected designs
+the 18.1.1 toolchain has lower speedup values which
+goes to a minimum of 1.14 for the 200k compared to 1.27
+which is around 10\% faster.
+
+
+\subsubsection*{MPI MIDG2 FPGA vs FPGA ONLY}
+
+As explained in \ref{cha:sys_fpgaonly}, to avoid the host synchronization
+which added some amount of overhead to the processing, the second modification
+removed the host synchronization completely. These designs were implemented
+to utilize the full potential of the FPGA without the host interference.
+Plot shows the variation of speedup over different mesh sizes for the
+MIDG2 MPI and FPGA only designs. Overall the speed up values for
+both design are very low which range for a maximum of 1.34 for the 20k
+within node implementation to 1.12 for the fully connected design.
+As with the IO channels design, the within node performs better
+with higher speed up values for all meshes. Comparing the effects
+of toolchain variation, for both the designs the 18.1.1 version
+performance slightly better for higher data sizes unlike the IO channels.
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/comp_mpifpgaonly_1.pgf}} & \scalebox{0.5}{\input{data/comp_mpifpgaonly_2.pgf}} \\
+    (a) & (b)
+	\end{tabular}
+    \caption{MIDG2 MPI FPGA vs MIDG2 FPGA only design}
+	\label{plot:mpifpgaonly_comp}
+\end{figure}
+
+Comparing the performance of the FPGA ONLY design with IO channels
+design it can be seen that the optimization done are not advantageous and
+decrease the speedup values. Plot \ref{plot:iofpgaonly_comp} shows the
+comparison of the speed values achieved for the IO channels designs and
+the FPGA only designs. Both the design see significant decrease in the
+speed up values. The impact of the changes is much higher in the case of
+the 18.0.1 toolchain where for Fully connect design with 1k Mesh size
+there is a decrease of 21\% and for 200k 10\%. For 18.1.1 version
+the deviations are only higher for smaller mesh sizes and converge
+towards the higher mesh sizes which could be because of the
+use of fixed latency time within the kernels which is around
+150000 cycles (approx 75ms at 270MHz) which could affect the runtime
+of smaller mesh sizes.
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/iompifpgaonly_all_18_0.pgf}} & \scalebox{0.5}{\input{data/iompifpgaonly_all_18_1.pgf}}\\
+    (a) & (b)
+	\end{tabular}
+    \caption{MIDG2 FPGA IO channels vs MIDG2 FPGA only design}
+	\label{plot:iofpgaonly_comp}
+\end{figure}
+
+
+To understand the impact of the latencies in the FPGA only design, the host
+application was configured to allow setting up the latency count at the runtime.
+This is used to set the latency to 1 and run the tests again to see the impact
+of the latency. The field values produced by this change are not accurate, as
+the memory operations are not completed correctly and synchronized among the FPGA
+though it gives the potential of the FPGA design. The plot \ref{plot:fpgaonly_nolat}
+shows the speed up values for each mesh size for the no latency run.
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/comp_mpifpgaonly_nolat_1.pgf}} & \scalebox{0.5}{\input{data/comp_mpifpgaonly_nolat_2.pgf}}\\
+    (a) & (b)
+	\end{tabular}
+    \caption{MIDG2 FPGA only design with latency set to one cycle count}
+	\label{plot:fpgaonly_nolat}
+\end{figure}
+The plot shows that for smaller mesh sizes very high speed up values which is upto 8.68 for the fully connected
+topologies is possible. The speedup values for the fully connected topologies is higher then within node
+design which could be explained due to smaller communication times due to simultaneous data transfers
+which results in lesser synchronization time delays between the kernels which still use channels
+to synchronize but with no latency. For higher data sizes the benefits dimishes completely giving
+similar speedup values like the run with latency. This is due tp the higher computation times for
+bigger meshes. As the mesh size increases, the kernel spend more time for computation. The main
+benefit of the FPGA only design comes from the overhead due to host interactions per iterations.
+With higher mesh sizes the overhead only contributes a very small fraction of the
+execution time per iteration and is not significant for the overall execution making the benefits
+of removal of synchronization minimal. In terms of toolchain variation, there are no noticeable
+difference in the speedup in either of the design.
+
+
+\subsubsection*{Effects of Memory flags}
+
+The 18.1.1 toolchain version provides additional memory optimization
+flags which control the global memory interconnections to the FPGA
+fabric. As explained previously, the designs were also synchronized
+with the flags disabled to see the effects on the performance.
+The plots in figure \ref{plot:noflag} show the comparison of the speedup
+of the IO channel  and FPGA only designs with MPI MIDG2 with and without
+memory flags. For FPGA only design the Fully connected topology have similar
+speed up and show no effects of the flag but in case of the within node topology,
+disabling the flag reduces the speed up marginally for all the mesh sizes but
+difference is very small and could be attributed to variations. For the
+IO channels the, the within node design has no effect whereas the fully
+connected design has benefits for the mesh sizes for about 10\% increase in
+speed up.
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/flag_noflg_iochan.pgf}} & \scalebox{0.5}{\input{data/flag_noflg_fpgaonly.pgf}}\\
+    (a) MPI vs IO Channel & (b) MPI vs FPGA Only
+	\end{tabular}
+    \caption{Effects of memory optimization flags in 18.1.1 tool chain}
+	\label{plot:noflag}
+\end{figure}
 
 \subsection{Bandwidth}
 

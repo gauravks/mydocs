@@ -57,3 +57,28 @@ FPGA ONLY FC   & 236.4                  & 239.46
   Fully Connect         & 15
   \end{tabular}
 \end{table}
+
+{% to keep some settings local
+\footnotesize
+\setlength\tabcolsep{1.2pt}
+\renewcommand\extrarowheight{1.5pt}
+\begin{tabular}{|c|p{2.3cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
+   \hline
+   \multicolumn{6}{|c|}{Schedule Example} \\
+   \hline
+   Time & \mcc{M} & \mcc{T} & \mcc{W} & \mcc{R} & \mcc{F} \\\hline
+   11:00am & & & & & \\\hline
+   12:00pm & & & & & \\\hline
+   1:00pm & & & & & \\\hline
+   2:00pm & \multirow{2}{*}{\parbox{2.3cm}{\centering A longgg team meeting}} & &
+     \multirow{2}{2cm}{\centering Team Meeting} & &
+     \multirow{2}{2cm}{\centering Team Meeting} \\
+   3:00pm & & & & & \\\hline
+   4:00pm & & & & & \\\hline
+   5:00pm & & & & & \\\hline
+   6:00pm & & \multirow{2}{*}{\parbox{2cm}{\centering Dinner \&\\ Movie}}  & &
+     \multirow{2}{*}{\parbox{2cm}{\centering Dinner}} & \\
+   7:00pm & & & & & \\
+   \hline
+\end{tabular}
+}
