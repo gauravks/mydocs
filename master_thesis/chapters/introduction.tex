@@ -10,9 +10,15 @@ which require high computational performance. These systems, generally referred 
 high performance clusters, comprises of multiple individual systems known as nodes. Each node
 can contain multiple multi-core processing, GPUs and FPGAs and are connected to each other
 using high speed Ethernet to exchange data and control information. The whole system acts
-as a single high performance system with distributed memory and processing elements as shown in fig
+as a single high performance system with distributed memory and processing elements as
+shown in figure \ref{fig:cluster}
 
-\FIXME{add image}
+\begin{figure}[ht]%
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/cluster}
+    \caption{High performance cluster structure with multiple nodes having different configuration}
+    \label{fig:cluster}
+\end{figure}
 
 Traditionally multiple CPU based supercomputers were only utilized but considering the nature
 of the application which mostly consists of the same operation performed on a stream of data,
@@ -131,13 +137,13 @@ design presented in this thesis uses a similar approach like in \cite{kobayashi_
 but does not utilize the Ethernet-IP core and relies on the serial communication
 support provided in the BittWare BSP.
 
-
-\TODO{Update this description if the chapter structure changes}
-The rest of the thesis is divided into 4 chapter. Chapter \ref{cha:Fundamentals} would
+The rest of the thesis is divided into 5 chapters. Chapter \ref{cha:Fundamentals} would
 discuss the fundamentals of the components and technologies used in the thesis.
-Chapter \ref{cha:sys_arch} would present the system design and details of the implementation
-done as part of the thesis for both the tasks giving reasons for various approaches and discussing
-the evaluated systems or designs. Chapter \ref{cha:Evaluation} discusses the evaluation steps
+Chapter \ref{cha:topologies} introduce the topologies which are possible for the FPGAs
+along with the prototypes developed for the evaluation. Chapter \ref{cha:sys_arch}
+explains the first implementation done using IO channels. Chapter \ref{cha:sys_fpgaonly}
+presents the FPGA only system implemented by optimizing the IO channels design
+to remove the host dependency in the kernels. Chapter \ref{cha:Evaluation} discusses the evaluation steps
 and the results of the evaluation in detail highlighting the benefits of using the IO channels.
 Final chapter \ref{cha:Conclusion} presents a conclusion of the achieved results of the thesis
 and proposes possible future works and improvements.

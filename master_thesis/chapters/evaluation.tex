@@ -646,12 +646,219 @@ speed up.
 	\label{plot:noflag}
 \end{figure}
 
-\subsection{Bandwidth}
+\subsection{Bandwidth evaluation with MIDG2 variants}
+
+The execution time evaluation shows that there are possible benefits of using the IO channels
+in terms of improved communication for atleast smaller mesh sizes. With bigger mesh sizes
+the benefits of the improvements are not realized as the longer computation part runs
+simultaneously. To better understand the benefits of the IO channels, an additional set of
+tests were designed. The aim of these tests is to simulate higher sizes of data transfer
+in application and compare the bandwidth performance and the runtime in this case.
+To achieve higher data size data transfers, the partition configuration was updated to
+partition meshes at tetrahedral boundaries instead of triangular surface boundaries.
+This is done by updating the \texttt{ncommonnodes} value to 4 from 3, which is the parameter
+to control the number of vertices of the element to be used for partitioning. The
+size of the data shared in both the designs for a 2 node and 4 node system is
+capture in \ref{tab:sizes_var}
+\begin{table}[ht]
+    \centering
+    \caption{Data sizes of the data transfers between then nodes for the two different values of ncommonnodes and number of nodes used}
+    \label{tab:sizes_var}
+    \begin{tabular}{|ccccc|}
+    \hline
+    \multirow{2}{*}{Elements} & \multicolumn{2}{c|}{data size 2 node(in KB)} & \multicolumn{2}{c|}{data size 4 Node(in KB)} \\ \cline{2-5}
+     & ncom = 3 & ncom = 4 & ncom = 3 & ncom = 4 \\ \hline
+    1052 & 16.18 & 219.14 & 14.44 & 160.55 \\ \hline
+    1978 & 23.68 & 405.71 & 22.41 & 308.91 \\ \hline
+    5235 & 43.6 & 1131.1 & 43.04 & 829.46 \\ \hline
+    10420 & 83.44 & 2257.97 & 76.88 & 1702.04 \\ \hline
+    19982 & 137.82 & 4374.85 & 118.79 & 3286.06 \\ \hline
+    51170 & 247.5 & 11234.3 & 231.66 & 8520 \\ \hline
+    102045 & 388.83 & 22602.43 & 370.6 & 17072.23 \\ \hline
+    203163 & 608.21 & 45163.6 & 595.13 & 34011.8 \\ \hline
+    \end{tabular}%
+\end{table}
+
+\subsubsection{Bandwidth Measurement}
+The change in the \texttt{ncommonnodes} produce correct error values for the MPI MIDG2 designs but
+for the IO channels design, slightly wrong error values are produced. This could be due some alignment
+issues but the issue was not analysed in detail due to time limitation and as it just to simulate
+higher data transfers and would not be used in a real system. The measurements for the bandwidth
+were taken with MIDG2 MPI FPGA (as the base) and the IO channels designs only. As these
+design share common execution sequence controlled by host, comparison of these designs
+was identified to be more relevant. Also, the bandwidth computation in FPGA only design
+is quite complex as there are not host interactions per iterations and clear waiting times
+and active times are hard to predict from the profile information.
+The bandwidth measurements for the MIDG2 MPI FPGA implementations are done using the \texttt{clock\_gettime()}
+by measuring the total communication time for send and receive and computing the bandwidth similar to
+bandwidth measurements for the topology evaluation. The times are store in the profile infor structure
+which is processed at the end of every run. The code snippet in \ref{code:bwmpi_comp} shows the points in the different
+routines where the measurement are added.
+\begin{CppCode}[caption=Send and receive communication time computation changes for MIDG2 MPI FPGA, frame=tlrb, label=code:bwmpi_comp]
+static void runKernel(...)
+{
+    ....
+
+    if (mesh->nprocs > 1)
+    {
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    SendMpiData(mesh, clObjs);
+    ....
+    ....
+    RecvMpiData(mesh, clObjs);
+    clObjs->pKernel_obj->waitforcompletion("compute", &event1);
+    ....
+    }
+
+    clObjs->pKernel_obj->enqueue_NDRange("compute",, , , , , , ,); // VolumeKernel
+
+    clObjs->pKernel_obj->waitforcompletion("compute", &event1);
+
+    profileInfo->sendExecTime += (cl_double)(diff(start, SendEnd)) * (cl_double)(1e-06);
+    profileInfo->recvExecTime += (cl_double)(diff(start, RecvEnd))* (cl_double)(1e-06);
+    ...
+}
+
+static void RecvMpiData(...)
+{
+ ...
+    MPI_Status *instatus = (MPI_Status *)calloc(nprocs, sizeof(MPI_Status));
+    MPI_Status *outstatus = (MPI_Status *)calloc(nprocs, sizeof(MPI_Status));
+
+    MPI_Waitall(Nmess, mpi_out_requests, outstatus);
+    clock_gettime(CLOCK_MONOTONIC, &SendEnd);
+
+    MPI_Waitall(Nmess, mpi_in_requests, instatus);
+
+    if (mesh->parNtotalout)
+    {
+        ret = clEnqueueWriteBuffer(, partQ_mem,,, sharedQMemSize, f_inQ,,,);
+        if (ret != CL_SUCCESS)
+            printf("recv Error %d\n", ret);
+
+        clFinish(clObjs->cmd_queue_main);
+        clock_gettime(CLOCK_MONOTONIC, &RecvEnd);
+    }
+...
+}
+\end{CppCode}
+
+For the IO channels design, the measurement is simpler. The kernel exectution time
+for \texttt{partial\_send} and \texttt{partial\_recv} kernels is comuputed by requesting
+the \texttt{CL\_PROFILING\_COMMAND\_START} and \texttt{CL\_PROFILING\_COMMAND\_END} profile counters
+as explained done in the prototypes. The communication times are then computed and stored
+in the profileinfo buffers as shown in the code listing \ref{code:bwioch_comp}.
+\begin{CppCode}[caption=Send and receive communication time computation changes for IO channels designs, frame=tlrb, label=code:bwioch_comp]
+static void runKernel(...)
+{
+...
+...
+    clObjs->pKernel_obj->enqueue_NDRange("compute_inner",  ,,, , , , );
+
+    clObjs->pKernel_obj->waitforcompletion("compute_inner", &event1);
+...
+    clObjs->pKernel_obj->enqueue_NDRange("compute_halo", , , , , , , , );
+    clObjs->pKernel_obj->waitforcompletion("compute_halo", &event1);
+
+    cl_ulong start = 0, end = 0;
+    start = getProfileInfo("maxwell_partial_send", CL_PROFILING_COMMAND_START);
+    end = getProfileInfo("maxwell_partial_send", CL_PROFILING_COMMAND_END);
+
+    profileInfo->sendExecTime += (cl_double)(end - start) * (cl_double)(1e-06);
+
+    start = getProfileInfo("maxwell_partial_rcv", CL_PROFILING_COMMAND_START);
+    end = getProfileInfo("maxwell_partial_rcv", CL_PROFILING_COMMAND_END);
+
+    profileInfo->recvExecTime += (cl_double)(end - start) * (cl_double)(1e-06);
+...
+}
+\end{CppCode}
 
 
-\subsection{Global Bandwidth}
-lower occupancy in the computation kernels giving hints to be computational
-bound
+\subsubsection{Analysis of the results}
+
+The plots in the figure \ref{plot:bw_avg} show the comparision of the average bandwidth
+values recorded for the MPI and the IO designs. Figure (a) shows the bandwidth for
+2 nodes whereas (b) shows for the 4 node designs. The first thing which is clearly visible
+is the huge difference in the bandwidth values for the MPI and IO channels design which
+proof the higher efficiency of the IO channels in real application scenarios as well.
+The MPI reports a maximum bandwidth of 0.76 GB/s for the  200k Mesh in 2 node design with 18.0.1 toolchain.
+which is only 25\% of the available bandwidth, whereas the within node design is able to
+utilize the 70\% of the available bandwidth reporting a maximum bandwidth of 3.50 GB/s.
+The Fully connected design as expectation have higher bandwidth values due to utilization
+of 3 channels though the peak bandwidth of 6.09 for 200k Mesh is only 40\% which could be
+due to the global memory access limitations. As all the kernels compute parallelly now,
+the load on the global memory is higher for handling the requests which would lead to stalls and
+explain the bahaviour.
+\begin{figure}[ht]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/mpiio_bw_1.pgf}} & \scalebox{0.5}{\input{data/mpiio_bw_2.pgf}}\\
+    (a) 2 node designs & (b) 4 Node Designs
+	\end{tabular}
+    \caption{Average bandwidth values for two node and 4 Node designs}
+	\label{plot:bw_avg}
+\end{figure}
+The 4 channel design performs slower than the single channel design. As identified in
+the topology testing the, performance of 4 channel design is affected due to the
+wider global memory access which cause higher stalls. In the actual application,
+with other kernels working simulataneously, the effects of the global memory has
+increased leading to bandwidths slower than the single channel implementation.
+
+
+The plots in figure \ref{plot:bw_ratio} compare the bandwidth speed up of
+send and receive seprately. The receives is both IO channels design have significantly
+higher speed up values then the sends. The difference can be accounted to the sharing of
+global memory buffer in the send and hence the memory band with other kernels. The \texttt{partial\_send}
+kernels reads the \texttt{g\_Q} memory buffer to get the shared data values. With the addition
+of channels between rk and volume/surface kernel, the concurrent access of the \texttt{g\_Q}
+increases which would cause stalls and delays in the send kernel leading to slower sends.
+\begin{figure}[ht]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/bwspeed_1.pgf}} & \scalebox{0.5}{\input{data/bwspeed_2.pgf}}\\
+    (a) 2 node designs & (b) 4 Node Designs
+	\end{tabular}
+    \caption{Average bandwidth values for two node and 4 Node designs}
+	\label{plot:bw_ratio}
+\end{figure}
+Looking at the plots it can also be clearly seen that performance of design synthesized
+with 18.0.1 toolchains is lesser as the MPI design performs better with the 18.0.1
+toolchain reporting higher bandwidth values. Although this behavior can only be seen in
+the within the node topology. The fully connected topology have similar performance in both
+toolchains.
+
+
+\subsubsection{Execution time comparision}
+
+The plot in figure \ref{plot:bw_speedup} show the comparision of the
+execution time speedup for the designs used for bandwidth evaulation.
+A maximum speed up value of 2.92 is reported for the fully connected
+designs with both within node and fully connected topology
+having speed of 2 and above for higher mesh sizes. This shows the potential
+of using the IO channels with higher data transfer sizes which was not clear
+with the exectution time evaluation. The within node 4 channel design has
+speed ups below 2, mostly due to the global memory congestion in the send
+pasrt as noticed with the earlier analysis.
+\begin{figure}[ht]
+	\centering\small
+    \scalebox{0.8}{\input{data/bwspeed_com.pgf}}
+    \caption{Speed up comparision for simulated higher data size transfers}
+	\label{plot:bw_speedup}
+\end{figure}
+
+The fully conneted design synthesized with the 18.0.1 version is the only
+18.0.1 design which performs better. After further analyis it was identified that
+the difference could be due to addition of write-ack LSU for the \texttt{g\_resQ}
+buffer in the the RK kernel which is solved in the FPGA only designs by aliasing
+the memory.
+
+
+% \subsection{Global Bandwidth}
+
+
+% lower occupancy in the computation kernels giving hints to be computational
+% bound
 
 
 

@@ -221,8 +221,23 @@ The BittWare 520N boards used for the evaluation are equipped with
 
 The Intel™ Stratix 10 FPGA GX2800 FPGA belongs to the current generation of the high-performance FPGA
 family with new Intel™ Hyperflex™ core architecture which gives higher bandwidth and processing
-performance to the FPGAs. The resource summary for the FPGA is given in table \todo{add table}
+performance to the FPGAs. The resource summary for the FPGA is given in table \ref{tab:res_sum}
 which shows the high computation capabilities of the FPGAs
+\begin{table}[]
+    \centering
+    \caption{Intel™Stratix 10 FPGA GX2800 Resource summary}
+    \label{tab:res_sum}
+    \begin{tabular}{lr}
+    \hline
+    \textbf{Resources} & \multicolumn{1}{c}{\textbf{\#}} \\ \hline
+    Logic elements (LEs) & 2,753,000 \\ \hline
+    Adaptive logic modules (ALMs) & 933,120 \\ \hline
+    M20K memory blocks & 11721.00 \\ \hline
+    M20K memory (Mb) & 229 \\ \hline
+    MLAB memory (Mb) & 15 \\ \hline
+    DSP & 5,760 \\ \hline
+    \end{tabular}%
+\end{table}
 
 \subsubsection*{QSFP Network Ports}
 
@@ -237,8 +252,21 @@ As the BittWare BSP supports 40 Gbits/s speeds, this is used for all calculation
 
 \subsection{Software Development flow}
 
-Intel™ FPGA SDK for OpenCL™ is used for the extending the existing kernels.
-\TODO{GIve details after finalizing}
+Intel™ FPGA SDK for OpenCL™ v18.0.1 Pro and v18.1.1 Pro is used for the development,
+debugging and synthesizing of the OpenCL kernels developed in this thesis.
+Intel®MPI Library v18.0.3 is used for the MPI communication between the nodes
+for distributed setups. ParMETIS v4.0.3 is used for implementation of the partitioning
+scheme in the MIDG2 application.
+
+The software development is based on the existing MIDG2 MPI FPGA code base
+currently maintained by PC\textsuperscript{2}. The software package consists
+the host application which implements the mesh handling, partitioning,
+coefficient initialization and OpenCL™ platform initialization and control
+logic. The package also contains the OpenCL™ kernels which implement
+the computation logic of the DG method for distributed FPGA system using
+MPI+PCIe for communication between the FPGAs. This design is used as the base
+for the thesis and is extended in the thesis to include IO channels for communication
+in different topologies.
 
 \subsection{OpenCL™ Serial IO channels}
 
@@ -246,14 +274,14 @@ The communication over the QSFP ports can be implemented in the OpenCL™ by usi
 Intel's OpenCL™ IO channels support. The IO channels can be used to stream data
 directly between kernels and I/O using explicitly named channels. The declaration
 of these channels should be included in the \texttt{board\_spec.xml} using the
-\texttt{channels} element. The BittWare BSP provide 4 Tx and 4 Rx IO channels for the 520N board
-as shown in the listing {} which interface to the 4 QSFP ports on the board.
+\texttt{channels} element. The BittWare BSP \texttt{p520\_max\_sg280l} provides
+4 Tx and 4 Rx IO channels for the 520N board as shown in the listing \ref{code:board_spec}
+which interface to the 4 QSFP ports on the board.
 In order to use these I/O channels in the OpenCL kernel,
 an \texttt{io} attribute is included in the channel declaration along with id of
 the interface which is specified in the \texttt{board\_spec.xml}.
 
-\TODO{Revise the introduction of the IO channels to describe that is it provided by BittWare}
-\begin{XmlCode}
+\begin{XmlCode}[caption=IO channels desciption in \texttt{board\_spec.xml}, frame=tlrb, label=code:board_spec]
 <channels>
     <interface name="board" port="io_to_dev_ch0" type="streamsource" width="256" chan_id="kernel_input_ch0"/>
     <interface name="board" port="dev_to_io_ch0" type="streamsink" width="256" chan_id="kernel_output_ch0"/>
@@ -265,6 +293,7 @@ the interface which is specified in the \texttt{board\_spec.xml}.
     <interface name="board" port="dev_to_io_ch3" type="streamsink" width="256" chan_id="kernel_output_ch3"/>
 </channels>
 \end{XmlCode}
+
 A example kernel code is shown in the listing {} which uses one TX and one RX channel to
 communicate in the \texttt{sender} and \texttt{collector}.
 \texttt{ch\_eth\_in} and \texttt{ch\_eth\_out} is declared to interface with
@@ -275,7 +304,7 @@ After the declaration, the channels can be used by the kernel similar to standar
 channels using \texttt{write\_channel\_intel} and \texttt{read\_channel\_intel} APIs to write
 to the TX channel and read from the RX channel as shown.
 
-\begin{CppCode}
+\begin{CppCode}[caption=IO channels usage example in a OpenCL™ kernel, frame=tlrb, label=code:board_spec]
 #pragma OPENCL EXTENSION cl_intel_channels : enable
 
 channel float8 ch_eth_in __attribute((io("kernel_input_ch0")));
@@ -302,6 +331,6 @@ collector(int length, __global float8 * restrict output)
 \end{CppCode}
 
 
-\TODO{Add section to describe loop pipeline in nexted loops}
-\TODO{Add section to describe Memory banking and benfits in OpenCL™ kernels}
+% \TODO{Add section to describe loop pipeline in nexted loops}
+% \TODO{Add section to describe Memory banking and benfits in OpenCL™ kernels}
 

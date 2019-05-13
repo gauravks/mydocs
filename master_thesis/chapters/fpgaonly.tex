@@ -130,7 +130,7 @@ buffer reads which could be a problem with the updated design. As the buffer is 
 RK kernel and the kernels are suppose to switch the buffers in each iteration, cached reads
 could lead to processing of stale values resulting in wrong field computation. To eliminate
 the cache for the memories, the buffer parameter were marked as \texttt{volatile} which
-as per the documentation allows to remove cached access as well as perform buffer management \todo{add reference for this}
+as per the documentation allows to remove cached access as well as perform buffer management
 between the kernels to ensure correct sequence of reads and writes.
 
 \subsection*{Addition of latency}
@@ -749,7 +749,7 @@ to be placed in the memory sequentially to be simplify and improve memory
 operations, the elements in the \texttt{g\_Q} were sorted by arranging
 non-shared elements first followed by the shared elements. This is different
 from the initial sorting where the elements were arranged in the opposite order
-as shown in \todo{add ref to the figure}.
+as shown in \ref{fig:rearrange}.
 
 \subsection{Issues identified with optimized design}
 

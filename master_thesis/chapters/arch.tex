@@ -4,7 +4,7 @@
 MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} is used as the target
 application in this thesis to evaluate the benefits of using IO channels.
 MIDG2 application uses the \ac{DG} method to calculate the electric and magnetic
-field values for objects as described in the chapter \todo{add chapter number}.
+field values for objects as described in the chapter \ref{cha:Fundamentals}.
 The thesis extends a version of the application which uses OpenCL™ kernels to
 offload the performance critical calculations to the FPGA accelerators in a
 distributed system and use MPI to communicate among the different instances of the
@@ -24,19 +24,25 @@ The MPI MIDG2 FPGA version requires an additional \texttt{partial\_get\_kernel} 
 the main element buffer \texttt{g\_Q} into a smaller buffer partial data buffer \texttt{g\_partQ}.
 The main benefit of using the additional kernel is to avoid the large memory transaction between the
 host and the FPGA over PCIe to get the \texttt{g\_Q} and assemble the shared buffers in host.
-The addition of the partial kernel was accompanied with resshuffling of the elements in the \texttt{g\_Q}
+The addition of the partial kernel was accompanied with re-shuffling of the elements in the \texttt{g\_Q}
 buffer. The distributed design requires the mesh to be partitioned into smaller meshes allocated
 to each rank. The elements of the partitioned mesh can either share a face with a neighboring
 rank or within the rank. The elements which share faces with neighboring ranks form the shared
 element group and the ones sharing faces within rank form the non-shared element group.
 To separate the computation of the these shared element group and the non-shared element group
 by reusing the same kernels required sorting of the elements into groups. This was done by
-placing the shared elements in the start of the \texttt{g\_Q} buffer followed by the shared
-elements. This allowed to use the same kernels with different start and end element parameters
+placing the shared elements in the start of the \texttt{g\_Q} buffer followed by the non-shared
+elements as shown in figure \ref{fig:rearrange}. This allowed to use the same kernels with different
+start and end element parameters
 to be invoked for processing the shared and non-shared elements separately.
+\begin{figure}%
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/rearrange}
+    \caption{Rearrangement of \texttt{g\_Q} buffer elements by sorting and bringing the
+    shared elements in the beginning of the buffer}
+    \label{fig:rearrange}
+\end{figure}
 
-
-\TODO{add image to show the reaarangement to }
 
 The original pipeline developed for single FPGA was further optimized by introducing separate buffers
 \texttt{volrhsQ} and \texttt{surrhsQ} instead of the the same right hand side \texttt{rhsQ} buffer

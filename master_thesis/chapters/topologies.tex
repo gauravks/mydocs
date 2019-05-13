@@ -75,8 +75,10 @@ in two ways. The first way is similar to within node where the isles communicate
 using MPI. In this design, to decrease the overhead of exchanging data via the
 MPI, the data should be collected on a single FPGA using the point-to-point
 link and then exchanged via MPI. On the receiving end the process can be
-reversed. Some more details of possible strategies to scale this design
-effectively would be discussed in section \TODO{add reference}
+reversed.
+
+% Some more details of possible strategies to scale this design
+% effectively would be discussed in section \TODO{add reference}
 
 \begin{figure}[h]%
     \centering
@@ -367,7 +369,7 @@ the received data for verification. Additionally \texttt{MPI\_Barrier(MPI\_COMM\
 is used the synchronize the hosts. This synchronization helps to reduce the stalls
 on the external channels.
 
-\TODO{Add the description of MPI PCIe prototype}
+% \TODO{Add the description of MPI PCIe prototype}
 
 
 
