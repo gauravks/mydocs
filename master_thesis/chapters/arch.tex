@@ -47,7 +47,7 @@ The original pipeline developed for single FPGA was further optimized by introdu
 \texttt{volrhsQ} and \texttt{surrhsQ} instead of the the same right hand side \texttt{rhsQ} buffer
 which was earlier accumulated in surface kernel. These changes allows the volume and surface kernel
 to execute parallely and write data into two separate buffers. The RK kernel reads both the buffers
-after volume and surface kernel are finished processing and accumulates the values using rungga-kutta
+after volume and surface kernel are finished processing and accumulates the values using Runge-Kutta
 constants to produce the field values for the timestep. Another improvement introduced to optimize the
 design was to use the concept of double buffers for the \texttt{g\_Q}. The \texttt{g\_Q} buffer is
 duplicated into two buffers \texttt{g\_Q\_ping} and \texttt{g\_Q\_pong} which use two alias \texttt{g\_Q\_in}

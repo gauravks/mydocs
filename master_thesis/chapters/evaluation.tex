@@ -47,8 +47,8 @@ behavior in the base MPI MIDG2 FPGA implementation and is used to compare the
 bandwidth performance and possible improvements using FPGA-to-FPGA communication
 on the target hardware systems. The evaluation performed in this
 section compares the bandwidth of the FPGA-to-FPGA communication
-in  different topologies as well as with the Intel® Omni Path + PCIe based
-data communication between the nodes as shown in \ref{}.
+in  different topologies with the Intel® Omni Path + PCIe based
+data communication between the nodes.
 
 \begin{CppCode}[caption=Pseudo-code to perform MPI+PCIe based data communication
     between FPGAs, frame=tlrb, label=code:mpi_proto]
@@ -611,9 +611,9 @@ topologies is possible. The speedup values for the fully connected topologies is
 design which could be explained due to smaller communication times due to simultaneous data transfers
 which results in lesser synchronization time delays between the kernels which still use channels
 to synchronize but with no latency. For higher data sizes the benefits dimishes completely giving
-similar speedup values like the run with latency. This is due tp the higher computation times for
+similar speedup values like the run with latency. This is due to the higher computation times for
 bigger meshes. As the mesh size increases, the kernel spend more time for computation. The main
-benefit of the FPGA only design comes from the overhead due to host interactions per iterations.
+benefit of the FPGA only design comes from removal of the overhead due to host interactions per iterations.
 With higher mesh sizes the overhead only contributes a very small fraction of the
 execution time per iteration and is not significant for the overall execution making the benefits
 of removal of synchronization minimal. In terms of toolchain variation, there are no noticeable
@@ -624,7 +624,7 @@ difference in the speedup in either of the design.
 
 The 18.1.1 toolchain version provides additional memory optimization
 flags which control the global memory interconnections to the FPGA
-fabric. As explained previously, the designs were also synchronized
+fabric. As explained previously, the designs were also synthesized
 with the flags disabled to see the effects on the performance.
 The plots in figure \ref{plot:noflag} show the comparison of the speedup
 of the IO channel  and FPGA only designs with MPI MIDG2 with and without
@@ -633,7 +633,7 @@ speed up and show no effects of the flag but in case of the within node topology
 disabling the flag reduces the speed up marginally for all the mesh sizes but
 difference is very small and could be attributed to variations. For the
 IO channels the, the within node design has no effect whereas the fully
-connected design has benefits for the mesh sizes for about 10\% increase in
+connected design has benefits for all mesh sizes for about 10\% increase in
 speed up.
 \begin{figure}[h]
 	\centering\small

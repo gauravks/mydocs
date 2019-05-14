@@ -139,18 +139,29 @@ Another probable issue with the design was with the difference in latency of mem
 and channel communication. As the channels are implemented as FIFOs in the hardware
 using registers or BRAMs, the latency of the channels is much lesser then that of a memory
 operation. This would cause the input kernels to assess non-updated memory after receive of the
-event over the channels. As shown in the image \ref{fig:memchan_latency}, due to higher latency
+event over the channels. As shown in the figure \ref{fig:memchan_latency} (a), due to higher latency
 of the memory to handle the write request which is not visible in the kernel, an overlapped
 read is possible while using channels for synchronization.
-
-\begin{figure}[ht]%
-    \centering
-    \includegraphics[width=0.6\textwidth]{images/memchan_latency}
-    \caption{Sequence of operation between kernels using memory and channels showing
-    the latency differences for memory and channel and its effect while using
-    for synchronization}
-    \label{fig:memchan_latency}
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{c|c}
+    \includegraphics[width=0.45\textwidth]{images/memchan_latency} & \includegraphics[width=0.45\textwidth]{images/resolved_latency}\\
+    (a) & (b)
+	\end{tabular}
+    \caption{Sequence of operation between kernels to synchronize memory
+    access with channels. (a) Shows the latency differences for memory and
+    channel causing overlapped memory access. (b) Shows the sequence with
+    added latency which avoids the overlap}
+	\label{fig:memchan_latency}
 \end{figure}
+% \begin{figure}[ht]%
+%     \centering
+%     \includegraphics[width=0.6\textwidth]{images/memchan_latency}
+%     \caption{Sequence of operation between kernels using memory and channels showing
+%     the latency differences for memory and channel and its effect while using
+%     for synchronization}
+%     \label{fig:memchan_latency}
+% \end{figure}
 
 As there is no concrete information available for the target board to estimate
 the exact latency for the memory neither there is any method to block on the
@@ -186,16 +197,16 @@ in RK and \texttt{recv} kernels placing the channels \texttt{ch\_sync\_1},
 \texttt{ch\_sync\_2} and \texttt{ch\_sync\_3} in a wait loop in the RK kernel and \texttt{ch\_sync\_4}
 and \texttt{ch\_sync\_5} in the another wait loop in \texttt{recv} kernel to avoid
 overlapped access of \texttt{g\_Q} and \texttt{g\_partQ} buffers. Introduction
-of latency changes the sequence of operations as shown in the figure \ref{fig:resolved_latency}
+of latency changes the sequence of operations as shown in the figure \ref{fig:memchan_latency} (b)
 which shows no overlapping in the memory requests due to latency.
 
-\begin{figure}[ht]%
-    \centering
-    \includegraphics[width=0.6\textwidth]{images/resolved_latency}
-    \caption{Sequence of operation with added latency to avoid overlapped
-    memory access}
-    \label{fig:resolved_latency}
-\end{figure}
+% \begin{figure}[ht]%
+%     \centering
+%     \includegraphics[width=0.6\textwidth]{images/resolved_latency}
+%     \caption{Sequence of operation with added latency to avoid overlapped
+%     memory access}
+%     \label{fig:resolved_latency}
+% \end{figure}
 
 \subsection*{Removing channels \texttt{ch\_sync\_2} and \texttt{ch\_sync\_3}}
 
@@ -391,8 +402,8 @@ coefficient and improves the memory bandwidth and overall kernel performance.
 \begin{CppCode}[caption=Use of Runge-Kutta coefficients inside the RK kernel, frame=tlrb, label=code:rkcoeff]
 __kernel void rkkernel(..Args..)
 {
-    const float rk4a[5] = {0.0, -0.41789047449985196221336664024539F, -1.1921516946426769261050123558462F,  -1.6977846924715278362262217893079F, -1.5141834442571557816490687954744F};
-    const float rk4b[5] = {0.14965902199922911732649140011737F, 0.37921031299962728090749818732367F, 0.82295502938698171717028537390495F, 0.69945045594912210703801758353586F, 0.15305724796815199267414240331902F};
+    const float rk4a[5] = {Vs1,Vs2,Vs3,Vs4,Vs5};
+    const float rk4b[5] = {Vs1,Vs2,Vs3,Vs4,Vs5};
     // Outer timestep loop
     #pragma loop_coalesce 2
     for (int step = 0; step < timesteps; ++step)
@@ -451,8 +462,6 @@ __kernel void kernelName(__private int K,
                 ...
                 g_Q_out = someothervalue; // Creates Write-ACK LSU
             }
-            // Old kernel code inside here
-            // Process/Read/Write element
         }
     }
 }
@@ -509,8 +518,6 @@ __kernel void kernelName(__private int K,
                 ...
                 g_Q_out = someothervalue; // Cached LSU
             }
-            // Old kernel code inside here
-            // Process/Read/Write element
         }
     }
 }
@@ -554,8 +561,7 @@ and setup to run the specific kernels on the device. The design specific run mod
 is configured at the run time by providing the command line parameter
 \texttt{-d <DESIGN>} which allows a single host code to handle all the designs
 without requirement for a recompilation.
-
-\begin{figure}[h]%
+\begin{figure}[ht]%
     \centering
     \includegraphics[width=0.8\textwidth]{images/host_appstruc}
     \caption{Module structure of the the host application after restructuring showing
@@ -577,6 +583,7 @@ function. The handlers for only the selected design is requested and used to con
 FPGA with the selected design kernels.
 \begin{CppCode}[caption=Structure to hold the design specific interface function pointers
     and initialization example, frame=tlrb, label=code:interface_func]
+// Structure to hold the interface functions
 typedef struct
 {
     void (*fnInitKernelArgs)(tClObjs* clObjs, Mesh* mesh, tChannelInfo* channelInfo,
@@ -590,6 +597,7 @@ typedef struct
                            tKernelInitParams params, Mesh *mesh);
 } tclIntfHandlers;
 
+// Initialization example in the sub-module
 static tclIntfHandlers intfHandlers =
 {
     initKernelArgs,
@@ -600,6 +608,8 @@ static tclIntfHandlers intfHandlers =
     getKernelData
 };
 
+// Access function to get the pointer to the interface
+// handlers structure variable
 tclIntfHandlers* XXXX_getDeviceIntfHandlers(void)
 {
     return &intfHandlers;
@@ -801,4 +811,4 @@ restored the memory architecture as shown in figure \ref{fig:restored}
 \end{figure}
 
 
-Kernel pipelining issue
+% Kernel pipelining issue
