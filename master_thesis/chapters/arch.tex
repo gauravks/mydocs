@@ -43,7 +43,6 @@ to be invoked for processing the shared and non-shared elements separately.
     \label{fig:rearrange}
 \end{figure}
 
-
 The original pipeline developed for single FPGA was further optimized by introducing separate buffers
 \texttt{volrhsQ} and \texttt{surrhsQ} instead of the the same right hand side \texttt{rhsQ} buffer
 which was earlier accumulated in surface kernel. These changes allows the volume and surface kernel
@@ -102,15 +101,25 @@ is shown in Figure \ref{fig:base_kernstruc}.
 The prototypes developed for the topologies evaluation served as the basis to implement
 the support for IO channels in the OpenCL™ kernels for the MIDG2 application. The main
 modification required to enable the OpenCL™ MIDG2 kernels to communicate via IO channels
-was to remove the \texttt{partial\_get\_kernel} and replace with two kernels
+was to remove the \texttt{partial\_get\_kernel} and replace it with two kernels
 \texttt{partial\_send} and \texttt{partial\_recv}. The implementation of these kernels
 is similar to the prototype \texttt{send} and \texttt{recv} kernels described in
 section \ref{sec:proto_topo}. Two different set of kernels for the two topologies,
 the within node using 2 FPGAs on the same node and fully connect topology using
 4 FPGAs on two nodes was developed.
 
-\TODO{explain the channels implementation further with source code to highlight that,
-aliasing of the g\_partQ buffer for fully connect design}
+The \text{partial\_send} kernel reads the shared elements from the \texttt{g\_Q} buffer
+and writes the shared elements data into single or multiple external channels.
+In the \texttt{partial\_recv}, the data is read from the channels and then stored in
+\texttt{g\_partQ} buffer which is passed to the \texttt{SURFACE} kernel for processing.
+In the fully connected topology, writing data into the same \texttt{g\_partQ} buffer
+reported memory dependencies between the writes and serialized the channel read and memory
+writes as shown in figure \ref{fig:serial_reads}. As the data from each channel is written
+into different location in the buffer, there was no dependencies which the compiler was not
+able to understand. To resolve this issue, \texttt{g\_partQ} buffer was aliased to use four
+different names \texttt{g\_partQ1-4}. Each of the name is used to for individual writes of
+the data received from each channel. This change allowed the compiler to create a design
+with parallel writes to the \texttt{g\_partQ} buffer.
 
 \begin{figure}%
     \centering
@@ -192,7 +201,7 @@ To handle this, the structure of the existing OpenCL™ initialization code sect
 both the designs with the same host code. A hierarchical structure for the OpenCL™ initialization code
 is implemented such that, the generic functionalities which is separated from the design specific buffer
 initialization and kernel enqueue sequence setup. The new structure of the host code is shown
-in figure \todo{add image of the host code structure} and would be explained in the section ref{sec:hostcodeupdate}.
+in figure \ref{fig:host_appstruc} and would be explained in the section ref{sec:hostcodeupdate}.
 
 The host application requires an additional json file to get the information about the kernels in the binary such as
 the kernel parameter information, dependencies among the kernels and groups of kernels to be executed parallely.
@@ -253,6 +262,13 @@ buffer for the shared elements. To map the channels, additional information
 regarding the MPI rank and associated FPGA device is required. This information is shared using
 a structure which contains the MPI host id and associated FPGA device Id which is exchanged
 using MPI. After receiving the information about all the ranks, the external channel mapping
-is computed locally using a decision tree. The flow chart in figure \todo{add flowchart to explain the selection}
+is computed locally using a decision tree. The flow chart in figure \ref{fig:channel_select}
 shows the logic of the external channel assignment at each node.
+
+\begin{figure}[h]%
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/channel_select}
+    \caption{Channel selection logic for fully connected topology}
+    \label{fig:channel_select}
+\end{figure}
 

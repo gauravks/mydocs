@@ -21,8 +21,7 @@ FPGA data.
 \subsection{Setup}
 
 The experiments were conducted with the FPGA partition of the Noctua
-cluster. 4 Nodes at maximum was utilized. The detailed machine configuration
-of the systems is given in table \todo{add table}. Each of the nodes
+cluster. 4 Nodes at maximum was utilized. Each of the nodes
 contain 2 Intel Xeon Gold "Skylake" 6148(F), 2.4 GHz CPUs and
 2 Bittware 520N\footnote{\url{https://www.bittware.com/fpga/520n/}}
 cards which have Intel Stratix 10 FPGA with 32 GiB memory. The Nodes
@@ -83,7 +82,7 @@ padding requirements which is necessary in most of the applications.
 
 Another set of variations evaluated with the FPGA prototypes is the use of
 interleaved or non-interleaved memory partitions for global memory of the FPGA.
-As explained in the section \todo{add ref}, the global memory on the Bittware 520N board
+The global memory on the Bittware 520N board
 contains 4 channels to access global memory. The channels can begin
 either configured to be used in a bus-interleaved or non-interleaved fashion.
 The non-interleaved global memory access allows the user to specify the
@@ -158,7 +157,7 @@ stalls. While using the interleaved memory, the buffers are stored in all the fo
 the kernels can access them simultaneously. This reduces the latency and stalls for the reads and writes
 allowing to reach the active bandwidth of 19.84 GB/s which is 99.2 percentage of the peak bandwidth.
 
-\todo{check the profiling for interleaved and see what happens}
+% \todo{check the profiling for interleaved and see what happens}
 
 \begin{figure}[ht]
     \centering
@@ -287,8 +286,7 @@ v18.0.1 Pro (build 261) and v18.1.1 Pro (build 263). Bittware's
 p520\_max\_sg280l BSP with both versions is used which provides support
 for 1SG280LN2F43E2VG Stratix 10 FPGA with PCIe Gen3x8, 4 memory channels
 each of 8GB (32GB total), temperature and power monitoring,
-flash programming, 4x40G external I/O channels. The detailed system
-information is provided in the table \todo{add the reference to}
+flash programming, 4x40G external I/O channels.
 
 The runtime evaluation of the MIDG2 application is done by using
 8 different mesh sizes which starts from 1 thousand elements till
@@ -498,10 +496,11 @@ The \ref{tab:syn_freq} lists the frequencies of the synthesized design.
     \end{tabular}%
 \end{table}
 
-\todo{Run test for bw with 4 channels}
 
 \subsection{Speed up Evaluation}
 
+This section presents evaluation results for the runtime evaulation
+in terms of speedup of the processing time for different mesh sizes.
 
 \subsubsection*{MPI MIDG2 FPGA vs IO Channels}
 The first modification done as part of the thesis is the addition of

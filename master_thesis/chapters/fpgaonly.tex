@@ -92,8 +92,8 @@ following synchronization needs to be achieved among the kernels.
 In the current design, host performs these synchronization by controlling the start of the kernels
 to process non-shared data along with communication kernels first. The hosts waits for kernels to
 finish the processing and communication using the \texttt{waitforcompletion()} method before starting
-kernels again to process shared elements. This sequence from the host point of view is
-shown in figure \todo{Add sequence image}.
+kernels again to process shared elements. This sequence from the of operation is shown in figure
+\ref{fig:sequence_comp} (a).
 
 The first iteration of this design used 5 blocking channels to synchronize the above mentioned
 events as shown in figure \ref{fig:channelsync_kernstruc}.
@@ -544,7 +544,7 @@ with minor configuration changes which also increase the complexity of the host 
 To build a simpler and understandable host code which is able to support all the three
 designs in a single binary, the host code is restructured by introducing hierarchical
 structure for the OpenCL™ handling part. The structure of the modified host code is
-shown in figure {}. The restructuring does not modify the existing interface to the
+shown in figure \ref{fig:host_appstruc}. The restructuring does not modify the existing interface to the
 OpenCL™ configuration routine instead splits the configuration module into device
 specific and design specific configuration modules. The \texttt{BuildRunCLDevice}
 provides the generic interface for OpenCL™ device configuration and execution.
@@ -555,7 +555,13 @@ is configured at the run time by providing the command line parameter
 \texttt{-d <DESIGN>} which allows a single host code to handle all the designs
 without requirement for a recompilation.
 
-\todo{add image of the restructured modules}
+\begin{figure}[h]%
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/host_appstruc}
+    \caption{Module structure of the the host application after restructuring showing
+    three separate sub-modules to handle OpenCL™ device configuration}
+    \label{fig:host_appstruc}
+\end{figure}
 
 To achieve this restructuring additional structures were included which allows to
 group the variables into functionality based groups. One of the important structure
