@@ -82,3 +82,45 @@ FPGA ONLY FC   & 236.4                  & 239.46
    \hline
 \end{tabular}
 }
+
+\begin{table}[]
+  \centering
+  \caption{Profile information for the prototype for analysis of the bottleneck showing stalls, occupancy and bandwidth values
+  for different memory and channel operations in each kernel}
+  \label{tab:prof_info}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{|l|c|l|l|l|l|l|l|}
+  \hline
+  \multicolumn{1}{|c|}{\multirow{2}{*}{Memory/Channel operation}} & \multirow{2}{*}{Kernel} & \multicolumn{2}{c|}{Stall (\%)} & \multicolumn{2}{c|}{Occupancy(\%)} & \multicolumn{2}{c|}{Bandwidth} \\ \cline{3-8}
+  \multicolumn{1}{|c|}{} &  & \multicolumn{1}{c|}{18.1.1} & \multicolumn{1}{c|}{18.0.1} & \multicolumn{1}{c|}{18.1.1} & \multicolumn{1}{c|}{18.0.1} & \multicolumn{1}{c|}{18.1.1} & \multicolumn{1}{c|}{18.0.1} \\ \hline
+  Read g\_Q1 buffer & \multirow{4}{*}{V\_IN} & 49.28 & 0 & 41.7 & 40.6 & 2916.3 & 3158.2 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_vol\_Q &  & 58.31 & 59.42 & 41.7 & 40.6 & 454.2 & 494.6 \\ \cline{1-1} \cline{3-8}
+  Read vgeo buffer &  & 47.13 & 0.01 & 2.1 & 2.1 & 635.8 & 692.4 \\ \cline{1-1} \cline{3-8}
+  Writte to ch\_vol\_facs &  & 97.9 & 97.95 & 2.1 & 2.1 & 22.8 & 24.8 \\ \hline
+  Read from ch\_vol\_Q & \multirow{3}{*}{VOLUME} & 0.01 & 0.01 & 41.7 & 40.6 & 454.2 & 494.6 \\ \cline{1-1} \cline{3-8}
+  Read from ch\_vol\_facs &  & 0.01 & 0.01 & 2.1 & 2.1 & 22.8 & 24.8 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_vol\_rhsQ &  & 1.05 & 1.03 & 41.7 & 40.6 & 454.2 & 494.6 \\ \hline
+  Read from channel ch\_vol\_rhsQ & \multirow{2}{*}{V\_OUT} & 53.13 & 54.4 & 41.7 & 40.6 & 454.2 & 494.6 \\ \cline{1-1} \cline{3-8}
+  Write to g\_volRhsQ buffer &  & 4.89 & 0.2 & 41.7 & 40.6 & 2895.2 & 3152.9 \\ \hline
+  Read g\_mapinfo buffer & \multirow{5}{*}{S\_IN1} & 73.37 & 0.01 & 59.2 & 56.9 & 1289.1 & 1387.1 \\ \cline{1-1} \cline{3-8}
+  Read g\_surinfo buffer &  & 45.38 & 0 & 59.2 & 56.9 & 3222.8 & 3467.8 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_idM &  & 40.51 & 43.15 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_idP &  & 40.51 & 43.15 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_surinfo &  & 0 & 0 & 59.2 & 56.9 & 644.6 & 693.6 \\ \hline
+  Read g\_Q1 buffer & \multirow{6}{*}{S\_IN2} & 67.68 & 0 & 59.2 & 56.9 & 6714.7 & 7258.3 \\ \cline{1-1} \cline{3-8}
+  Read g\_Q2 buffer &  & NA & 60.14 & NA & 56.9 & NA & 12862.8 \\ \cline{1-1} \cline{3-8}
+  Read from channel ch\_idM &  & 0.03 & 0.01 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Read from channel ch\_idP &  & 0.03 & 0.01 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_Q1 &  & 32.56 & 19.52 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_Q2 &  & 32.56 & 18.74 & 59.2 & 56.9 & 644.6 & 693.6 \\ \hline
+  Read from ch\_Q1 & \multirow{4}{*}{SURFACE} & 0.01 & 0.01 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Read from  ch\_Q2 &  & 8.29 & 21.89 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Read from ch\_surinfo &  & 0.01 & 0.01 & 59.2 & 56.9 & 644.6 & 693.6 \\ \cline{1-1} \cline{3-8}
+  Write to channel ch\_sur\_rhsQ &  & 0.74 & 0.72 & 29.6 & 28.5 & 322.3 & 346.8 \\ \hline
+  Read from channel ch\_sur\_rhsQ & \multirow{2}{*}{S\_OUT} & 66.74 & 66.61 & 29.6 & 28.5 & 322.3 & 346.8 \\ \cline{1-1} \cline{3-8}
+  Write to g\_surRhsQ buffer &  & 3.47 & 0.05 & 29.6 & 28.5 & 2054 & 2210.7 \\ \hline
+  \end{tabular}%
+  }
+\end{table}
+
+

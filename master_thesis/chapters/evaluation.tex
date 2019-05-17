@@ -489,7 +489,7 @@ The \ref{tab:syn_freq} lists the frequencies of the synthesized design.
     MPI & 312.3 & 283 & 288.68 \\
     WNIO & 281 & 287.35 & 278.86 \\
     FCIO & 262.5 & 223.36 & 244.91 \\
-    WNIO\_4CH &  &  &  \\
+    WNIO\_4CH & 223.01 & 257.2 & 257.26 \\
     WN\_4CH & 254.16 & 248.75 & 231.42 \\
     FPGA ONLY WN & 265.32 & 276.93 & 254.84 \\
     FPGA ONLY FC & 236.4 & 239.46 & 237.41
@@ -853,11 +853,117 @@ buffer in the the RK kernel which is solved in the FPGA only designs by aliasing
 the memory.
 
 
-% \subsection{Global Bandwidth}
+\section{Bottleneck analysis in FPGA Only Design}
 
+The FPGA only design for both the topologies achive very small speedups for the large mesh sizes
+even after setting the explicit latency value to 1. The bahaviour of the kernels with larger mesh
+sizes was analysed further by profiling the kernels using the Intel® FPGA Dynamic Profiler for OpenCL™.
+The kernels can be instrumented with performance counters by specifying the \texttt{--profile} flag
+during the synthesis of the kernels. The kernel synthesized with the profile flags captures the
+performance counters and saves in a file called \texttt{profile.mon} in the execution directory.
+Intel® FPGA Dynamic Profiler for OpenCL™ can be then invoked with the data collected from the
+kernels to understand the performance bottlenecks. The profiler parses the collected data and
+displays statistical information collected from local memory, global memory and channel
+access in the kernels. The main attributes presented in the profile information are
+listed with thier description in the table:
+\begin{table}[ht]%
+    \centering
+    \caption{Description of the profile properties taken from \cite{noauthor_intel_2019}}
+    \label{tab:profile_descr}
+    \begin{tabular}{lp{11cm}}
+    \textbf{Property} & \textbf{Description} \\
+    \hline
+    Stall\% & Percentage of time the memory or channel
+    access is causing pipeline stalls. It is a measure of the ability
+    of the memory or channel access to fulfill an access request. \\
+    \hline
+    Occupancy\% & Percentage of the overall profiled time frame
+    when a valid work-item executes the memory or channel instruction. \\
+    \hline
+    Bandwidth & Average memory bandwidth that the memory access
+    uses and its overall efficiency. For each global memory access,
+    FPGA resources are assigned to acquire data from the global
+    memory system. However, the amount of data a kernel program
+    uses might be less than the acquired data. The overall
+    efficiency is the percentage of total bytes, acquired
+    from the global memory system, that the kernel program uses.\\
+    \hline
+    \end{tabular}%
+\end{table}
 
-% lower occupancy in the computation kernels giving hints to be computational
-% bound
+The initial analysis of profile information suggested that the computation in the
+volume and surface kernel were the bottleneck. A high percentage of stalls were
+reported on the channels feeding data into the volume and surface kernel as well
+on the channels which are written from them. To analyse the bottleneck, the
+structure of the FPGA only kernel was simplied by removing RK, \texttt{partial\_send}
+and \texttt{partial\_recv} kernels. The removal of these kernels allows to profile
+the data flow within the volume and surface kernels independentaly without any
+synchronization overheads. Two additional support kernels were included which
+read the data written by the volume and surface kernel and write into the
+global memory. The timestep logic is kept to simulate similar execution
+intervals of the kernels. The modified kernels along with the reported
+stalls, occupancy and bandwidth are shown in the figure \ref{fig:prof_analyis}
+\begin{figure}[]%
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/bottleneck_analysis_2}
+    \caption{Structure of the analyis kernels along with the profile
+    information for the channels and memory access with kernels synthesized
+    with v18.1.1 and ran with 100k mesh for 35 timesteps}
+    \label{fig:prof_analyis}
+\end{figure}
 
+The profile information is similar to the FPGA only design confirming
+that the effect of synchronization structure to the computation is
+negligible. To analyse the bottleneck, the data movement can be traversed
+from global memory to global memoryvia the kernels and channels looking at
+stalls and occupancy values the each location. Looking at the movement of
+\texttt{g\_Q1}, via volume kernel, \texttt{V\_IN} reads the data from the
+global memory first. As shown, the read are performed with a stall\%
+of 49.28\% at 2916.2 MB/s. This means that the \texttt{V\_IN} kernel is unable to read
+data from global memory efficiently and half of the read requests
+are only finished without delays. The read values are written into
+the channel \texttt{ch\_vol\_Q} with stall\% of 58.31\% which is higher
+than the global memory stall. The data is then read by the \texttt{VOLUME}
+kernel. The low stall\% of 0.01 means that the for each read request
+on the channel, the \texttt{VOLUME} immediately gets a data without
+waiting. At this point, it can be concluded that the data transfer from the global
+memory to \texttt{VOLUME} kernel happens at a rate which is sufficient for
+the processing capabilities of the \texttt{VOLUME} kernel. The high stall\%
+on the write to \texttt{ch\_vol\_Q} from \texttt{V\_IN} confirm that
+\texttt{VOLUME} is not able to process all the data fed into the channel
+with the same rate. Though there is a high \% of stall on the read
+from the global memory, the higher stall\% for channel would
+negate the effect of the global memory stall as all the data
+read from the global can still not be processed by the kernel.
+
+Traversing further, the \texttt{VOLUME} kernel writes the processed
+data into the \texttt{ch\_vol\_rhsQ} with a stall\% of 1.05\%.
+The data is read from the channel by the \texttt{V\_OUT} kernel
+with a stall of 53.13\% and written into the memory at a
+bandwidth of 2895.2 MB/s with a stall\% of 4.89\%. Looking at these
+values, it can be concluded that \texttt{VOLUME} is able to write data
+out without any delays into the channel but \texttt{V\_OUT} kernel
+waits for the \texttt{VOLUME} kernel half of the time to write
+something. Also it can be confirmed that \texttt{V\_OUT} kernel is
+able to write all the data read from the channel immediately into
+the global memory without delays.
+
+Looking at the occupancy along the path, it can be seen that
+it is 41.7\% at each of the location. From this example traversal,
+finally it can be confirmed that bottleneck for the \texttt{g\_Q}
+buffer data movement is at \texttt{VOLUME} kernel as it is not
+able to read the data at the rate fed into channel
+\texttt{ch\_vol\_Q} as well as not able to provide data at
+the requested rate into the channel \texttt{ch\_vol\_rhsQ}.
+The data is being processed only 41.7\% of the total execution
+time in the \texttt{VOLUME} which can be derived from the occupancy
+value as that would cause the stall of 58.31\% at the \texttt{V\_IN}.
+
+In the figure \ref{fig:prof_analyis},
+the highlighted values show the percentage of stall for channels used to
+read data to be processed into the compute kernels \texttt{VOLUME} and \texttt{SURFACE}
+and write data out after processing. These small values of the stalls for
+each channel in/out of the compute kernels confirm that the other data paths
+also suffer similarly due to bottlenecks at the compute kernels.
 
 
