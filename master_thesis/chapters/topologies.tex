@@ -1,35 +1,37 @@
 \chapter{Topologies for FPGA-to-FPGA communication}
 \label{cha:topologies}
 
-This chapter will describe in detail the topologies which can be setup to
+This chapter describes the topologies which can be setup to
 connect the FPGAs using the QSFP ports to perform point-to-point communication
 to each other. The first section of the chapter will introduce the possible
 topologies which are feasible with the Noctua 32 FPGA system. The second
 section will describe the prototypes which were developed to evaluate two
 of the topologies to verify the functionality and compare the topologies
 in terms of bandwidth capabilities specifically for the MIDG2 application.
+The last section presents the evaluation setup and the results of the evaluation
+of the bandwidth for the implemented topologies.
 
 \section{Topologies}
 
-As the current available BSP for the Nallatech 520N boards only support serial
+As the current available BSP for the BittWare 520N boards only support serial
 point-to-point communication between the FPGAs over direct connections, the
 configurations to build a topology is limited by the number of ports which is
 4. The four ports would allow one FPGA to communicate simultaneously with 4
 other FPGAs. To extend the communication beyond this, the FPGAs can either
-communicate via MPI using the host processor or hop over the FPGAs via the
+communicate via MPI using the \texttt{host application} processor or hop over the FPGAs via the
 shortest path. Considering these criterion four topologies are feasible which
 either use MPI or hops to extend the communication above the 4 nodes.
 
 
-\subsection*{Terminologies}
+\subsection*{Terms used}
 
-To make the understanding of the topologies clear, this section would introduce
+To make the understanding of the topologies clear, this section introduces
 some terms which would be used to describe the topologies in the next sections.
 The figure \ref{fig:simple_network} shows a network of two FPGAs.
 The FPGAs act as the nodes in this network which are connected to each other
 with a direct link. To not confuse with the cluster node which are connected to
 each other using 100 Gb/s Intel Omni Path, the thesis will refer
-these nodes as FPGA and cluster nodes as node in rest of the text. A network in
+the FPGA topology nodes as \texttt{FPGA} and cluster nodes as \texttt{node} in rest of the text. A network in
 which all the nodes are connected to each other with direct FPGA-to-FPGA link
 will be called an \textit{Isle}. The communication between isles is either done
 using hops or MPI via host. The nodes within the isle can either be fully
@@ -46,12 +48,12 @@ connected or partially connected to each other.
 \subsection{Within Node}
 \label{sec:within_node}
 
-The simplest topology possible is to connect the FPGAs of a node to each other
-using a single channel or all the four channels forming an isle of two nodes as
-shown in the figure \ref{fig:within_node}. The FPGAs can only communicate to
+The simplest topology possible is to connect the \texttt{FPGAs} of a \texttt{node} to each other
+using a single channel or all the four channels forming an isle of two \texttt{FPGA} as
+shown in the figure \ref{fig:within_node}. The \texttt{FPGAs} can only communicate to
 each other directly over the channel(s) utilizing the complete bandwidth of the
-channels. The topologies can be scaled by adding more isles which communicate
-to each other using MPI via the host using the Intel Omni Path. The topology
+channels. This topology can be scaled by adding more isles which communicate
+to each other using MPI via the \texttt{node} using Intel Omni path network. The topology
 is simple and easy to setup. Applications which have large amount of data which
 needs to be transferred between the processes can benefit from this topology by
 efficiently partitioning and distributing the data among the isles and FPGAs.
@@ -66,15 +68,15 @@ efficiently partitioning and distributing the data among the isles and FPGAs.
 \subsection{Fully connected}
 \label{sec:fully_connect}
 
-The second topology extends the single node topology to two nodes such that
-an isle contains four nodes fully connected to each other with separated
+The second topology extends the single \texttt{node} topology to two \texttt{nodes} such that
+an isle contains four \texttt{FPGAs} \texttt{fully connected} to each other with separate
 point-to-point link as shown in figure \ref{fig:fully_connect}.
-Each FPGA in this topology can communicate with three
-other FPGAs simultaneously. Scaling the topology to more nodes can be achieved
-in two ways. The first way is similar to within node where the isles communicate
+Each \texttt{FPGA} in this topology can communicate with three
+other \texttt{FPGAs} simultaneously. Scaling the topology to more \texttt{nodes} can be achieved
+in two ways. The first way is similar to \texttt{within node} where the isles communicate
 using MPI. In this design, to decrease the overhead of exchanging data via the
-MPI, the data should be collected on a single FPGA using the point-to-point
-link and then exchanged via MPI. On the receiving end the process can be
+MPI+PCIe, the data should be collected on a single \texttt{FPGA} using the point-to-point
+link and then exchanged via MPI+PCIe. On the receiving end the process can be
 reversed.
 
 % Some more details of possible strategies to scale this design
@@ -83,35 +85,35 @@ reversed.
 \begin{figure}[h]%
     \centering
     \includegraphics[width=0.7\textwidth]{images/full_connect}
-    \caption{Fully connected topology of four FPGAs per isle}
+    \caption{\texttt{Fully Connected} topology of four FPGAs per isle}
     \label{fig:fully_connect}
 \end{figure}
 
 The second way to scale the design is to use the extra link left on the
-FPGAs to connect the isles to each other with two FPGA-to-FPGA links which is
+\texttt{FPGAs} to connect the isles to each other with two FPGA-to-FPGA links which is
 described in the section \ref{sec:connected_graph}.
 
 \subsection{Connected Graph}
 \label{sec:connected_graph}
 
-This topology is an extension of the fully connected topology of the fully
-connected topology. The isle formed by the fully connected FPGAs is connected
+This topology is an extension of the \texttt{fully connected} topology.
+The isle formed by the \texttt{fully connected FPGAs} is connected
 to each other using the fourth free port forming a connected graph network
-as show in figure \ref{fig:connected_graph}.
-In this topology all the FPGAs can communicate to each other without requiring
-any data communication via host. In addition to the knowledge of fully
+as shown in figure \ref{fig:connected_graph}.
+In this topology all the \texttt{FPGAs} can communicate to each other without requiring
+any data communication via \texttt{host application}. In addition to the knowledge of fully
 connected mapping within the nodes, additional information about the neighboring
-isles would be required to be stored or configured in the FPGAs at compile time
+isles would be required to be stored or configured in the \texttt{FPGAs} at compile time
 or at runtime. The additional information would be used by the FPGA to create
-a mapping table to route packets to the destination FPGAs via the shortest path.
-A data to be transferred from one FPGA to another in a different isle would
-then have to hop over the FPGAs along the shortest path to reach
+a mapping table to route packets to the destination \texttt{FPGAs} via the shortest path.
+The data to be transferred from one FPGA to another in a different isle would
+then have to hop over the \texttt{FPGAs} along the shortest path to reach
 from source to destination.
 
 \begin{figure}[h]%
     \centering
     \includegraphics[width=0.7\textwidth]{images/connected_graph}
-    \caption{Connected Graph with HOPs between fully connected groups}
+    \caption{Connected Graph with HOPs between \texttt{fully connected} groups}
     \label{fig:connected_graph}
 \end{figure}
 
@@ -125,10 +127,10 @@ The last feasible topology for the FPGA network is the toroid. As explained by
 \textcite{robertazzi_toroidal_1988}, A two dimensional toroidal network is
 a network in which the nodes on the left and right boundaries and the
 nodes on the top and bottom boundaries are connected to each other giving
-a fully connected network. The length and breadth of the network can vary
+a \texttt{fully connected} network. The length and breadth of the network can vary
 depending upon the application requirements. As the maximum number of
 connection for per node required in the toroidal network is 4, the toroidal
-suits a lot to create a fully connected network of the FPGAs.
+suits a lot to create a \texttt{fully connected} network of the FPGAs.
 
 As Noctua has 32 FPGAs, two 4 X 4 torus as shown in figure \ref{fig:toroidal}
 would be appropriate for connecting the FPGA giving an equidistant
@@ -146,27 +148,27 @@ and lack of hardware resources to achieve a result as part of the thesis.
 \section{Prototypes to evaluate topologies}
 \label{sec:proto_topo}
 
-This section would describe the prototypes developed to evaluate the topologies
+This section describes the prototypes developed to evaluate the topologies
 introduced in sections \ref{sec:within_node} and \ref{sec:fully_connect}.
 
 \subsection{Prototype for Within Node}
 
-The implementation of the within node topology was simple and required very few
+The implementation of the \texttt{within node} topology was simple and required very few
 steps. To test the functionality and evaluate the achievable bandwidth with the
-within node topology two OpenCL kernels \texttt{sender} and \texttt{collector}
+\texttt{within node} topology two OpenCL kernels \texttt{sender} and \texttt{collector}
 were implemented. The code for the implemented kernels in shown in listing
 \ref{code:within_node}. \texttt{sender} kernel uses the
 \texttt{kernel\_output\_ch0} IO channel to send 256 bits of data per send.
 The data and the length of data to be transferred in each kernel execution
-is given by the host code through the parameters \texttt{input} and
-\texttt{length} respectively. The host copies the data for \texttt{input}
+is given by the \texttt{host application} code through the parameters \texttt{input} and
+\texttt{length} respectively. The \texttt{host application} copies the data for \texttt{input}
 buffer into the FPGA global memory using \texttt{enqueueWriteBuffer()} API.
 The \texttt{collector} receives the data from the IO channel \texttt{kernel\_input\_ch0}
 and writes into the global memory \texttt{output} which
-is then read by the host using \texttt{enqueueReadBuffer()} to complete
+is then read by the \texttt{host application} using \texttt{enqueueReadBuffer()} to complete
 the data exchange between the FPGAs.
 
-\begin{CppCode} [caption=Kernels for within node prototype, frame=tlrb, label=code:within_node]
+\begin{CppCode} [caption=Kernels for \texttt{within node} prototype, frame=tlrb, label=code:within_node]
 #pragma OPENCL EXTENSION cl_intel_channels : enable
 
 channel float8 ch_eth_in __attribute((io("kernel_input_ch0")));
@@ -194,17 +196,17 @@ figure \ref{fig:send_rcv} in the full duplex communication mode.
 \begin{figure}[h]%
     \centering
     \includegraphics[width=0.7\textwidth]{images/send_recv}
-    \caption{Communication structure of the kernels for within node topology with one channel}
+    \caption{Communication structure of the kernels for \texttt{within node} topology with one channel}
     \label{fig:send_rcv}
 \end{figure}
 
-The host application was implemented using OpenCL C\+\+ classes to reduce the amount
-of code and quickly test the functionality on the target platform. The host application
+The \texttt{host application} was implemented using OpenCL C\texttt{+}\texttt{+} APIs to reduce the amount
+of code and quickly test the functionality on the target platform. The \texttt{host application}
 is responsible for reading the synthesized binary files (\texttt{.aocx}) and use the
-\texttt{cl::Program} class to reconfigure the FPGA with the new binaries. The host application
+\texttt{cl::Program} class to reconfigure the FPGA with the new binaries. The \texttt{host application}
 is also responsible to allocate the memories for the buffers \texttt{input} and
-\texttt{output} in host memory and in device memory using \texttt{cl::Buffer} class.
-The host code then sets all parameters for the kernels using the \texttt{cl::Kernel::setArg()}
+\texttt{output} in \texttt{HOST} memory and in device memory using \texttt{cl::Buffer} class.
+The \texttt{host application} code then sets all parameters for the kernels using the \texttt{cl::Kernel::setArg()}
 method and queues the kernels for execution on the FPGA using \texttt{cl::CommandQueue::enqueueNDRangeKernel()}
 method. The kernel used for prototype are implemented as a single work-item as it suits the
 serial IO channel communication.
@@ -212,12 +214,12 @@ serial IO channel communication.
 
 \subsection*{Using all four channels for communication}
 
-Another prototype was also developed for the within node topology which uses all the four channels
-to communicate between the FPGAs. The benefit of this design is faster transfers for large data sizes
+Another prototype was also developed for the \texttt{within node} topology which uses all the four channels
+to communicate between the FPGAs. The benefit of this design is multiple parallel transfers of the data
 as communication is performed on all the channels parallely giving higher data rates. The modifications
 done to the kernels to use all the four channels for communicating is shown in listing \ref{code:wn_fourch}
 
-\begin{CppCode}[caption=Kernels for within node using four channels, frame=tlrb, label=code:wn_fourch]
+\begin{CppCode}[caption=Kernels for \texttt{within node} using four channels, frame=tlrb, label=code:wn_fourch]
 #pragma OPENCL EXTENSION cl_intel_channels : enable
 channel float8 ch_eth_in0 __attribute((io("kernel_input_ch0")));
 channel float8 ch_eth_in1 __attribute((io("kernel_input_ch1")));
@@ -256,30 +258,31 @@ collector_all(int length, __global float8 * restrict output)
 
 \subsection{Prototype for Fully Connected}
 
-The prototype for fully connected topology is an extension of the within node such that
-it uses additional 2 channels for communicating with two other FPGAs. The prototype uses known
-topology for communication which is derived from the fixed channel-FPGA pair formed by the
-actual connections. The connection between the FPGAs are shown in figure \ref{fig:fc_topology}.
+The prototype for \texttt{fully connected} topology is an extension of the \texttt{within node}
+The \texttt{OpenCL KERNEL} implementation uses additional 2 channels for communicating with
+two other FPGAs. The prototype uses fixed channel mapping for communication which is derived
+from the fixed channel-FPGA pair formed by the actual connections. The connection between
+the FPGAs are shown in figure \ref{fig:fc_topology}.
 
 \begin{figure}[h]%
     \centering
     \includegraphics[width=0.4\textwidth]{images/fc_topology}
-    \caption{Hardware setup for the fully connected topology}
+    \caption{Hardware setup for the \texttt{fully connected} topology}
     \label{fig:fc_topology}
 \end{figure}
 
-The FPGA implementation for fully connected topology also uses two OpenCL kernels
+The FPGA implementation for the \texttt{fully connected} topology also uses two OpenCL kernels
 \texttt{sender\_all} and \texttt{collector\_all} for communication. The kernels
 now use three channels which are shown in listing \ref{code:channels_fc}.
-Each of the channel is used to communicate with 3 different FPGAs simultaneously.
-For the prototypes, the host is designed to communicate same amount of data
-to each FPGA although the kernels support sending and receiving different data
-sizes from each channels. The host was limited to use same size to keep the prototype
+Each of the channel is used to communicate with a different \texttt{FPGA} simultaneously.
+For the prototypes, the \texttt{host application} is designed to communicate the same amount of data
+to each \texttt{FPGA} although the kernels support sending and receiving different data
+sizes from each channels. The \texttt{host application} was limited to use the same size to keep the prototype
 simple in the starting. The integrated implementation requires using variable size and
-a mechanism to identify and assign the sizes for each channel using partitioning
-information is created which allows configuring the size dynamically.
+a mechanism to identify and assign the sizes for each channel using mesh partition
+information created in the \texttt{host application} which will allow configuring the size dynamically.
 
-\begin{CppCode} [caption=Channels used for fully connected topology, frame=tlrb, label=code:channels_fc]
+\begin{CppCode} [caption=Channels used for \texttt{fully connected} topology, frame=tlrb, label=code:channels_fc]
 #pragma OPENCL EXTENSION cl_intel_channels : enable
 channel float8 ch_eth_in0 __attribute((io("kernel_input_ch0")));
 channel float8 ch_eth_out0 __attribute((io("kernel_output_ch0")));
@@ -293,14 +296,14 @@ channel float8 ch_eth_out2 __attribute((io("kernel_output_ch2")));
 
 The implementation of the \texttt{sender\_all} kernel is shown in listing \ref{code:send_fc}.
 The kernel requires three separate memories and length, one for each of the channels, as
-parameters from host. The kernels iterates over the input buffers for the maximum length
-among the three lengths, sending 256 bits in each iterations over each channel. Individual
-lengths for each channel is used to stop the sends for the specific channel in following
+parameters from \texttt{Host application}. The kernels iterates over the input buffers for the maximum length
+among the three lengths, sending 256 bits in each iteration over each channel. Individual
+length for each channel is used to stop the sends for the specific channel in following
 iterations. The structure shown in the listing creates three channel write units and three
 memory load \ac{LSU} which allows sending the data parallely on all the three channels
 in each iteration.
 
-\begin{CppCode} [caption=Sender Kernel for fully connected, frame=tlrb, label=code:send_fc]
+\begin{CppCode} [caption=Sender Kernel for \texttt{fully connected}, frame=tlrb, label=code:send_fc]
 __kernel void __attribute__ ((max_global_work_dim(0)))
 sender_all(int length, int length1, int length2,
             __global float8 * restrict input,
@@ -328,7 +331,7 @@ reads the data parallely from each of the channels and write them to the
 corresponding buffers using the respective lengths for each channel
 to limit the channel read.
 
-\begin{CppCode} [caption=Collector Kernel for fully connected, frame=tlrb, label=code:recv_fc]
+\begin{CppCode} [caption=Collector Kernel for \texttt{fully connected}, frame=tlrb, label=code:recv_fc]
 __kernel void __attribute__ ((max_global_work_dim(0)))
 collector_all(int length, int length1, int length2,
             __global float8 * restrict output,
@@ -355,21 +358,289 @@ The structure of the communication is show in figure \ref{fig:fc_struc}
 \begin{figure}[h]%
     \centering
     \includegraphics[width=0.7\textwidth]{images/fc_struc}
-    \caption{Communication structure for the Fully connected kernels on each FPGA}
+    \caption{Communication structure for the \texttt{fully connected} kernels on each FPGA}
     \label{fig:fc_struc}
 \end{figure}
 
-The implementation of the host application for the fully connected design additionally
-uses MPI. MPI is used to run the same host application on the 2 nodes. One each node
-the host application programs both of the FPGAs with the same kernel binary and initializes
+The implementation of the \texttt{host application} for the \texttt{fully connected} design additionally
+uses MPI. MPI is used to run the same \texttt{host application} on the 2 nodes. One each node
+the \texttt{host application} programs both of the FPGAs with the same kernel binary and initializes
 the kernel \texttt{sender\_all} and \texttt{collector\_all} on both FPGAs. Once the initialization
-is done, the host starts the kernel using the \texttt{cl::CommandQueue::enqueueNDRangeKernel()}
-method. The host waits for the completion of collector kernels on each FPGA, and then reads
-the received data for verification. Additionally \texttt{MPI\_Barrier(MPI\_COMM\_WORLD)} functions
-is used the synchronize the hosts. This synchronization helps to reduce the stalls
-on the external channels.
+is done, the \texttt{host application} starts the kernel using the \texttt{cl::CommandQueue::enqueueNDRangeKernel()}
+method. The \texttt{host application} waits for the completion of collector kernels on each FPGA, and then reads
+the received data for verification. Additionally \texttt{MPI\_Barrier(MPI\_COMM\_WORLD)} function
+is used the synchronize the \texttt{host application}s before executing the kernels of the FPGA device.
+The \texttt{host application} before enqueuing the kernels for communicating the data waits
+for the other \texttt{host application} to finish the initialization or processing from the previous
+iteration. As the external channels are blocking in nature, if the kernels communicating
+with the external channel are not synchronized, one of the kernels will perceive higher stalls.
+This additional synchronization helps to reduce the stalls on the external channels
+as the kernels on all the FPGAs start approximately at same time reducing the waits.
 
 % \TODO{Add the description of MPI PCIe prototype}
 
+\section{Evaluation of the Topologies}
+\label{sec:top_eval}
+
+The first set of evaluation tests was carried out using the prototypes
+developed for the different topologies which are described in this chapter.
+The aim of the tests was to measure the bandwidth possible to achieve with the
+developed OpenCL kernels for the topologies and compare it with the
+the communication architecture which utilizes \texttt{HOST} to communicate the
+FPGA data.
+
+\subsection{Setup}
+
+The experiments were conducted with the FPGA partition of the Noctua
+cluster. 4 Nodes at maximum was utilized. Each of the nodes
+contain 2 Intel Xeon Gold "Skylake" 6148(F), 2.4 GHz CPUs and
+2 Bittware 520N\footnote{\url{https://www.bittware.com/fpga/520n/}}
+cards which have Intel Stratix 10 FPGA with 32 GiB memory. The Nodes
+are connected with Intel Omni Path 100 Gbps network which is used
+for data communication between the CPUs using MPI. The FPGAs
+are connected using a point-to-point links using Finisar FTL410QE2C
+or Edge Finisar FTL410QE3C compatible QSFP modules.
+
+The bandwidth evaluation is done by communicating data of different
+sizes between the nodes in a ping-ping pattern in all the designs.
+The ping-ping pattern is the ideal candidate as it maximizes
+the utilization of the duplex point-to-point channels in the
+FPGAs. To use as a reference to the current MIDG2 implementation,
+an additional prototype is developed which performs the communication
+between the FPGAs via HOST. In this prototype, the data from the FPGAs
+is read over the PCIe and transferred by the HOST over the Intel
+Omni path network to the other HOST. On receipt, the second HOST
+copies the data into the FPGA over the PCIe to complete a single data
+transactions. The data communication between HOSTs is performed using
+Intel® MPI Library v18.0.3. Listing \ref{code:mpi_proto} shows the pseudo-code of the section
+performing the communication. This prototype simulates the data communication
+behavior in the base MPI MIDG2 FPGA implementation and is used to compare the
+bandwidth performance and possible improvements using FPGA-to-FPGA communication
+on the target hardware systems. The evaluation performed in this
+section compares the bandwidth of the FPGA-to-FPGA communication
+in  different topologies with the Intel® Omni Path + PCIe based
+data communication between the nodes.
+
+\begin{CppCode}[caption=Pseudo-code to perform MPI+PCIe based data communication
+    between FPGAs, frame=tlrb, label=code:mpi_proto]
+clock_gettime(CLOCK_MONOTONIC, &execStart);
+readQ.enqueueReadBuffer(readBuffer, CL_TRUE, 0, buffersize*(nprocs), send_buffer);
+for (int p: nodeList)
+{
+    if (p != procid)
+    {
+        MPI_Isend(send_buffer[p], buffersize,, p,,);
+        MPI_Irecv((rcv_buffer[p], buffersize,, p,,);
+    }
+}
+
+MPI_Waitall(req, mpi_in_requests,);
+MPI_Waitall(req, mpi_out_requests,);
+
+processBuffQ.enqueueWriteBuffer(writeBuffer, CL_TRUE, 0, buffersize*(nprocs), rcv_buffer);
+clock_gettime(CLOCK_MONOTONIC, &execEnd);
+\end{CppCode}
+
+Two different types of data sizes are used for the evaluation. The first set of data
+sizes named as \texttt{regular} are multiples of 32 which produce a aligned data transactions
+on the FPGA channels without requirement of any extra padding or alignment.
+The second set named as \texttt{irregular} are data sizes taken from the actual
+MIDG2 communication pattern for 2 node system. These data sizes produce
+non-aligned communication on the channels and are explicitly required to be
+aligned/padded to ensure aligned 32 byte writes and read on the channel.
+The use of the different data size types was to evaluate the effects of additional
+padding requirements which is necessary in most of the applications.
+
+Another set of variations evaluated with the FPGA prototypes is the use of
+\texttt{interleaved} or \texttt{non-interleaved} memory partitions for global memory of the FPGA.
+The global memory on the Bittware 520N board
+contains 4 channels to access global memory. The channels can be
+either configured to be used in a bus-interleaved or non-interleaved fashion.
+The non-interleaved global memory access allows the user to specify the
+memory channel to be used for accessing the specific buffer. These
+memory partition affects the global memory access bandwidth and
+the topologies were compared to identify the configuration which performs
+best for the topology. The evaluation was done for 5 designs with each
+having 4 variation giving a total of 20 different data sets listed with
+description for understanding the following data
+
+\subsection{Bandwidth Comparison}
+
+The bandwidth in the topology designs is computed by measuring the execution time
+of the \texttt{send} kernels using \texttt{CL\_PROFILING\_COMMAND\_START}
+and \texttt{CL\_PROFILING\_COMMAND\_END} profile counters which give the start and
+end time of the kernels in nanoseconds. The ping-ping pattern is used for the
+communication in which all the nodes start sending data simultaneously.
+As FPGAs have full duplex channels for communication, there would be no interference
+observed for the send and receives. For each data size the the communication is performed
+for 100 rounds. The buffer to be exchanged is initialized every round with a value derived from the
+element index and the index of the round in which the data is transferred. On receipt
+the data is checked to verify the that the data is transferred correctly over the channels
+or the Intel Omni Path network + PCIe. After each execution, the execution time of the send kernel
+is computed using the counters values and the bandwidth for that run is computed using the formula
+$$ bandwidth (MB/Secs) = \frac{Data Size (in MB)}{exectime (in seconds)} $$
+The bandwidth is accumulated for each round and then the average bandwidth for the
+data size is computed after the end of the 100 rounds and stored in file.
+
+The computation in the MPI+PCIe prototype is similar but instead of using the kernel execution
+time, the complete time for data transfer from FPGA->CPU over PCIe, MPI transfer and data transfer from
+CPU->FPGA over PCIe is used. This time is computed using \texttt{clock\_gettime} as shown in the code
+\ref{code:mpi_proto}.
+
+The theoretical peak values for each of the communication patterns is listed in the table \ref{tab:peak_bw}.
+The peak bandwidth of the MPI+PCIe design is a combination of the bandwidths of the PCIe
+and the Intel® Omni Path. As the data is transferred between the FPGA to HOST and HOST to FPGA
+in a store and forward manner, the effective bandwidth of the communication can be computed as:
+\begin{equation}\label{eqn:peakbw_mpipcie}
+ P_{mpipcie} = \frac{N}{\frac{N}{P_{PCIe}}+\frac{N}{P_{IOP}}+\frac{N}{P_{PCIe}}}
+ = \frac{N}{\frac{N}{7.88 GB/s}+\frac{N}{12.5 GB/s}+\frac{N}{7.88 GB/s}} = 2.995 GB/s
+\end{equation}
+Each external channel of the FPGA is operated at 40 Gbits/s giving a total of 20 GB/s peak
+bandwidth for all the channels. Within node topology either uses 1 channel or all 4 and in the
+\texttt{fully connected} topology only three channels is used.
+
+\begin{table}[ht]
+    \centering
+    \caption{Peak bandwidth in each configuration}
+    \label{tab:peak_bw}
+    \begin{tabular}{|l|l|}
+    \hline
+    \textbf{Configuration} & \textbf{\begin{tabular}[c]{@{}c@{}}Peak Bandwidth\\ (GB/s)\end{tabular}} \\ \hline
+    MPI+PCIe               & 2.995                          \\ \hline
+    Within Node 1 Channel  & 5                              \\ \hline
+    Within Node 4 Channel  & 20                             \\ \hline
+    Fully Connect          & 15                             \\ \hline
+    \end{tabular}%
+\end{table}
+
+Plots in figure \ref{plot:wn} shows the bandwidth variation for Within node design using single channel
+and all the 4 channels. Irregular data sizes perform similar to regular data sizes which suggests that
+there are no major over head involved with the handling of the irregular data types in applications.
+For the single channel design, there are no effects of the global memory interleaving as the slower
+external channel is the bottleneck instead of the global memory. On the other hand, for the 4 channels,
+use of non-interleaved memory affects the bandwidth performance and the effective bandwidth peak bandwidth
+is 16.41 GB/s which is 82 percentage of the peak bandwidth. This is due to the overheads and lower occupancy
+of the global memory reads/write from the \texttt{send} and \texttt{write}. The kernels read/write 4*256 bits
+per request from the same memory channel which is not possible. The global memory channels have a
+maximum width of 512 bits and requests of memory width wider sizes would increase the latency and
+stalls. While using the interleaved memory, the buffers are stored in all the four memory channels and
+the kernels can access them simultaneously. This reduces the latency and stalls for the reads and writes
+allowing to reach the active bandwidth of 19.84 GB/s which is 99.2 percentage of the peak bandwidth.
+
+% \todo{check the profiling for interleaved and see what happens}
+
+\begin{figure}[ht]
+    \centering
+    \scalebox{0.8}{\input{data/wn.pgf}}
+    \caption{Bandwidth variation of \texttt{Within Node} designs. The \texttt{il_xxx} in the name
+    is used for variants with interleaved memory and \texttt{nonil_xxx} for non-interleaved memory.
+    \texttt{xxx_reg} variant uses regular data sizes for the tests and \texttt{xxx_irreg} uses Irregular data sizes
+    \label{plot:wn}
+\end{figure}
+
+For the \texttt{fully connected} topology also, the bandwidth is not affected by \texttt{irregular} data sizes.
+The \texttt{non-interleaved} and \texttt{interleaved} memory designs have similar bandwidth performance for each data type.
+This is because the memory channels are explicitly mapped to use separate memory channel for each buffer in the host application.
+The explicit mapping assigns individual memory channels to each buffer in global memory. Each of the memory
+is used only to read/write data to/from a specific external channel which ensures parallel reads
+and writes without latency and stalls. The peak bandwidth with of all the variants of \texttt{fully connected}
+design was 14.88 GB/s which is 99.2 percentage of peak 15 GB/s bandwidth possible with 3 channels.
+The plot \ref{plot:fc} shows the variation of the bandwidth over the data sizes. The error bars are
+added to plot using the measured minimum and maximum bandwidths. The bandwidth has higher variations
+for data sizes below 2 MB with a maximum of 2.76 GB/s difference for 256 Kbytes size.
+
+\begin{figure}[ht]
+    \centering
+    \scalebox{0.8}{\input{data/fc.pgf}}
+    \caption{Bandwidth variation of Fully connected design.
+    The \texttt{il_xxx} in the name
+    is used for variants with interleaved memory and \texttt{nonil_xxx} for non-interleaved memory.
+    \texttt{xxx_reg} variant uses regular data sizes for the tests and \texttt{xxx_irreg} uses Irregular data sizes}
+    \label{plot:fc}
+\end{figure}
+
+The MPI prototypes are only able to achieve a maximum peak bandwidth of 1.94 GB/s with 2 Node system
+which is only 65 percentage of the peak bandwidth. The 4 node system only achieves a peak bandwidth of
+1.78 GB/s. The main reason for the slower overall bandwidth with 4 nodes is due to the larger
+data transfers between the host and the FPGA. The latency of the communication between FPGA-HOST
+and HOST-FPGA is much larger than the communication between two \texttt{HOSTs}. There is also a huge difference
+in the minimum and maximum bandwidths for all data sizes as it can be seen from the longer error bars in the
+plot \ref{plot:mpipcie}.
+
+\begin{figure}[ht]
+    \centering
+    \scalebox{0.8}{\input{data/mpipcie.pgf}}
+    \caption{Bandwidth variation of MPI+PCIe design,
+    \texttt{reg_xxx} variant uses regular data sizes for the tests and \texttt{irreg_xxx} uses Irregular data sizes.
+    \texttt{xxx_N2} refer to system using two MPI rings and \texttt{xxx_N4} for 4 MPI rings}
+    \label{plot:mpipcie}
+\end{figure}
+
+The peak bandwidth observed for the designs is summarized in table \ref{tab:obs_peakbw} and a plot comparing the variation
+of the bandwidth over data size as shown in figure \ref{plot:allreg}. The IO channels prototypes are able
+to utilize the 99.2\% of the peak bandwidth of using regular and non-regular data sizes in ping-ping
+communication pattern. The MPI+PCIe based communication is only able to utilize the 65\% of the available
+bandwidth which shows that this communication is less efficient and can be clear bottleneck for applications
+which require large data communications.
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{ccccc}
+    \multicolumn{1}{c}{\multirow{2}{*}{Designs}} & \multicolumn{2}{c}{Regular} & \multicolumn{2}{c}{Ir-regular} \\ \cline{2-5}
+    \multicolumn{1}{c}{} & Interleaved & \multicolumn{1}{c}{Non-interleaved} & Interleaved & \multicolumn{1}{c}{Non-interleaved} \\ \hline
+    WN 1CH & \multicolumn{1}{c}{4.96} & 4.96 & \multicolumn{1}{c}{4.96} & 4.96 \\ \hline
+    WN 4CH & \multicolumn{1}{c}{19.84} & 16.41 & \multicolumn{1}{c}{19.84} & 16.41 \\ \hline
+    FC & \multicolumn{1}{c}{14.88} & 14.88 & \multicolumn{1}{c}{14.88} & 14.88 \\ \hline
+    MPI N2 & \multicolumn{2}{c}{1.95} & \multicolumn{2}{c}{1.94} \\ \hline
+    MPI N4 & \multicolumn{2}{c}{1.78} & \multicolumn{2}{c}{1.76} \\ \hline
+    \end{tabular}%
+    \caption{Peak bandwidth observed for each design variant}
+    \label{tab:obs_peakbw}
+\end{table}
+
+
+The plot \ref{plot:allreg} also highlights the bandwidth values
+of each design at 512 KB data transfer to compare the performance for smaller data sizes which is typical
+for some applications. Within node design with 1 channel achieves a bandwidth of 4.22 GB/s which is 84\%
+of the peak bandwidth whereas other channel design though utilizing more number of channels is only able
+to achieve 62\%(FC) and 64\%(WN 4CH). When compared with \texttt{fully connected} topology, the main reason
+for better efficiency is identified as the effect of stalls on the channels. As the kernels in the
+\texttt{within node} topology is controlled by single host application, the communication on the channels is
+synchronized and produce lesser stalls. For \texttt{fully connected} topology, the FPGAs is controlled
+by 2 separate \texttt{Host applications} which execute independent to each other. This leads to un-synchronized
+read and write on the IO channels as the host controls when the kernels execute and access the channels.
+This tends to increase the number of stalls as the channels are blocking in nature leading to decrease in
+efficiency of the communication. The lower percentage for \texttt{within node} topology is due to the design of the
+kernels. In the all the tests, same amount of data is transferred over 4 channels as transferred
+over one which makes the efficiency lesser as per channel smaller data sizes are communicated. This
+is done to keep the communication pattern similar between the nodes in all designs and scaling
+happens only by adding more nodes instead of communicating larger data per transfer.
+
+\begin{figure}[ht]
+    \centering
+    \scalebox{0.8}{\input{data/allreg.pgf}}
+    \caption{Comparison of bandwidths of all the designs communicating with regular data sizes.
+    The texts show the bandwidths achieved for 512 KBytes data transfers}
+    \label{plot:allreg}
+\end{figure}
+
+The IO channels are capable of very high bandwidth when compared to the MPI+PCIe
+communication. A single IO channel itself has 66.6\% higher overall bandwidth
+then the MPI+PCIe communication. Looking at the efficiency of the communication achieved
+in the evaluation, the \texttt{within_node} topology which uses single
+channel for communication would result in a 3 times faster communication and with 4 channel
+10 times faster communication then MPI+PCIe. This is because the IO channels are efficient
+and can be utilized to use almost complete bandwidth (5 GB/s and 20 GB/s) available for large data transfers
+compared to only 65\% efficiency of MPI+PCIe (2.99 GB/s). The \texttt{fully connected} topology
+also has 5 times bigger overall bandwidth then MPI+PCIe for communicating with 3 nodes
+simultaneously. The efficiency of the MPI+PCIe reduces to 60\% with 4 nodes whereas
+with \texttt{fully connected} topology communication between 4 nodes is performed with
+no changes in performance of the channels. Also the communication in \texttt{fully connected}
+topology occur parallely between the nodes compared to routed communication via a network switch.
+Bandwidth evaluation using the prototypes implemented in this chapter show the potential benefits
+of using the IO channels instead of MPI+PCIe for communication between FPGAs to reduce the communication
+time and increase efficiency.
 
 

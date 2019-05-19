@@ -5,95 +5,18 @@ MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} is used as the target
 application in this thesis to evaluate the benefits of using IO channels.
 MIDG2 application uses the \ac{DG} method to calculate the electric and magnetic
 field values for objects as described in the chapter \ref{cha:Fundamentals}.
-The thesis extends a version of the application which uses OpenCL™ kernels to
+The thesis extends the MIDG2 MPI FPGA version of the application introduced in the
+section \label{sec:midge_mpi} which uses OpenCL™ kernels to
 offload the performance critical calculations to the FPGA accelerators in a
 distributed system and use MPI to communicate among the different instances of the
-host application. The system scales over multiple nodes as discussed in section
-\ref{sec:fpga_dg} but suffers from slow bandwidth due to the longer communication
-path over PCIe and Ethernet Network of host. To improve the bandwidth performance
-of the application, the IO channels are proposed to be used. This chapter will
+host application. The system scales over multiple nodes as discussed but
+uses the MPI+PCIe to communicate which have low bandwidth as shown in section
+\ref{sec:top_eval}. To improve the bandwidth performance of the application,
+the IO channels are proposed to be used. This chapter will
 introduce and explain the changes which were done to the OpenCL™ kernels and the
 host application in order to use the QSFP Network Ports to build up topologies discussed
 in chapter \ref{cha:topologies} to allow direct communication between the FPGAs
-and reduce the communication time.
-
-\section{Kernel Structure of MPI MIDG2 FPGA Implementation}
-\label{sec:midge_mpi}
-
-The MPI MIDG2 FPGA version requires an additional \texttt{partial\_get\_kernel} to gather the shared elements from
-the main element buffer \texttt{g\_Q} into a smaller buffer partial data buffer \texttt{g\_partQ}.
-The main benefit of using the additional kernel is to avoid the large memory transaction between the
-host and the FPGA over PCIe to get the \texttt{g\_Q} and assemble the shared buffers in host.
-The addition of the partial kernel was accompanied with re-shuffling of the elements in the \texttt{g\_Q}
-buffer. The distributed design requires the mesh to be partitioned into smaller meshes allocated
-to each rank. The elements of the partitioned mesh can either share a face with a neighboring
-rank or within the rank. The elements which share faces with neighboring ranks form the shared
-element group and the ones sharing faces within rank form the non-shared element group.
-To separate the computation of the these shared element group and the non-shared element group
-by reusing the same kernels required sorting of the elements into groups. This was done by
-placing the shared elements in the start of the \texttt{g\_Q} buffer followed by the non-shared
-elements as shown in figure \ref{fig:rearrange}. This allowed to use the same kernels with different
-start and end element parameters
-to be invoked for processing the shared and non-shared elements separately.
-\begin{figure}%
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/rearrange}
-    \caption{Rearrangement of \texttt{g\_Q} buffer elements by sorting and bringing the
-    shared elements in the beginning of the buffer}
-    \label{fig:rearrange}
-\end{figure}
-
-The original pipeline developed for single FPGA was further optimized by introducing separate buffers
-\texttt{volrhsQ} and \texttt{surrhsQ} instead of the the same right hand side \texttt{rhsQ} buffer
-which was earlier accumulated in surface kernel. These changes allows the volume and surface kernel
-to execute parallely and write data into two separate buffers. The RK kernel reads both the buffers
-after volume and surface kernel are finished processing and accumulates the values using Runge-Kutta
-constants to produce the field values for the timestep. Another improvement introduced to optimize the
-design was to use the concept of double buffers for the \texttt{g\_Q}. The \texttt{g\_Q} buffer is
-duplicated into two buffers \texttt{g\_Q\_ping} and \texttt{g\_Q\_pong} which use two alias \texttt{g\_Q\_in}
-and \texttt{g\_Q\_out} in the kernel. The \texttt{g\_Q\_in} serves as the buffer from which the kernels read
-the elements values for the current iteration wheres \texttt{g\_Q\_out} serves as buffer in which the values
-are updated. After each time step iteration the alias of the buffers is switched as shown
-in pseudo code in \ref{code:buff_switch}, exchanging the functionality of the buffers for the next iteration.
-
-\begin{CppCode}[caption=Buffer switching for double buffers in each iteration, frame=tlrb, label=code:buff_switch]
-for (itr = 0; itr < MaxTimeStep; itr++)
-{
-    if (buffSwitch)
-    {
-        set_argument("g_Q_in", Q1_pong_mem);
-        set_argument("g_Q_out", Q1_ping_mem);
-    }
-    else
-    {
-        set_argument("g_Q_in", Q1_ping_mem);
-        set_argument("g_Q_out", Q1_pong_mem);
-    }
-    buffSwitch = !buffSwitch;
-}
-\end{CppCode}
-
-The concept helps to improve the performance of the RK kernel
-by removing read and write memory dependency on the same buffer. In each time step,
-the volume kernel and surface kernel first execute to compute the right hand side values for the
-non-shared elements while the shared data is exchanged. Once the shared data is available,
-the right hand side values for the shared elements is computed. After the computation,
-the RK kernels reads the field values from \texttt{g\_Q\_in} and \texttt{resQ} values
-for the last time steps and computes the accumulated field values using
-\texttt{volrhsQ} and \texttt{surrhsQ}. The computed values are then saved in \texttt{g\_Q\_out}.
-As the read and write buffers are separated, the memory dependency on the same buffer is reduced,
-reducing the latency to read and write to the memory. As explained, this structure also allows
-to overlap the communication via MPI with the computation of the fields for the non-shared data
-and reducing the effects of delayed communication. The kernel structure for base MPI MIDG2 FPGA
-is shown in Figure \ref{fig:base_kernstruc}.
-
-\begin{figure}%
-    \centering
-    \includegraphics[width=1.0\textwidth]{images/base_kernstruc}
-    \caption{Structure for MPI FPGA OpenCL™ kernels showing the partial get kernel used to gather
-     the shared elements into a separate buffer \texttt{g\_partQ} for host to read}
-    \label{fig:base_kernstruc}
-\end{figure}
+and evaluate the benefits of the direct communication.
 
 \section{Kernel Structure with IO Channels}
 \label{sec:struc_iochan}
@@ -105,23 +28,54 @@ was to remove the \texttt{partial\_get\_kernel} and replace it with two kernels
 \texttt{partial\_send} and \texttt{partial\_recv}. The implementation of these kernels
 is similar to the prototype \texttt{send} and \texttt{recv} kernels described in
 section \ref{sec:proto_topo}. Two different set of kernels for the two topologies,
-the within node using 2 FPGAs on the same node and fully connect topology using
-4 FPGAs on two nodes was developed.
+the \texttt{within node} and \texttt{fully connected} are developed. The \texttt{within node}
+scales the application to two FPGAs and the fully connected to 4 FPGAs.
 
-The \text{partial\_send} kernel reads the shared elements from the \texttt{g\_Q} buffer
-and writes the shared elements data into single or multiple external channels.
-In the \texttt{partial\_recv}, the data is read from the channels and then stored in
-\texttt{g\_partQ} buffer which is passed to the \texttt{SURFACE} kernel for processing.
-In the fully connected topology, writing data into the same \texttt{g\_partQ} buffer
-reported memory dependencies between the writes and serialized the channel read and memory
-writes as shown in figure \ref{fig:serial_reads}. As the data from each channel is written
-into different location in the buffer, there was no dependencies which the compiler was not
-able to understand. To resolve this issue, \texttt{g\_partQ} buffer was aliased to use four
-different names \texttt{g\_partQ1-4}. Each of the name is used to for individual writes of
-the data received from each channel. This change allowed the compiler to create a design
-with parallel writes to the \texttt{g\_partQ} buffer.
+As explained in the section \ref{sec:midge_mpi} \texttt{partial\_get\_kernel} reads
+the shared from the \texttt{g\_Q} memory and writes them back into another buffer
+to coalesce the shared data. The new \text{partial\_send} and \text{partial\_recv}
+split these operations and also perform the communication with the
+other FPGA over the IO channels. The \text{partial\_send} kernel reads the
+shared elements from the \texttt{g\_Q} buffer and sends the shared elements data
+over a single or multiple external channels to other FPGA(s).
+The \texttt{partial\_recv} receives the data from other FPGAs over the channels and
+then stores it in \texttt{g\_partQ} buffer which is passed to the \texttt{SURFACE}
+kernel for processing.
 
-\begin{figure}%
+In the \texttt{within node} topology, the data is only exchanged between two nodes
+which simplifies the channel assignment for the shared data. All the shared data is send and received
+to/from only one node using one or four channels. In the \texttt{fully connected} topology,
+the communication is not straight forward. In a 4 node system, the shared elements are mapped
+to different nodes. The \texttt{partial\_send} and \texttt{partial\_recv} kernels need this mapping
+information at the runtime to transfer and receive data correctly to/from target node. The mapping information
+for identifying the indexes to be read from the \texttt{g\_Q} is provided in another buffer
+\texttt{g\_index}. \texttt{g\_index} contains the list of the indexes of the shared data
+sorted by the target MPI rank. \texttt{g\_index} is used in the \texttt{partial\_get\_kernel}
+of the MIDG2 MPI FPGA application to identify the shared data. For IO channels design along with
+\texttt{g\_index}, additional information for mapping the indexes to specific target FPGA is
+passed by using two parameters \texttt{start<x>} and \texttt{nout<x>} for each channel \texttt{x}.
+In the \texttt{partial\_send} kernel, the \texttt{start<x>} specifies the start location within \texttt{g\_index}
+and the \texttt{nout<x>} specifies the number of indexes to send for the channel \texttt{x}. In
+\texttt{partial\_recv} the \texttt{start<x>} specifies the start index within the \texttt{g_partQ}
+and the \texttt{nout<x>} specifies number of index to receive for channel \texttt{x}. As each
+channel is assigned to a specific FPGA node, \texttt{start<x>} and \texttt{nout<x>} map
+the data for a target FPGA to the channel used to connect with the target FPGA.
+
+With these information, The \texttt{partial\_send} should be able to read data from \texttt{g\_Q}
+for all channels simultaneously, and send them over the respective channel and \texttt{partial\_recv}
+should be able to receive the data and write them into \texttt{g_partQ} simultaneously. The first
+version of the \texttt{partial\_send} and \texttt{partial\_recv} kernels used these information
+but memory dependencies were reported in \texttt{partial\_recv} kernel by the Intel OpenCL compiler.
+As the received data in the \texttt{partial\_recv} is written into the same \texttt{g\_partQ} buffer,
+Intel OpenCL compiler reported memory dependencies between the writes and serialized the channel
+read and memory writes as shown in figure \ref{fig:serial_reads}. As the data from each channel is written
+into different location in the buffer (different \texttt{start<x>} values), there is no
+dependencies but the compiler was not able to understand it from the structure.
+To resolve this issue, \texttt{g\_partQ} buffer was aliased to use four
+different names \texttt{g\_partQ<x>}. Each of the \texttt{g\_partQ<x>} buffer is used
+for individual writes of the data received from channel \texttt{x}. This change allowed
+Intel OpenCL compiler to create a sequence with parallel writes to the \texttt{g\_partQ} buffer.
+\begin{figure}[ht]%
     \centering
     \includegraphics[width=0.5\textwidth]{images/serial_reads}
     \caption{Memory dependency resulting in serial channel reads in the \texttt{partial\_recv}
@@ -129,11 +83,17 @@ with parallel writes to the \texttt{g\_partQ} buffer.
     \label{fig:serial_reads}
 \end{figure}
 
-
-An additional optimization to kernel pipeline
-was also introduced which helps to improve the performance of the kernels marginally.
-Intel® OpenCL™ channels are used to communicate the right hand side field values
-from volume and surface kernels to the RK kernel as shown in the kernel structure
+The addition of double buffer in MIDG2 MPI FPGA allowed improving the execution of the kernels
+by reducing the load on the \texttt{g\_Q} buffer and executing RK kernel immediately after completion
+of computation for both shared and non-shared data separately. Though there was improvement,
+\texttt{RK} still executed after the compute kernels which was not desirable. Further optimization
+by introducing Intel OpenCL channels between \text{VOLUME/SURFACE} to \texttt{RK} to replace
+\texttt{volrhsQ} and \texttt{surrhsQ} was possible but was not implemented before the start of the thesis.
+So this optimization to the kernel pipeline is introduced in this thesis as part of the IO channel implementation
+which could help to improve the performance of the kernels marginally.
+The OpenCL kernels implementation is updated to include internal channels to
+communicate the right hand side field values
+from \text{VOLUME/SURFACE} to \texttt{RK} as shown in the kernel structure
 in figure \ref{fig:iochan_kernstruc}. Use of channels allows execution of all three
 kernels simultaneously giving a deeper pipeline structure and improving the throughput
 of the design by performing parallel computation in volume, surface and RK kernels.
@@ -147,8 +107,8 @@ of the design by performing parallel computation in volume, surface and RK kerne
     \label{fig:iochan_kernstruc}
 \end{figure}
 
-As in the MPI MIDG2 FPGA design, the computation of shared elements follows the computation of
-non-shared elements. The major change is the independence of the OpenCL™ kernels to
+In the IO channels design, the computation of shared elements follows the computation of
+non-shared elements as in the MPI MIDG2 FPGA design. The major change is the independence of the OpenCL™ kernels to
 communicate the data between the FPGAs without requiring support of the host for
 communication. Though host still controls the time step iteration and performs synchronization of kernels between
 the computation of non-shared data and the completion of communication of data between two FPGAs.
@@ -201,7 +161,7 @@ To handle this, the structure of the existing OpenCL™ initialization code sect
 both the designs with the same host code. A hierarchical structure for the OpenCL™ initialization code
 is implemented such that, the generic functionalities which is separated from the design specific buffer
 initialization and kernel enqueue sequence setup. The new structure of the host code is shown
-in figure \ref{fig:host_appstruc} and would be explained in the section ref{sec:hostcodeupdate}.
+in figure \ref{fig:host_appstruc} and would be explained in the section \ref{sec:hostcodeupdate}.
 
 The host application requires an additional json file to get the information about the kernels in the binary such as
 the kernel parameter information, dependencies among the kernels and groups of kernels to be executed parallely.
