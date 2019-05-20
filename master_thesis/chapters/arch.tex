@@ -33,9 +33,9 @@ scales the application to two FPGAs and the fully connected to 4 FPGAs.
 
 As explained in the section \ref{sec:midge_mpi} \texttt{partial\_get\_kernel} reads
 the shared from the \texttt{g\_Q} memory and writes them back into another buffer
-to coalesce the shared data. The new \text{partial\_send} and \text{partial\_recv}
+to coalesce the shared data. The new \texttt{partial\_send} and \texttt{partial\_recv}
 split these operations and also perform the communication with the
-other FPGA over the IO channels. The \text{partial\_send} kernel reads the
+other FPGA over the IO channels. The \texttt{partial\_send} kernel reads the
 shared elements from the \texttt{g\_Q} buffer and sends the shared elements data
 over a single or multiple external channels to other FPGA(s).
 The \texttt{partial\_recv} receives the data from other FPGAs over the channels and
@@ -56,14 +56,14 @@ of the MIDG2 MPI FPGA application to identify the shared data. For IO channels d
 passed by using two parameters \texttt{start<x>} and \texttt{nout<x>} for each channel \texttt{x}.
 In the \texttt{partial\_send} kernel, the \texttt{start<x>} specifies the start location within \texttt{g\_index}
 and the \texttt{nout<x>} specifies the number of indexes to send for the channel \texttt{x}. In
-\texttt{partial\_recv} the \texttt{start<x>} specifies the start index within the \texttt{g_partQ}
+\texttt{partial\_recv} the \texttt{start<x>} specifies the start index within the \texttt{g\_partQ}
 and the \texttt{nout<x>} specifies number of index to receive for channel \texttt{x}. As each
 channel is assigned to a specific FPGA node, \texttt{start<x>} and \texttt{nout<x>} map
 the data for a target FPGA to the channel used to connect with the target FPGA.
 
 With these information, The \texttt{partial\_send} should be able to read data from \texttt{g\_Q}
 for all channels simultaneously, and send them over the respective channel and \texttt{partial\_recv}
-should be able to receive the data and write them into \texttt{g_partQ} simultaneously. The first
+should be able to receive the data and write them into \texttt{g\_partQ} simultaneously. The first
 version of the \texttt{partial\_send} and \texttt{partial\_recv} kernels used these information
 but memory dependencies were reported in \texttt{partial\_recv} kernel by the Intel OpenCL compiler.
 As the received data in the \texttt{partial\_recv} is written into the same \texttt{g\_partQ} buffer,
@@ -87,13 +87,13 @@ The addition of double buffer in MIDG2 MPI FPGA allowed improving the execution 
 by reducing the load on the \texttt{g\_Q} buffer and executing RK kernel immediately after completion
 of computation for both shared and non-shared data separately. Though there was improvement,
 \texttt{RK} still executed after the compute kernels which was not desirable. Further optimization
-by introducing Intel OpenCL channels between \text{VOLUME/SURFACE} to \texttt{RK} to replace
+by introducing Intel OpenCL channels between \texttt{VOLUME/SURFACE} to \texttt{RK} to replace
 \texttt{volrhsQ} and \texttt{surrhsQ} was possible but was not implemented before the start of the thesis.
 So this optimization to the kernel pipeline is introduced in this thesis as part of the IO channel implementation
 which could help to improve the performance of the kernels marginally.
 The OpenCL kernels implementation is updated to include internal channels to
 communicate the right hand side field values
-from \text{VOLUME/SURFACE} to \texttt{RK} as shown in the kernel structure
+from \texttt{VOLUME/SURFACE} to \texttt{RK} as shown in the kernel structure
 in figure \ref{fig:iochan_kernstruc}. Use of channels allows execution of all three
 kernels simultaneously giving a deeper pipeline structure and improving the throughput
 of the design by performing parallel computation in volume, surface and RK kernels.

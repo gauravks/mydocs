@@ -532,9 +532,9 @@ allowing to reach the active bandwidth of 19.84 GB/s which is 99.2 percentage of
 \begin{figure}[ht]
     \centering
     \scalebox{0.8}{\input{data/wn.pgf}}
-    \caption{Bandwidth variation of \texttt{Within Node} designs. The \texttt{il_xxx} in the name
-    is used for variants with interleaved memory and \texttt{nonil_xxx} for non-interleaved memory.
-    \texttt{xxx_reg} variant uses regular data sizes for the tests and \texttt{xxx_irreg} uses Irregular data sizes
+    \caption{Bandwidth variation of \texttt{Within Node} designs. The \texttt{il\_xxx} in the name
+    is used for variants with interleaved memory and \texttt{nonil\_xxx} for non-interleaved memory.
+    \texttt{xxx\_reg} variant uses regular data sizes for the tests and \texttt{xxx\_irreg} uses Irregular data sizes}
     \label{plot:wn}
 \end{figure}
 
@@ -553,11 +553,12 @@ for data sizes below 2 MB with a maximum of 2.76 GB/s difference for 256 Kbytes 
     \centering
     \scalebox{0.8}{\input{data/fc.pgf}}
     \caption{Bandwidth variation of Fully connected design.
-    The \texttt{il_xxx} in the name
-    is used for variants with interleaved memory and \texttt{nonil_xxx} for non-interleaved memory.
-    \texttt{xxx_reg} variant uses regular data sizes for the tests and \texttt{xxx_irreg} uses Irregular data sizes}
+    The \texttt{il\_xxx} in the name
+    is used for variants with interleaved memory and \texttt{nonil\_xxx} for non-interleaved memory.
+    \texttt{xxx\_reg} variant uses regular data sizes for the tests and \texttt{xxx\_irreg} uses Irregular data sizes}
     \label{plot:fc}
 \end{figure}
+\TODO{Add data for 1 global memory for read and write}
 
 The MPI prototypes are only able to achieve a maximum peak bandwidth of 1.94 GB/s with 2 Node system
 which is only 65 percentage of the peak bandwidth. The 4 node system only achieves a peak bandwidth of
@@ -571,8 +572,8 @@ plot \ref{plot:mpipcie}.
     \centering
     \scalebox{0.8}{\input{data/mpipcie.pgf}}
     \caption{Bandwidth variation of MPI+PCIe design,
-    \texttt{reg_xxx} variant uses regular data sizes for the tests and \texttt{irreg_xxx} uses Irregular data sizes.
-    \texttt{xxx_N2} refer to system using two MPI rings and \texttt{xxx_N4} for 4 MPI rings}
+    \texttt{reg\_xxx} variant uses regular data sizes for the tests and \texttt{irreg\_xxx} uses Irregular data sizes.
+    \texttt{xxx\_N2} refer to system using two MPI rings and \texttt{xxx\_N4} for 4 MPI rings}
     \label{plot:mpipcie}
 \end{figure}
 
@@ -629,7 +630,7 @@ happens only by adding more nodes instead of communicating larger data per trans
 The IO channels are capable of very high bandwidth when compared to the MPI+PCIe
 communication. A single IO channel itself has 66.6\% higher overall bandwidth
 then the MPI+PCIe communication. Looking at the efficiency of the communication achieved
-in the evaluation, the \texttt{within_node} topology which uses single
+in the evaluation, the \texttt{within node} topology which uses single
 channel for communication would result in a 3 times faster communication and with 4 channel
 10 times faster communication then MPI+PCIe. This is because the IO channels are efficient
 and can be utilized to use almost complete bandwidth (5 GB/s and 20 GB/s) available for large data transfers
