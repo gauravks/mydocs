@@ -12,18 +12,24 @@ distributed system and use MPI to communicate among the different instances of t
 host application. The system scales over multiple nodes as discussed but
 uses the MPI+PCIe to communicate which have low bandwidth as shown in section
 \ref{sec:top_eval}. To improve the bandwidth performance of the application,
-the IO channels are proposed to be used. This chapter will
-introduce and explain the changes which were done to the OpenCL™ kernels and the
-host application in order to use the QSFP Network Ports to build up topologies discussed
-in chapter \ref{cha:topologies} to allow direct communication between the FPGAs
-and evaluate the benefits of the direct communication.
+the IO channels are proposed to be used. This chapter explains the changes
+which are done to the OpenCL™ kernels and the host application in order to use
+the QSFP Network Ports to build up topologies discussed in chapter
+\ref{cha:topologies} to allow direct communication between the FPGAs to create a
+\texttt{MIDG2 FPGA IO channels} design
+and evaluate the benefits of the direct communication with the MIDG2 application.
 
 \section{Kernel Structure with IO Channels}
 \label{sec:struc_iochan}
 
-The prototypes developed for the topologies evaluation served as the basis to implement
-the support for IO channels in the OpenCL™ kernels for the MIDG2 application. The main
-modification required to enable the OpenCL™ MIDG2 kernels to communicate via IO channels
+The first set of changes done in the thesis to the MIDG2 MPI FPGA application
+was to include the IO channels to exchange the shared data in a multiple FPGA system.
+The IO channels are used to exchange the shared data between the FPGAs directly instead
+of copying it first to global memory, which is read by the \texttt{Host application}
+and then transferred using MPI. The prototypes developed for the topologies evaluation
+serve as the basis to implement the support for IO channels in the OpenCL™ kernels for
+the MIDG2 application. The main modification required to enable the OpenCL™ MIDG2
+kernels to communicate via IO channels
 was to remove the \texttt{partial\_get\_kernel} and replace it with two kernels
 \texttt{partial\_send} and \texttt{partial\_recv}. The implementation of these kernels
 is similar to the prototype \texttt{send} and \texttt{recv} kernels described in
@@ -31,7 +37,7 @@ section \ref{sec:proto_topo}. Two different set of kernels for the two topologie
 the \texttt{within node} and \texttt{fully connected} are developed. The \texttt{within node}
 scales the application to two FPGAs and the fully connected to 4 FPGAs.
 
-As explained in the section \ref{sec:midge_mpi} \texttt{partial\_get\_kernel} reads
+As explained in the section \ref{sec:midge_mpi_struc}, \texttt{partial\_get\_kernel} reads
 the shared from the \texttt{g\_Q} memory and writes them back into another buffer
 to coalesce the shared data. The new \texttt{partial\_send} and \texttt{partial\_recv}
 split these operations and also perform the communication with the
@@ -50,7 +56,7 @@ to different nodes. The \texttt{partial\_send} and \texttt{partial\_recv} kernel
 information at the runtime to transfer and receive data correctly to/from target node. The mapping information
 for identifying the indexes to be read from the \texttt{g\_Q} is provided in another buffer
 \texttt{g\_index}. \texttt{g\_index} contains the list of the indexes of the shared data
-sorted by the target MPI rank. \texttt{g\_index} is used in the \texttt{partial\_get\_kernel}
+sorted by the target MPI rank. \texttt{g\_index} was used in the \texttt{partial\_get\_kernel}
 of the MIDG2 MPI FPGA application to identify the shared data. For IO channels design along with
 \texttt{g\_index}, additional information for mapping the indexes to specific target FPGA is
 passed by using two parameters \texttt{start<x>} and \texttt{nout<x>} for each channel \texttt{x}.
@@ -61,27 +67,31 @@ and the \texttt{nout<x>} specifies number of index to receive for channel \textt
 channel is assigned to a specific FPGA node, \texttt{start<x>} and \texttt{nout<x>} map
 the data for a target FPGA to the channel used to connect with the target FPGA.
 
-With these information, The \texttt{partial\_send} should be able to read data from \texttt{g\_Q}
-for all channels simultaneously, and send them over the respective channel and \texttt{partial\_recv}
-should be able to receive the data and write them into \texttt{g\_partQ} simultaneously. The first
-version of the \texttt{partial\_send} and \texttt{partial\_recv} kernels used these information
-but memory dependencies were reported in \texttt{partial\_recv} kernel by the Intel OpenCL compiler.
+With these information, The \texttt{partial\_send} is able to read data from \texttt{g\_Q}
+for all channels simultaneously, and send them over the respective channel. Also, the \texttt{partial\_recv}
+kernel is able to receive the data and write them into \texttt{g\_partQ} simultaneously. The first
+version of the \texttt{partial\_send} and \texttt{partial\_recv} kernels used these information for
+mapping the memories to channels but memory dependencies were reported in \texttt{partial\_recv} kernel by the Intel OpenCL FPGA compiler.
 As the received data in the \texttt{partial\_recv} is written into the same \texttt{g\_partQ} buffer,
-Intel OpenCL compiler reported memory dependencies between the writes and serialized the channel
-read and memory writes as shown in figure \ref{fig:serial_reads}. As the data from each channel is written
-into different location in the buffer (different \texttt{start<x>} values), there is no
-dependencies but the compiler was not able to understand it from the structure.
-To resolve this issue, \texttt{g\_partQ} buffer was aliased to use four
-different names \texttt{g\_partQ<x>}. Each of the \texttt{g\_partQ<x>} buffer is used
-for individual writes of the data received from channel \texttt{x}. This change allowed
-Intel OpenCL compiler to create a sequence with parallel writes to the \texttt{g\_partQ} buffer.
+the Intel OpenCL compiler identified the multiple memory writes as interdependent and serialized the channel
+read and memory writes as shown in figure \ref{fig:serial_reads}.
 \begin{figure}[ht]%
     \centering
-    \includegraphics[width=0.5\textwidth]{images/serial_reads}
+    \includegraphics[width=0.45\textwidth]{images/serial_reads}
     \caption{Memory dependency resulting in serial channel reads in the \texttt{partial\_recv}
     for fully connected design}
     \label{fig:serial_reads}
 \end{figure}
+As the data from each channel is written
+into different location in the buffer (different \texttt{start<x>} values), there is no
+dependencies or overlaps the parallel writes would not create any memory corruption. The Intel OpenCL compiler
+was unable to understand it from the existing structure and also there is no way to correctly specify this in the kernel code.
+So to resolve this issue, \texttt{g\_partQ} buffer was aliased into four
+different names \texttt{g\_partQ[1-4]}. Each of the \texttt{g\_partQ<x>} buffer is used
+for individual writes of the data received from channel \texttt{x} though they are initialized by the same
+OpenCL buffer in the \texttt{Host application}. This change allowed
+Intel OpenCL compiler to create a sequence with parallel writes to the \texttt{g\_partQ} buffer.
+
 
 The addition of double buffer in MIDG2 MPI FPGA allowed improving the execution of the kernels
 by reducing the load on the \texttt{g\_Q} buffer and executing RK kernel immediately after completion
@@ -98,7 +108,7 @@ in figure \ref{fig:iochan_kernstruc}. Use of channels allows execution of all th
 kernels simultaneously giving a deeper pipeline structure and improving the throughput
 of the design by performing parallel computation in volume, surface and RK kernels.
 
-\begin{figure}[h]%
+\begin{figure}[ht]%
     \centering
     \includegraphics[width=1.0\textwidth]{images/iochan_kernstruc}
     \caption{Structure for MPI FPGA OpenCL™ kernels showing \texttt{send} and \texttt{recv}
@@ -157,11 +167,12 @@ The application is responsible for following activities:
 
 The changes in the host application done mainly are towards enabling the new kernels to function correctly
 which involves setting up the OpenCL™ buffers and control the queueing of the kernels in the correct sequence.
-To handle this, the structure of the existing OpenCL™ initialization code sections is updated to handle
-both the designs with the same host code. A hierarchical structure for the OpenCL™ initialization code
-is implemented such that, the generic functionalities which is separated from the design specific buffer
-initialization and kernel enqueue sequence setup. The new structure of the host code is shown
-in figure \ref{fig:host_appstruc} and would be explained in the section \ref{sec:hostcodeupdate}.
+To handle this, the structure of the existing OpenCL™ platform and device initialization code sections are
+updated to handle both the designs with the same host code. A hierarchical structure for the initialization code
+is implemented such that, the generic functionalities which include OpenCL platform identification,
+context creation etc is separated from the design specific OpenCL buffer
+initialization and kernel execution. The new structure of the host code is shown
+in figure \ref{fig:host_appstruc} and would be explained in detail in the section \ref{sec:hostcodeupdate}.
 
 The host application requires an additional json file to get the information about the kernels in the binary such as
 the kernel parameter information, dependencies among the kernels and groups of kernels to be executed parallely.
@@ -224,8 +235,7 @@ a structure which contains the MPI host id and associated FPGA device Id which i
 using MPI. After receiving the information about all the ranks, the external channel mapping
 is computed locally using a decision tree. The flow chart in figure \ref{fig:channel_select}
 shows the logic of the external channel assignment at each node.
-
-\begin{figure}[h]%
+\begin{figure}[ht]%
     \centering
     \includegraphics[width=0.6\textwidth]{images/channel_select}
     \caption{Channel selection logic for fully connected topology}

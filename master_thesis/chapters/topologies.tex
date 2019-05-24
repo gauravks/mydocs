@@ -490,7 +490,8 @@ CPU->FPGA over PCIe is used. This time is computed using \texttt{clock\_gettime}
 The theoretical peak values for each of the communication patterns is listed in the table \ref{tab:peak_bw}.
 The peak bandwidth of the MPI+PCIe design is a combination of the bandwidths of the PCIe
 and the Intel® Omni Path. As the data is transferred between the FPGA to HOST and HOST to FPGA
-in a store and forward manner, the effective bandwidth of the communication can be computed as:
+in a store and forward manner, the effective bandwidth of the communication can be computed as
+explained in \cite{kobayashi_opencl-ready_2018} and is given by the formula:
 \begin{equation}\label{eqn:peakbw_mpipcie}
  P_{mpipcie} = \frac{N}{\frac{N}{P_{PCIe}}+\frac{N}{P_{IOP}}+\frac{N}{P_{PCIe}}}
  = \frac{N}{\frac{N}{7.88 GB/s}+\frac{N}{12.5 GB/s}+\frac{N}{7.88 GB/s}} = 2.995 GB/s

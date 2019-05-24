@@ -1205,7 +1205,7 @@
 \pgfusepath{stroke}%
 \end{pgfscope}%
 \begin{pgfscope}%
-\pgftext[x=2.886441in,y=4.723372in,,base]{\sffamily\fontsize{12.000000}{14.400000}\selectfont wnio\_mpi\_N2\_18\_1}%
+\pgftext[x=2.886441in,y=4.723372in,,base]{\sffamily\fontsize{12.000000}{14.400000}\selectfont wnio vs mpi\_N2 (18\_1)}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfsetbuttcap%
@@ -2395,7 +2395,7 @@
 \pgfusepath{stroke}%
 \end{pgfscope}%
 \begin{pgfscope}%
-\pgftext[x=2.886441in,y=2.467874in,,base]{\sffamily\fontsize{12.000000}{14.400000}\selectfont wnio\_mpi\_N2\_18\_0}%
+\pgftext[x=2.886441in,y=2.467874in,,base]{\sffamily\fontsize{12.000000}{14.400000}\selectfont wnio vs mpi\_N2 (18\_0)}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfsetbuttcap%
@@ -2612,7 +2612,7 @@
 \pgftext[x=5.345565in,y=4.323723in,left,base]{\sffamily\fontsize{10.000000}{12.000000}\selectfont 1.40}%
 \end{pgfscope}%
 \begin{pgfscope}%
-\definecolor{textcolor}{rgb}{0.000000,0.750000,0.750000}%
+\definecolor{textcolor}{rgb}{0.000000,0.500000,0.000000}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
 \pgftext[x=5.716537in,y=3.732621in,,top,rotate=90.000000]{\color{textcolor}\sffamily\fontsize{10.000000}{12.000000}\selectfont Speedup}%

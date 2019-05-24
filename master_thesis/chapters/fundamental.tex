@@ -329,7 +329,7 @@ is described in \cite{kenter_opencl-based_2018}.
 \TODO{Add details of the design}
 
 \section{MIDG2 MPI FPGA implementation}
-\label{sec:fpga_dg}
+\label{sec:midg2_mpi}
 
 The original MIDG2 implementation supports multi-node system with accelerators using
 kernels for GPU. These kernels perform the shared data communication via \texttt{Host Application}
@@ -341,7 +341,7 @@ The mesh is divided into partitions using ParMETIS and the computation can be pe
 compute nodes using FPGA accelerators. The OpenCL kernels from the MIDG2 FPGA design are used to replace
 the original MIDG2 kernels for GPUs. An additional kernel which was used in the original MIDG2
 implementation is included with necessary modification and used to read the shared data and store it in a coalesced
-memory. A detailed information of the updated kernel structure is given in section \ref{sec:midge_mpi}.
+memory. A detailed information of the updated kernel structure is given in section \ref{sec:midge_mpi_struc}.
 The updated \texttt{host application} then reads this data from the FPGA global memory and uses
 \ac{MPI} to transfer it to other nodes to which the data is shared. Figure
 \ref{fig:mpi_fpga} shows the system level architecture of this design for two nodes.
@@ -364,14 +364,14 @@ removing the complex communication and synchronization steps and speed up the
 execution even further.
 
 \subsection{OpenCL Kernel Structure of MIDG2 MPI FPGA Implementation}
-\label{sec:midge_mpi}
+\label{sec:midge_mpi_struc}
 
 The MIDG2 FPGA implementation works for a single FPGA and utilizes special OpenCL FPGA
 APIs and techniques to reduce the computation time for the electric and magnetic flux values
 as explained in section \ref{sec:fpga_dg}. In a distributed MIDG2 application the shared
 surfaces are identified after the mesh partition and a list of the shared nodes on the
 surfaces is prepared which is used to share the data.
-The exchange this shared data, MIDG2 FPGA kernels required a way to collect the shared
+To exchange this shared data, MIDG2 FPGA kernels required a way to collect the shared
 data in the FPGA global memory which the \texttt{host application} could then read and
 exchange via MPI. To enable this, we added an additional \texttt{partial\_get\_kernel}
 kernel to the design to gather the shared elements from
