@@ -21,7 +21,7 @@ and evaluation of the proposed system. The BittWare's p520\_max\_sg280l BSP
 provided with the board is used along with the board which provided support for
 \begin{enumerate}
     \item Intel Stratix 10 FPGA GX2800 capable for providing up to 10 TFLOPS of single
-    precision floating point performance
+    precision floating-point performance
     \item DDR4 SDRAM memory divided into 4 banks with 8GB each giving a total memory of 32GB with
     a transfer rate of 2400 MT/s
     \item Four 100/40/25/10G QSFP28 Network Ports supported in the
@@ -148,7 +148,7 @@ In order to use these I/O channels in the OpenCL kernel,
 an \texttt{io} attribute is included in the channel declaration along with id of
 the interface which is specified in the \texttt{board\_spec.xml}.
 
-\begin{XmlCode}[caption=IO channels desciption in \texttt{board\_spec.xml}, frame=tlrb, label=code:board_spec]
+\begin{XmlCode}[caption=IO channels description in \texttt{board\_spec.xml}, frame=tlrb, label=code:board_spec]
 <channels>
     <interface name="board" port="io_to_dev_ch0" type="streamsource" width="256" chan_id="kernel_input_ch0"/>
     <interface name="board" port="dev_to_io_ch0" type="streamsink" width="256" chan_id="kernel_output_ch0"/>
@@ -215,7 +215,7 @@ used as the basis for implementation in the application used in this thesis to s
 electromagnetic flux values for a given material.
 
 The basic equation involved in computation of the electromagnetic flux is Maxwell's equations. The
-three dimensional time-dependent Maxwell's equation \cite{hesthaven_nodal_2008} is written as:
+three-dimensional time-dependent Maxwell's equation \cite{hesthaven_nodal_2008} is written as:
 \begin{equation}\label{eqn:maxwellbase}
     \mu \frac{\partial{\textbf{H}}}{\partial{t}} = - \nabla \times \textbf{E},\varepsilon \frac{\partial{\textbf{E}}}{ \partial{t}} = - \nabla  \times \textbf{H}
 \end{equation}
@@ -362,7 +362,7 @@ required for the channels to compensate the latency differences \cite{kenter_ope
 
 The kernels also exploit the benefits of using faster local memories in the kernels
 to store constants and data which can be reused over multiple iterations. The high
-degree replication of the floating point operations on each element is achieved
+degree replication of the floating-point operations on each element is achieved
 by fully unrolling the inner loops in \texttt{VOLUME} and \texttt{SURFACE} as shown
 in Figure \ref{fig:loop_report}
 \begin{figure}[ht]%
@@ -370,7 +370,7 @@ in Figure \ref{fig:loop_report}
     \includegraphics[width=0.7\textwidth]{images/loop_report}
     \caption{Loop analysis report for the kernels showing fully unrolled inner
     loops of \texttt{VOLUME} and \texttt{SURFACE} kernels using \texttt{pragma unroll}.
-    This replicates the floating point units and perform parallel computation in
+    This replicates the floating-point units and perform parallel computation in
     the inner loops}
     \label{fig:loop_report}
 \end{figure}
@@ -434,7 +434,7 @@ buffer. The distributed design requires the mesh to be partitioned into smaller 
 to each rank. The elements of the partitioned mesh can either share a face with a neighboring
 rank or within the rank. The elements which share faces with neighboring ranks form the shared
 element group and the ones sharing faces within rank form the non-shared element group.
-To separate the computation of the these shared element group and the non-shared element group
+To separate the computation of these shared element group and the non-shared element group
 by reusing the same kernels required sorting of the elements into groups. This was done by
 placing the shared elements in the start of the \texttt{g\_Q} buffer followed by the non-shared
 elements as shown in Figure \ref{fig:rearrange}. This allowed to use the same kernels with different

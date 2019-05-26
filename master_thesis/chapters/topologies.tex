@@ -129,12 +129,12 @@ a network in which the nodes on the left and right boundaries and the
 nodes on the top and bottom boundaries are connected to each other giving
 a \texttt{fully connected} network. The length and breadth of the network can vary
 depending upon the application requirements. As the maximum number of
-connection for per node required in the toroidal network is 4, the toroidal
+connections for per node required in the toroidal network is 4, the toroidal
 suits a lot to create a \texttt{fully connected} network of the FPGAs.
 
 As Noctua has 32 FPGAs, two 4 X 4 torus as shown in Figure \ref{fig:toroidal}
 would be appropriate for connecting the FPGA giving an equidistant
-hops in each direction. The actual routing and packet forwarding strategies
+hop in each direction. The actual routing and packet forwarding strategies
 were not investigated in this thesis due to higher complexities
 and lack of hardware resources to achieve a result as part of the thesis.
 
@@ -277,7 +277,7 @@ now use three channels which are shown in Listing \ref{code:channels_fc}.
 Each of the channel is used to communicate with a different \texttt{FPGA} simultaneously.
 For the prototypes, the \texttt{host application} is designed to communicate the same amount of data
 to each \texttt{FPGA} although the kernels support sending and receiving different data
-sizes from each channels. The \texttt{host application} was limited to use the same size to keep the prototype
+sizes from each channel. The \texttt{host application} was limited to use the same size to keep the prototype
 simple in the starting. The integrated implementation requires using variable size and
 a mechanism to identify and assign the sizes for each channel using mesh partition
 information created in the \texttt{host application} which will allow configuring the size dynamically.
@@ -411,7 +411,7 @@ between the FPGAs via HOST. In this prototype, the data from the FPGAs
 is read over the PCIe and transferred by the HOST over the Intel
 Omni path network to the other HOST. On receipt, the second HOST
 copies the data into the FPGA over the PCIe to complete a single data
-transactions. The data communication between HOSTs is performed using
+transaction. The data communication between HOSTs is performed using
 Intel MPI Library v18.0.3. Listing \ref{code:mpi_proto} shows the pseudo-code of the section
 performing the communication. This prototype simulates the data communication
 behavior in the base MPI MIDG2 FPGA implementation and is used to compare the
@@ -472,7 +472,7 @@ and \texttt{CL\_PROFILING\_COMMAND\_END} profile counters which give the start a
 end time of the kernels in nanoseconds. The ping-ping pattern is used for the
 communication in which all the nodes start sending data simultaneously.
 As FPGAs have full duplex channels for communication, there would be no interference
-observed for the send and receives. For each data size the the communication is performed
+observed for the send and receives. For each data size the communication is performed
 for 100 rounds. The buffer to be exchanged is initialized every round with a value derived from the
 element index and the index of the round in which the data is transferred. On receipt
 the data is checked to verify the that the data is transferred correctly over the channels
@@ -545,7 +545,7 @@ is used only to read/write data to/from a specific external channel which ensure
 and writes without latency and stalls. Separate memory channels were used to show the full potential
 of the \texttt{fully topology} but another set of tests were performed by using a single memory
 channel for all the buffers. This variant evaluates the bandwidth performance of the fully connected
-topology in a typical application use cases. In a application such as the MIDG2, the global memory
+topology in a typical application use case. In a application such as the MIDG2, the global memory
 has multiple buffers used by many kernels and separating the data for each external channel into individual
 buffers mapped to separate memory channel could not be trivial.
 
@@ -636,15 +636,15 @@ The IO channels are capable of very high bandwidth when compared to the MPI+PCIe
 communication. A single IO channel itself has 66.6\% higher overall bandwidth
 then the MPI+PCIe communication. Looking at the efficiency of the communication achieved
 in the evaluation, the \texttt{within node} topology which uses single
-channel for communication would result in a 3 times faster communication and with 4 channel
+channel for communication would result in 3 times faster communication and with 4 channel
 10 times faster communication then MPI+PCIe. This is because the IO channels are efficient
 and can be utilized to use almost complete bandwidth (5 GB/s and 20 GB/s) available for large data transfers
 compared to only 65\% efficiency of MPI+PCIe (2.99 GB/s). The \texttt{fully connected} topology
 also has 5 times bigger overall bandwidth then MPI+PCIe for communicating with 3 nodes
 simultaneously. The efficiency of the MPI+PCIe reduces to 60\% with 4 nodes whereas
 with \texttt{fully connected} topology communication between 4 nodes is performed with
-no changes in performance of the channels. Also the communication in \texttt{fully connected}
-topology occur parallely between the nodes compared to routed communication via a network switch
+no changes in performance of the channels. Also, the communication in \texttt{fully connected}
+topology occur parallelly between the nodes compared to routed communication via a network switch
 which adds latency to the communication.
 Bandwidth evaluation using the prototypes implemented in this chapter show the potential benefits
 of using the IO channels instead of MPI+PCIe for communication between FPGAs to reduce the communication

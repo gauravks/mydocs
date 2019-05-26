@@ -4,16 +4,16 @@
 FPGAs offer the flexibility to design application specific hardware
 for different kinds of computational intensive problems. They are capable
 of providing high memory bandwidths by using wide data buses and pipelines.
-As the are reconfigurable, reusing them for different kinds of problems
+As they are reconfigurable, reusing them for different kinds of problems
 is easy and does not add huge overheads. Such benefits have increased
 the popularity of the FPGA based accelerators as an alternative to the
-GPUs in a heterogenous \ac{HPC}.
+GPUs in a heterogeneous \ac{HPC}.
 A High performance cluster contains multiple individual
 systems known as nodes. Each node can contain multiple multi-core processors,
 along with accelerators such as GPUs and FPGAs. The nodes are connected to each other
 using high speed interconnects to exchange data and control information. The whole system acts
 as a single high performance system with distributed memory and processing elements as
-shown in Figure \ref{fig:cluster}. The applications run parallely on multiple cluster node
+shown in Figure \ref{fig:cluster}. The applications run parallel on multiple cluster node
 and utilize the high speed interconnects to communicate and exchange data. Using
 multiple nodes with the FPGA/GPU accelerators allow to speedup the execution by use of more computing resources.
 \begin{figure}[ht]%
@@ -45,7 +45,7 @@ the data can be removed. The high speed communication setup between the FPGAs ca
 up application over multiple FPGAs with small communication latency freeing the CPU
 to perform additional computation simultaneously.
 
-MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} is an \ac{MPI} based parallel computation
+MIDG2\footnote{\url{https://github.com/tcew/MIDG2}} is a \ac{MPI} based parallel computation
 implementation of the \ac{DG} \cite{hesthaven_nodal_2008} method to solve Maxwell’s equation
 in time domain. \ac{DG} method is a commonly used operation in many simulation applications to
 solve \ac{PDE} and improvements to the computation time would be an important step to
@@ -108,13 +108,13 @@ FPGAs based accelerators utilize techniques such as efficient arithmetic operati
 deep instruction and pipelining to decrease computation time, multiple compute units for
 large scale parallel computations.
 Such benefits have made FPGAs a popular choice for implementing accelerators for
-problems utilizing heavy floating point computation. Considering such benefits,
+problems utilizing heavy floating-point computation. Considering such benefits,
 an implementation for accelerating the \ac{DG} operations in FPGAs was
 developed by \textcite{kenter_opencl-based_2018}. The implementation shows the benefit
 of using a single FPGA over a highly parallelized multi-core CPU implementation for
 the MIDG2 application which solves Maxwell’s equations in time domain. While working at
-PC\textsuperscript{2}, I implemented an extension of this design before the start of this thesis
-which is capable of using multiple single FPGAs to scale the application to 32 FPGAs using
+PC\textsuperscript{2}, We implemented an extension of this design before the start of this thesis
+which can use multiple single FPGAs to scale the application to 32 FPGAs using
 communication via CPU. This design is used as the base for this thesis.
 
 The increased popularity of the FPGAs in past has led to identify possibilities for
@@ -128,7 +128,7 @@ for 3D FFT solver which uses a 3D-torus FPGA-based network using a table-based r
 scheme. The evaluation results of such design shows 30\% improvement over the reference design.
 \textcite{kobayashi_opencl-ready_2018} used an OpenCL based design implementation to
 compare the latency of \ac{MPI}+PCIe based system and FPGA-to-FPGA system which uses Ethernet
-IP for communication over an switch. The results show a large difference between the achievable
+IP for communication over a switch. The results show a large difference between the achievable
 bandwidths and latency for the two system proving the benefits of such system. The system
 design presented in this thesis uses a similar approach like in \cite{kobayashi_opencl-ready_2018}
 but does not utilize the Ethernet-IP core and relies on the serial communication
@@ -136,7 +136,7 @@ support provided in the BittWare BSP.
 
 The rest of the thesis is divided into 5 chapters. Chapter \ref{cha:Fundamentals} discusses
 the fundamentals components and technologies used in the thesis giving details of the DG method
-and and overview of the OpenCL application development and techniques. It also introduces
+and overview of the OpenCL application development and techniques. It also introduces
 the single FPGA design presented in \cite{kenter_opencl-based_2018} and the distributed
 version using multiple FPGAs. Chapter \ref{cha:topologies} introduces the topologies which
 are possible for the FPGAs along with the prototypes developed. The chapter also presents

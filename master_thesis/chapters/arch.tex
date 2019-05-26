@@ -26,7 +26,7 @@ The first set of changes done in the thesis to the \texttt{MIDG2 MPI FPGA} appli
 was to include the IO channels to exchange the shared data in a multiple FPGA system.
 The IO channels are used to exchange the shared data between the FPGAs directly instead
 of copying it first to global memory, which is read by the \texttt{Host application}
-and then transferred using MPI. The prototypes developed for the topologies evaluation
+and then transferred using MPI. The prototypes developed for the topology's evaluation
 serve as the basis to implement the support for IO channels in the OpenCL kernels for
 the MIDG2 application. The main modification required to enable the OpenCL MIDG2
 kernels to communicate via IO channels
