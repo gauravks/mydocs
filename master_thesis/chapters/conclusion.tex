@@ -5,8 +5,48 @@ This thesis presents the benefits of using point-to-point communication between
 FPGAs in the MIDG2 application for accelerating computation of electric and magnetic
 fields using the \acl{DG} method. The \texttt{MIDG2 MPI FPGA} is extended to communicate
 the shared data between FPGAs using point-to-point communication in two different
-topologies viz. \texttt{within node} and \texttt{fully connected}.
+topologies viz. \texttt{within node} and \texttt{fully connected}. Two different
+designs are implemented using the point-to-point communication. The first design
+(\texttt{MIDG2 FPGA IO channels}) extends the OpenCL kernels to include the serial IO external channels to use
+the point-to-point communication between the FPGAs. Second design (\texttt{MIDG2 FPGA Only})
+introduces changes in the OpenCL kernel to remove the host application interaction completely.
 
-The topologies are initially evalau
+The topologies are initially evaluated using separate prototypes used to perform
+tests with synthetic data and data sizes. The evaluation of the topologies
+show the superiority of the point-to-point communication over the existing
+MPI+PCIe communication in terms of the peak bandwidth performance. A maximum
+bandwidth of 19.84 GB/s is achieved for point-to-point communication in
+\texttt{within node} topology using all the four available channels between
+two FPGAs compared to 1.94 GB/s for MIDG2+PCIe communication. The point-to-point
+communication are also found to be more efficient as they are able to utilize the
+99.2\% of the available bandwidth compared to 65\% utilization for the MPI+PCIe
+communication.
+
+The results of the evaluation with extended \texttt{MIDG2 MPI FPGA} also show
+reduction in the execution time of the application by 30\% using \texttt{within node} topology
+and 20\% using \texttt{fully connected} topology for different mesh sizes ranging
+from 1k to 200k mesh element. Additional synthetic test with \texttt{MIDG2 FPGA IO channels}
+where higher data size transfers between the FPGAs show a speedup of 2 times for the execution
+time with a maximum speedup of 3 for 200k with \texttt{fully connected} topology. This synthetic tests
+show that utilizing the point-to-point communication with applications with higher communication
+demands or higher communication to computation ratio can benefit a lot from the communication with
+IO channels.
+
+\section{Future Work}
+
+Following updates to the MIDG2 FPGA designs can be performed to optimize the design
+further and utilize the benefits of the IO channels completely:
+
+\begin{itemize}
+    \item The bottleneck analysis in section \ref{sec:analysis} identified bottlenecks with the
+    processing data processing efficiency in the \texttt{VOLUME} and \texttt{SURFACE} kernel. The computation structure
+    in the these compute can be updated to increase the computation efficiency of kernels to achieve
+    higher occupancy. This will allow to utilize the complete global memory bandwidth.
+    \item The partitioning scheme of the meshes can be updated to create smaller partitions with
+    higher communication to computation ratio. This will allow to utilize the complete
+    benefit of the point-to-point communication and further reduce the execution time
+    as shown with the synthetic tests.
+\end{itemize}
+
 
 
