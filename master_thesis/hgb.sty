@@ -38,7 +38,7 @@
 	{\RequirePackage[main=english,ngerman]{babel}}{}
 
 %% Setup for smart quotes (csquotes package) -- experimental! ----------------------------------
-	
+
 \ifthenelse{\boolean{HgbSmartQuotesOn}}{
 	\languageshorthands{none}%			%% turn off babel's shorthands (permanently)
 	\usepackage[autostyle=true,german=quotes]{csquotes}%
@@ -51,7 +51,7 @@
 \newenvironment{english}%
 {\begin{otherlanguage}{english}%
 	\ifthenelse{\boolean{HgbSmartQuotesOn}}{\EnableQuotes}{}}%
-{\end{otherlanguage}\ignorespacesafterend}% 
+{\end{otherlanguage}\ignorespacesafterend}%
 
 % Switch from English to German (babel)
 \newenvironment{german}%
@@ -67,7 +67,7 @@
 
 \RequirePackage{graphicx}
 \RequirePackage[percent]{overpic}	% to allow text/graphics overlays on pictures
-\RequirePackage{pict2e}				% extends the LaTeX 'picture' environment		
+\RequirePackage{pict2e}				% extends the LaTeX 'picture' environment
 
 \RequirePackage{xcolor}
 \newcommand{\@MissingArg}[1]{\textcolor{red}{#1}}
@@ -80,34 +80,34 @@
 \def\verbatimtabsize{2\relax}
 
 \RequirePackage{ifpdf}
-\ifpdf % LaTeX is in native PDF mode (pdflatex) 
+\ifpdf % LaTeX is in native PDF mode (pdflatex)
   \RequirePackage{epstopdf}			% converting EPS to PDF for pdflatex
 %  \pdfcompresslevel=0				% 0 = no compression, 9 = max. compression
 %  \pdfimageresolution=300
 \else								% LaTeX is in emulation mode (DVI-PS-PDF)
   \RequirePackage[hyphenbreaks]{breakurl} % allows line breaks in URLs without pdflatex (DIV, PS, PDF)
-\fi	
+\fi
 
 
 %% hyperref Setup -------------------------------------------------------------
 
 \RequirePackage[unicode]{hyperref}	% utf8-change
-% \hypersetup{
-% 	linktocpage = true,				% make page number, not text, be link on TOC, LOF and LOT 
-% 	colorlinks = false,				% don't uses colored links (because this shows up in printing!) 
-% 	pdfborder = {0 0 0.5},			% use a thinner (0.5pt) border around all PDF links
-% 	allbordercolors = {0 0 0.8},	% dark blue border for all types of links
-% 	breaklinks = true				% allow links to break over lines by making links over multiple lines
-% }	%see https://www.tug.org/applications/hyperref/manual.html
-
 \hypersetup{
-	linktocpage = false,				% make page number, not text, be link on TOC, LOF and LOT 
-	colorlinks = true,				% don't uses colored links (because this shows up in printing!) 
-	linkcolor = blue,
+	linktocpage = false,				% make page number, not text, be link on TOC, LOF and LOT
+	colorlinks = false,				% don't uses colored links (because this shows up in printing!)
 	pdfborder = {0 0 0},			% use a thinner (0.5pt) border around all PDF links
 	allbordercolors = {0 0 0},	% dark blue border for all types of links
 	breaklinks = true				% allow links to break over lines by making links over multiple lines
-}
+}	%see https://www.tug.org/applications/hyperref/manual.html
+
+% \hypersetup{
+% 	linktocpage = false,				% make page number, not text, be link on TOC, LOF and LOT
+% 	colorlinks = true,				% don't uses colored links (because this shows up in printing!)
+% 	linkcolor = blue,
+% 	pdfborder = {0 0 0},			% use a thinner (0.5pt) border around all PDF links
+% 	allbordercolors = {0 0 0},	% dark blue border for all types of links
+% 	breaklinks = true				% allow links to break over lines by making links over multiple lines
+% }
 
 % Redefine certain commands for bookmarks and meta-data
 \let\oldand\and
@@ -139,7 +139,7 @@
 	\linethickness{0.05mm}%
 	\put(0,0){\dashbox{0.2}(#1,#2)%
 	{\parbox{#1mm}{%
-	\centering\footnotesize 
+	\centering\footnotesize
 	width $ = #1 \textrm{mm}$\\
 	height $ = #2 \textrm{mm}$
 	}}}\end{picture}
@@ -165,7 +165,7 @@
 
 % Captions with font size "small" and additional margin spacing
 \RequirePackage[small,bf]{caption}
-\DeclareCaptionStyle{ruled}{labelfont=bf,labelsep=colon} 
+\DeclareCaptionStyle{ruled}{labelfont=bf,labelsep=colon}
 \setlength{\captionmargin}{5mm}
 \setlength{\abovecaptionskip}{10pt}
 \setlength{\belowcaptionskip}{10pt}
@@ -179,7 +179,7 @@
 \captionsetup{textformat=nofootnotes}
 
 
-% Make float placement easier    
+% Make float placement easier
 \renewcommand{\floatpagefraction}{.9}	% previously: .5
 \renewcommand{\textfraction}{.1}		% previously: .2
 \renewcommand{\topfraction}{.9}			% previously: .7
@@ -190,9 +190,9 @@
 
 \RequirePackage{enumitem}				% fix excessive vertical spacing in lists
 \setlist{%
-	partopsep = .0ex plus .1ex, 
-	topsep = .6ex plus .3ex, 
-	itemsep = .0ex plus .1ex, 
+	partopsep = .0ex plus .1ex,
+	topsep = .6ex plus .3ex,
+	itemsep = .0ex plus .1ex,
 	parsep = .4ex plus .2ex
 }
 
@@ -224,7 +224,7 @@
 
 \floatstyle{plain}
 \restylefloat*{program}
-	
+
 \ifthenelse{\equal{\bbl@main@language}{german} \or \equal{\bbl@main@language}{ngerman}}%
 	{\floatname{program}{Programm}}{}%
 
@@ -302,7 +302,7 @@
 %% Prevent subfigure package from being loaded -------------------------------
 
 % The subfigure package is DEPRECATED (see https://ctan.org/pkg/subfigure)!
-% We strongly advise against its use since it creates poor output which is not 
+% We strongly advise against its use since it creates poor output which is not
 % compatible with our quality standards. Loading this package is therefore blocked
 % by default. We recommend to use the 'tabular' environment instead.
 

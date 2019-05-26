@@ -24,14 +24,14 @@ evaluation setup is given followed by the evaluation of execution
 time and speedup analysis. The second part presents benefits of the IO
 channels by evaluating the designs in terms of bandwidth by artificially
 increasing the data transfer sizes. In the last, global memory bandwidth
-changes in the kernels captured using the profiling interface of the Intel®
+changes in the kernels captured using the profiling interface of the Intel
 OpenCL FPGA SDK would be presented.
 
 \subsection{Evaluation Setup for MIDG2}
 
 The experiments like with topologies are conducted on the same
 nodes in the FPGA partition of the Noctua cluster. The kernels
-for the experiments are synthesized using Intel® FPGA SDK for OpenCL
+for the experiments are synthesized using Intel FPGA SDK for OpenCL
 v18.0.1 Pro (build 261) and v18.1.1 Pro (build 263).
 
 The execution time evaluation of the MIDG2 application is done by using
@@ -193,15 +193,15 @@ within node (\texttt{WN}) and fully connected topologies (\texttt{FC}). These tw
 Each of the design was synthesized with both the toolchains to evaluate the difference in the performance
 achieved with the newer toolchains. Additional variation for the global memory interconnections available
 in the Intel FPGA SDK OpenCL v18.1.1 as explained below was also included (\texttt{XXX\_XX\_nf}
-suffixed variants in the table \ref{tab:midg2_designs}).
+suffixed variants in the Table \ref{tab:midg2_designs}).
 As the latencies included in the FPGA only designs contribute
 a large time to the execution of the meshes with lower sizes, another set of
 tests were performed for some of the designs by setting the latency to only 1 cycle
-(\texttt{XXX\_XX\_nolat} suffixed variants in the table \ref{tab:midg2_designs}).
+(\texttt{XXX\_XX\_nolat} suffixed variants in the Table \ref{tab:midg2_designs}).
 These variants do not produce correct results and are used only to understand the
 impact of the latency to the \texttt{FPGA Only} design.
 
-To perform the test with all of the designs listed in the table \ref{tab:midg2_designs},
+To perform the test with all of the designs listed in the Table \ref{tab:midg2_designs},
 the kernels for each design were synthesized with both versions of the tool. To disable
 the ring interconnect for global memory and duplication of the store ring
 which are explicitly forced by using the flags \texttt{-global-ring -duplicate-ring}
@@ -236,22 +236,22 @@ lists the resource utilization summary of the designs with both tool-chains.
 
 \begin{table}[ht]
     \centering
-    \caption{Resource utilization of the designs in each toolchain version}
+    \caption{Resource utilization in (\%) of the designs in each toolchain version}
     \label{tab:sys_resource}
     \begin{tabular}{llccccccc}
      &  & \multicolumn{7}{c}{\textbf{Design}} \\
      \cline{3-9}
      \textbf{Resource} & \textbf{Toolchain} & MPI & WNIO & FCIO & WNIO4CH & WN4CH & WN & FC \\
     \hline
-    \multirow{2}{*}{Logic} & 18.1.1 & 26 & 25 & 28 & 27 & 34 & 33 & 36 \\
+    \multirow{2}{*}{Logic (in \%)} & 18.1.1 & 26 & 25 & 28 & 27 & 34 & 33 & 36 \\
     \cline{2-9}
      & 18.0.1 & 34 & 35 & 43 & 41 & 41 & 36 & 43 \\
      \cline{1-9}
-    \multirow{2}{*}{DSP} & 18.1.1 & 13 & 12 & 12 & 12 & 12 & 12 & 12 \\
+    \multirow{2}{*}{DSP (in \%)} & 18.1.1 & 13 & 12 & 12 & 12 & 12 & 12 & 12 \\
     \cline{2-9}
      & 18.0.1 & 13 & 12 & 12 & 12 & 12 & 12 & 12 \\
      \cline{1-9}
-    \multirow{2}{*}{RAM} & 18.1.1 & 12 & 12 & 14 & 14 & 12 & 11 & 13 \\
+    \multirow{2}{*}{RAM (in \%)} & 18.1.1 & 12 & 12 & 14 & 14 & 12 & 11 & 13 \\
     \cline{2-9}
      & 18.0.1 & 11 & 11 & 13 & 13 & 11 & 10 & 12 \\
      \hline
@@ -264,16 +264,16 @@ lists the resource utilization summary of the designs with both tool-chains.
 This section presents evaluation results for the execution time evaluation
 in terms of speedup of the execution time for different mesh sizes.
 
-\subsubsection*{MPI MIDG2 FPGA vs IO Channels}
+\subsubsection*{\texttt{MIDG2 MPI FPGA} vs IO Channels}
 The first modification done as part of the thesis is the addition of
 IO channels. The aim with addition of IO channels is to reduce the communication
 overhead due to PCIe transfers involved in exchanging the non-shared elements
 between the nodes. As the communication is overlapped with the execution
-as shown in the sequence graph in the figure \ref{fig:sequence_comp},
+as shown in the sequence graph in the Figure \ref{fig:sequence_comp},
 the expected improvements are smaller than the improvements of raw memory
 bandwidths from the synthetic tests with the topology prototypes.
 Figure \ref{plot:mpiio_comp} shows the plot with speedup values achieved for the
-\texttt{MIDG2 FPGA IO channels} design over the \texttt{MPI MIDG2 FPGA} designs.
+\texttt{MIDG2 FPGA IO channels} design over the \texttt{\texttt{MIDG2 MPI FPGA}} designs.
 \begin{figure}[h]
 	\centering\small
 	\begin{tabular}{cc}
@@ -307,20 +307,21 @@ which is around 10\% faster. The \texttt{FCIO} variant with
 to 262.5 MHz in 18.0.1 toolchain which could be one of the
 reasons for lower speedup values for higher mesh sizes.
 
-\subsubsection*{MPI MIDG2 FPGA vs FPGA ONLY}
+\subsubsection*{\texttt{MIDG2 MPI FPGA} vs FPGA ONLY}
 
 As explained in chapter \ref{cha:sys_fpgaonly}, to avoid the host synchronization
 which added some amount of overhead to the processing, the second modification
 removed the host synchronization completely. These designs were implemented
 to utilize the full potential of the FPGA without the host interference.
-Figure \ref{plot:mpifpgaonly_comp} shows plot with the variation of speedup over different mesh sizes for the
-\texttt{MIDG2 MPI FPGA} and \texttt{FPGA only} designs. Overall the speedup values for
-both design are very low which range for a maximum of 1.34 for the 20k
-within node implementation to 1.12 for the fully connected design.
-As with the IO channels design, the within node performs better
-with higher speedup values for all meshes. Comparing the effects
-of toolchain variation, for both the designs the 18.1.1 version
-performance slightly better for higher data sizes unlike the IO channels.
+Figure \ref{plot:mpifpgaonly_comp} shows plot of speedup of \texttt{FPGA only}
+over \texttt{MIDG2 MPI FPGA} designs varying over different mesh sizes.
+Overall the speedup values for \texttt{fully connected (FC)} topology
+is lower than the \texttt{within node (WN)} topology in both the tool-chains
+similar to the \texttt{IO channels} design. Comparing the effects
+of toolchain variation, for both the designs, the 18.1.1 version
+performs slightly better overall and especially for higher data sizes
+unlike the IO channels where designs with 18.0.1 toolchain perform better.
+
 \begin{figure}[h]
 	\centering\small
 	\begin{tabular}{cc}
@@ -356,44 +357,13 @@ of smaller mesh sizes.
 	\label{plot:iofpgaonly_comp}
 \end{figure}
 
-
-To understand the impact of the latencies in the FPGA only design, the host
-application was configured to allow setting up the latency count at the execution time.
-This is used to set the latency to 1 and run the tests again to see the impact
-of the latency. The field values produced by this change are not accurate, as
-the memory operations are not completed correctly and synchronized among the FPGA
-though it gives the potential of the FPGA design. The plot \ref{plot:fpgaonly_nolat}
-shows the speedup values for each mesh size for the no latency run.
-\begin{figure}[h]
-	\centering\small
-	\begin{tabular}{cc}
-    \scalebox{0.5}{\input{data/comp_mpifpgaonly_nolat_1.pgf}} & \scalebox{0.5}{\input{data/comp_mpifpgaonly_nolat_2.pgf}}\\
-    (a) & (b)
-	\end{tabular}
-    \caption{MIDG2 FPGA only design with latency set to one cycle count}
-	\label{plot:fpgaonly_nolat}
-\end{figure}
-The plot shows that for smaller mesh sizes very high speedup values which is upto 8.68 for the fully connected
-topologies is possible. The speedup values for the fully connected topologies is higher then within node
-design which could be explained due to smaller communication times due to simultaneous data transfers
-which results in lesser synchronization time delays between the kernels which still use channels
-to synchronize but with no latency. For higher data sizes the benefits dimishes completely giving
-similar speedup values like the run with latency. This is due to the higher computation times for
-bigger meshes. As the mesh size increases, the kernel spend more time for computation. The main
-benefit of the FPGA only design comes from removal of the overhead due to host interactions per iterations.
-With higher mesh sizes the overhead only contributes a very small fraction of the
-execution time per iteration and is not significant for the overall execution making the benefits
-of removal of synchronization minimal. In terms of toolchain variation, there are no noticeable
-difference in the speedup in either of the design.
-
-
 \subsubsection*{Effects of global memory interconnect flags}
 
 The 18.1.1 toolchain version provides additional memory optimization
 flags which control the global memory interconnections to the FPGA
 fabric. As explained previously, the designs were also synthesized
 with the flags disabled to see the effects on the performance.
-The plots in figure \ref{plot:noflag} show the comparison of the speedup
+The plots in Figure \ref{plot:noflag} show the comparison of the speedup
 of the IO channel  and FPGA only designs with MPI MIDG2 with and without
 memory flags. For FPGA only design the Fully connected topology have similar
 speedup and show no effects of the flag but in case of the within node topology,
@@ -412,18 +382,111 @@ speedup.
 	\label{plot:noflag}
 \end{figure}
 
-\subsection{Bandwidth evaluation with MIDG2 variants}
+
+\subsection{Scaling performance over multiple FPGAs}
+
+The scaling performance for a system gives the understanding about the efficiency
+of the design in terms of resource utilization. While scaling an implementation
+over multiple resources, often the bottleneck is the communication overhead
+which increases with more no of resources. As the communication overhead
+is reduced with the IO channels by allowing FPGAs to communicate directly,
+strong scaling of the system is possible. The figure \ref{plot:speed_gen} shows
+the plot with execution time speedup scaled over multiple FPGAs for a 100k mesh to compare the
+scaling capability of the different FPGA designs. The \texttt{MIDG2 MPI FPGA} design
+which can be scaled easily over multiple FPGAs is executed with 1 to 10 FPGAs in increments
+of 2. The \texttt{IO channels} design only support 2 and 4 FPGAs in the two topologies and the
+best designs identified in the previous sections for each of the variants are used for the
+comparison.
+
+We can see that speedup values of both the \texttt{IO channels} designs are close or above the
+linear speed line in the plot whereas the \texttt{MIDG2 MPI FPGA} design diverges after 2 FPGAs with
+decrease in efficiency as more FPGAs are used. The high efficiency of the \texttt{IO channels}
+shows the clear advantage of using the \texttt{IO channels} over the MPI+PCIe communication
+to achieve strong scaling for large mesh sizes with linear speedup.
+
+\begin{figure}[h]
+	\centering\small
+    \scalebox{0.8}{\input{data/speed_gen.pgf}}
+    \caption{Comparison of scaling the FPGA designs. \texttt{MIDG2 MPI FPGA} design is scaled
+    over 2,4,6,8 and 10 FPGAs. The \texttt{IO channels} and \texttt{FPGA Only} design uses
+    2 (\texttt{WN} and \texttt{WNIO}) and 4 FPGAs (\texttt{FC} and \texttt{FCIO})}
+	\label{plot:speed_gen}
+\end{figure}
+
+
+\section{Detailed Analysis of the results}
+
+Previous sections present a analysis of the captured evaluation data to compare
+the performance of the design implemented in this thesis. It was expected to
+have only smaller improvements with the optimization done in the final
+\texttt{FPGA only} as the optimization only target to eliminate the unnecessary
+overheads in the design. The analysis of the data show that the optimization didn't
+improve the performance and have instead decreased the performance for few variants.
+This section presents a detailed analysis of the results with additional experiments
+done to identify the bottlenecks and highlight them for future improvements.
+
+
+\subsection{Removing the latency}
+
+As explained in the section \ref{sec:add_latency}, a latency was required in the kernels
+to avoid the overlapped write and read of the shared global memory. The required latency
+was considered to be small within 100 to 1000 cycles but during testing a value of 150000
+cycles was found to be the suitable one. As this amounts to a huge value of approx 75ms at 270MHz,
+further analysis were done. To understand the impact of the latencies in the \texttt{FPGA only} design,
+the \texttt{host application} was configured to allow setting up the latency count at the execution time.
+This is used to set the latency to 1 and run the tests again to see the impact
+of the latency. The field values produced by this change are not accurate, as
+the memory operations are not overlapped and corrupts the memory. The tests were also done
+to understand the potential of the FPGA design in absence of the additional
+delay. The plot \ref{plot:fpgaonly_nolat} shows the speedup values for each mesh size for the no latency run.
+\begin{figure}[h]
+	\centering\small
+	\begin{tabular}{cc}
+    \scalebox{0.5}{\input{data/comp_mpifpgaonly_nolat_1.pgf}} & \scalebox{0.5}{\input{data/comp_mpifpgaonly_nolat_2.pgf}}\\
+    (a) & (b)
+	\end{tabular}
+    \caption{Synthetic tests of \texttt{MIDG2 FPGA only} design with latency set to one cycle count. The
+    MIDG2 application produces wrong results in this tests as memory operations are overlapped}
+	\label{plot:fpgaonly_nolat}
+\end{figure}
+The plot shows that for smaller mesh sizes very high speedup values of 8.68 for the fully connected
+topologies is possible. The speedup values for the fully connected topologies is higher then within node
+design which could be explained due to smaller communication times for the parallel data transfers.
+This results in lesser synchronization time delays between the kernels which still use channels
+to synchronize but with no latency. For higher data sizes the benefits diminishes completely giving
+speedup values similar to runs with latency. This is due to the higher computation times for
+bigger meshes. As the mesh size increases, the kernel spend more time for computation. The main
+benefit of the FPGA only design comes from removal of the overhead due to host interactions per iterations.
+With higher mesh sizes the overhead only contributes a very small fraction of the
+execution time per iteration and is not significant for the overall execution making the benefits
+of removal of synchronization minimal.
+
+This synthetic tests show that there is a possibility to further improve the performance of
+the \texttt{FPGA Only} designs with the smaller mesh sizes. It also shows that an unusually
+large delay is required by the memory controller to complete the memory operations. As the Intel FPGA SDK for OpenCL
+currently does not provide any global memory synchronization method for the kernels it is not
+possible to achieve higher performance with the implemented kernel structures.
+
+
+\subsection{Bandwidth evaluation with synthetic data sizes}
 
 The execution time evaluation shows that there are possible benefits of using the IO channels
 in terms of improved communication for atleast smaller mesh sizes. With bigger mesh sizes
-the benefits of the improvements are not realized as the longer computation part runs
+the benefits of the improvements are less prominent as the longer computation part runs
 simultaneously. To better understand the benefits of the IO channels, an additional set of
 tests were designed. The aim of these tests is to simulate higher sizes of data transfer
 in application and compare the bandwidth performance and the execution time in this case.
-To achieve higher data size data transfers, the partition configuration was updated to
-partition meshes at tetrahedral boundaries instead of triangular surface boundaries.
+These tests would help to estimate the benefits which could be gained in a application
+which require large data transfers between multiple nodes and suffer from large
+communication overhead of the standard HPC networks.
+
+To achieve higher data size data transfers, the configuration for partitioning the mesh
+was updated to partition meshes at tetrahedral boundaries instead of triangular surface boundaries.
 This is done by updating the \texttt{ncommonnodes} value to 4 from 3, which is the parameter
-to control the number of vertices of the element to be used for partitioning. The
+to control the number of vertices of the element to be used for partitioning. The partitioning
+with tetrahedral is inefficient as the faces of the tetrahedron are the shared
+entity between the elements. This partitioning configuration produces large partition
+with upto 80 to 90 percent of elements shared between the partitions. The
 size of the data shared in both the designs for a 2 node and 4 node system is
 capture in \ref{tab:sizes_var}
 \begin{table}[ht]
@@ -446,19 +509,16 @@ capture in \ref{tab:sizes_var}
 \end{table}
 
 \subsubsection{Bandwidth Measurement}
-The change in the \texttt{ncommonnodes} produce correct error values for the MPI MIDG2 designs but
-for the IO channels design, slightly wrong error values are produced. This could be due some alignment
+The change in the \texttt{ncommonnodes} produce correct error values for the \texttt{MIDG2 MPI FPGA} design but
+for the IO channels design, wrong error values are produced. This could be due some alignment
 issues but the issue was not analysed in detail due to time limitation and as it just to simulate
 higher data transfers and would not be used in a real system. The measurements for the bandwidth
-were taken with MIDG2 MPI FPGA (as the base) and the IO channels designs only. As these
-design share common execution sequence controlled by host, comparison of these designs
-was identified to be more relevant. Also, the bandwidth computation in FPGA only design
-is quite complex as there are no host interactions per iterations and clear waiting times
-and active times are hard to predict from the profile information.
-The bandwidth measurements for the MIDG2 MPI FPGA implementations are done using the \texttt{clock\_gettime()}
-by measuring the total communication time for send and receive and computing the bandwidth similar to
-bandwidth measurements for the topology evaluation. The times are store in the profile information structure
-which is processed at the end of every run.
+were taken with \texttt{MIDG2 MPI FPGA} and the IO channels designs only. As both the designs
+have the similar execution and synchronization sequence controlled by \texttt{host application}, comparison of these designs
+is straight forward. Also, the bandwidth computation in FPGA only design
+is quite complex as there are no host interactions per iterations and kernel waiting time
+and active time is hard to predict from the profile information.
+
 % \begin{CppCode}[caption=Send and receive communication time computation changes for MIDG2 MPI FPGA, frame=tlrb, label=code:bwmpi_comp]
 % static void runKernel(...)
 % {
@@ -508,41 +568,26 @@ which is processed at the end of every run.
 % }
 % \end{CppCode}
 
-For the IO channels design, the measurement is simpler. The kernel execution time
-for \texttt{partial\_send} and \texttt{partial\_recv} kernels is comuputed by requesting
-the \texttt{CL\_PROFILING\_COMMAND\_START} and \texttt{CL\_PROFILING\_COMMAND\_END} profile counters
-as explained done in the prototypes. The communication times are then computed and stored
-in the profileinfo buffers as shown in the code listing \ref{code:bwioch_comp}.
-\begin{CppCode}[caption=Send and receive communication time computation changes for IO channels designs, frame=tlrb, label=code:bwioch_comp]
-static void runKernel(...)
-{
-...
-...
-    clObjs->pKernel_obj->enqueue_NDRange("compute_inner",  ,,, , , , );
-
-    clObjs->pKernel_obj->waitforcompletion("compute_inner", &event1);
-...
-    clObjs->pKernel_obj->enqueue_NDRange("compute_halo", , , , , , , , );
-    clObjs->pKernel_obj->waitforcompletion("compute_halo", &event1);
-
-    cl_ulong start = 0, end = 0;
-    start = getProfileInfo("maxwell_partial_send", CL_PROFILING_COMMAND_START);
-    end = getProfileInfo("maxwell_partial_send", CL_PROFILING_COMMAND_END);
-
-    profileInfo->sendExecTime += (cl_double)(end - start) * (cl_double)(1e-06);
-
-    start = getProfileInfo("maxwell_partial_rcv", CL_PROFILING_COMMAND_START);
-    end = getProfileInfo("maxwell_partial_rcv", CL_PROFILING_COMMAND_END);
-
-    profileInfo->recvExecTime += (cl_double)(end - start) * (cl_double)(1e-06);
-...
-}
-\end{CppCode}
-
+The bandwidth measurement for the IO channels design is done separately for the send and receive.
+As the execution time of the \texttt{partial\_send} and \texttt{partial\_recv} depends on the
+global memory performance and the availability of communication partner on the channel,
+the measurements are done separately. Each of the kernel have different global memory access
+pattern as well as the stalls on the channels can vary depending the kernel on the other FPGA,
+the actual bandwidth throughput of the channels in send and receive direction would differ
+and measuring them separately can be used to understand it better. The measurement
+of the bandwidth with \texttt{IO channel} designs are simple. The kernel execution time
+for \texttt{partial\_send} and \texttt{partial\_recv} kernels is computed by requesting
+the \texttt{CL\_PROFILING\_COMMAND\_<START/END>} profile counters
+as done in the prototypes. The communication times are then computed and stored
+in the \texttt{profileinfo} buffers. The bandwidth measurements for the \texttt{MIDG2 MPI FPGA}
+implementations is done using the \texttt{clock\_gettime()}
+by measuring the total communication time for send and receive and computing the bandwidth similar to
+bandwidth measurements for the topology evaluation. The computed time is store in the profile information structure
+which is processed at the end of every run.
 
 \subsubsection{Analysis of the results}
 
-The plots in the figure \ref{plot:bw_avg} show the comparison of the average bandwidth
+The plots in the Figure \ref{plot:bw_avg} show the comparison of the average bandwidth
 values recorded for the MPI and the IO designs. Figure (a) shows the bandwidth for
 2 nodes whereas (b) shows for the 4 node designs. The first thing which is clearly visible
 is the huge difference in the bandwidth values for the MPI and IO channels design which
@@ -561,7 +606,8 @@ explain the bahaviour.
     \scalebox{0.5}{\input{data/mpiio_bw_1.pgf}} & \scalebox{0.5}{\input{data/mpiio_bw_2.pgf}}\\
     (a) 2 node designs & (b) 4 Node Designs
 	\end{tabular}
-    \caption{Average bandwidth values for two node and 4 Node designs}
+    \caption{Average bandwidth values for two node topologies \texttt{wnio}, \texttt{wnio4ch} and 4 node
+    topology \texttt{fcio} and designs}
 	\label{plot:bw_avg}
 \end{figure}
 The 4 channel design performs slower than the single channel design. As identified in
@@ -571,12 +617,12 @@ with other kernels working simulataneously, the effects of the global memory has
 increased leading to bandwidths slower than the single channel implementation.
 
 
-The plots in figure \ref{plot:bw_ratio} compare the bandwidth speedup of
+The plots in Figure \ref{plot:bw_ratio} compare the bandwidth speedup of
 send and receive seprately. The receives is both IO channels design have significantly
 higher speedup values then the sends. The difference can be accounted to the sharing of
 global memory buffer in the send and hence the memory band with other kernels. The \texttt{partial\_send}
 kernels reads the \texttt{g\_Q} memory buffer to get the shared data values. With the addition
-of channels between rk and volume/surface kernel, the concurrent access of the \texttt{g\_Q}
+of channels between \texttt{RK} and \texttt{VOLUME/SURFACE} kernel, the concurrent access of the \texttt{g\_Q}
 increases which would cause stalls and delays in the send kernel leading to slower sends.
 \begin{figure}[ht]
 	\centering\small
@@ -584,7 +630,8 @@ increases which would cause stalls and delays in the send kernel leading to slow
     \scalebox{0.5}{\input{data/bwspeed_1.pgf}} & \scalebox{0.5}{\input{data/bwspeed_2.pgf}}\\
     (a) 2 node designs & (b) 4 Node Designs
 	\end{tabular}
-    \caption{Average bandwidth values for two node and 4 Node designs}
+    \caption{Send and receive bandwidth comparison for \texttt{within node} and \texttt{fully connected}
+    topologies with the simulated high data transfers between the FPGAs using inefficient partitioning of the mesh}
 	\label{plot:bw_ratio}
 \end{figure}
 Looking at the plots it can also be clearly seen that performance of design synthesized
@@ -596,42 +643,50 @@ toolchains.
 
 \subsubsection{Execution time comparision}
 
-The plot in figure \ref{plot:bw_speedup} show the comparision of the
-execution time speedup for the designs used for bandwidth evaulation.
+The execution time in the synthetic tests contains a larger fraction
+of communication time as ratio of the shared and non-shared elements
+is 4:1. The plot in Figure \ref{plot:bw_speedup} show the comparison of the
+\begin{figure}[ht]
+	\centering\small
+    \scalebox{0.7}{\input{data/bwspeed_com.pgf}}
+    \caption{Execution time Speedup comparison for simulated higher data size transfers}
+	\label{plot:bw_speedup}
+\end{figure}
+execution time speedup for the \texttt{IO channel} designs
+over the \texttt{MIDG2 MPI FPGA} design used for bandwidth evaluation.
 A maximum speedup value of 2.92 is reported for the fully connected
 designs with both within node and fully connected topology
 having speed of 2 and above for higher mesh sizes. This shows the potential
 of using the IO channels with higher data transfer sizes which was not clear
-with the exectution time evaluation. The within node 4 channel design has
+with the execution time evaluation. The within node 4 channel design has
 speedups below 2, mostly due to the global memory congestion in the send
-pasrt as noticed with the earlier analysis.
-\begin{figure}[ht]
-	\centering\small
-    \scalebox{0.8}{\input{data/bwspeed_com.pgf}}
-    \caption{speedup comparision for simulated higher data size transfers}
-	\label{plot:bw_speedup}
-\end{figure}
-
-The fully conneted design synthesized with the 18.0.1 version is the only
-18.0.1 design which performs better. After further analyis it was identified that
+part as noticed with the earlier analysis.
+The \texttt{fully connected} design synthesized with the 18.0.1 version is the only
+18.0.1 design which performs better. After further analysis it was identified that
 the difference could be due to addition of write-ack LSU for the \texttt{g\_resQ}
-buffer in the the RK kernel which is solved in the FPGA only designs by aliasing
-the memory.
+buffer in the the \texttt{RK} kernel which is solved in the FPGA only designs by aliasing
+the memory. The execution time speedup comparison with the large data sizes shows
+the benefits of using IO channels in applications with very high communication demand
+compared to the computation. This understanding can be used with MIDG2 application
+by identifying other partitioning schemes which generates smaller partitions but
+a higher percentage of shared elements. As the current shared percentage for large
+mesh sizes is too small (2\% to 6\%), having a alternative schemes or execution
+structure which is more communication intensive can benefit a lot from the
+IO channels of the FPGAs.
 
-
-\section{Bottleneck analysis in FPGA Only Design}
+\subsection{Bottleneck analysis in FPGA Only Design}
 
 The FPGA only design for both the topologies achive very small speedups for the large mesh sizes
 even after setting the explicit latency value to 1. The bahaviour of the kernels with larger mesh
-sizes was analysed further by profiling the kernels using the Intel® FPGA Dynamic Profiler for OpenCL™.
+sizes was analysed further by profiling the kernels using the Intel FPGA Dynamic Profiler for OpenCL.
 The kernels can be instrumented with performance counters by specifying the \texttt{--profile} flag
 during the synthesis of the kernels. The kernel synthesized with the profile flags captures the
 performance counters and saves in a file called \texttt{profile.mon} in the execution directory.
-Intel® FPGA Dynamic Profiler for OpenCL™ can be then invoked with the data collected from the
+Intel FPGA Dynamic Profiler for OpenCL can be then invoked with the data collected from the
 kernels to understand the performance bottlenecks. The profiler parses the collected data and
 displays statistical information collected from local memory, global memory and channel
 access in the kernels. The main attributes presented in the profile information are
-listed with thier description in the table:
+listed with thier description in the Table \ref{tab:profile_descr}:
 \begin{table}[ht]%
     \centering
     \caption{Description of the profile properties taken from \cite{noauthor_intel_2019}}
@@ -658,32 +713,33 @@ listed with thier description in the table:
 \end{table}
 
 The initial analysis of profile information suggested that the computation in the
-volume and surface kernel were the bottleneck. A high percentage of stalls were
-reported on the channels feeding data into the volume and surface kernel as well
+\texttt{VOLUME} and \texttt{SURFACE} kernel were the bottleneck. A high percentage of stalls were
+reported on the channels feeding data into the \texttt{VOLUME} and \texttt{SURFACE} kernel as well
 on the channels which are written from them. To analyse the bottleneck, the
-structure of the FPGA only kernel was simplied by removing RK, \texttt{partial\_send}
+structure of the FPGA only kernel was simplified by removing \texttt{RK}, \texttt{partial\_send}
 and \texttt{partial\_recv} kernels. The removal of these kernels allows to profile
-the data flow within the volume and surface kernels independentaly without any
+the data flow within the \texttt{VOLUME} and \texttt{SURFACE} kernels independentaly without any
 synchronization overheads. Two additional support kernels were included which
-read the data written by the volume and surface kernel and write into the
+read the data written by the \texttt{VOLUME} and \texttt{SURFACE} kernel and write into the
 global memory. The timestep logic is kept to simulate similar execution
 intervals of the kernels. The modified kernels along with the reported
-stalls, occupancy and bandwidth are shown in the figure \ref{fig:prof_analyis}
+stalls, occupancy and bandwidth are shown in the Figure \ref{fig:prof_analyis}
 \begin{figure}[]%
     \centering
-    \includegraphics[width=1.0\textwidth]{images/bottleneck_analysis_2}
-    \caption{Structure of the analyis kernels along with the profile
+    \includegraphics[width=0.9\textwidth]{images/bottleneck_analysis_2}
+    \caption{Structure of the analysis kernels along with the profile
     information for the channels and memory access with kernels synthesized
-    with v18.1.1 and ran with 100k mesh for 35 timesteps}
+    with v18.1.1 and ran with 100k mesh for 35 timesteps. The kernel have the timestep
+    loops within the kernels similar to \texttt{FPGA Only} design}
     \label{fig:prof_analyis}
 \end{figure}
 
 The profile information is similar to the FPGA only design confirming
 that the effect of synchronization structure to the computation is
 negligible. To analyse the bottleneck, the data movement can be traversed
-from global memory to global memoryvia the kernels and channels looking at
+from global memory to global memory via the kernels and channels looking at
 stalls and occupancy values the each location. Looking at the movement of
-\texttt{g\_Q1}, via volume kernel, \texttt{V\_IN} reads the data from the
+\texttt{g\_Q1}, via \texttt{VOLUME} kernel, \texttt{V\_IN} reads the data from the
 global memory first. As shown, the read are performed with a stall\%
 of 49.28\% at 2916.2 MB/s. This means that the \texttt{V\_IN} kernel is unable to read
 data from global memory efficiently and half of the read requests
@@ -716,7 +772,7 @@ the global memory without delays.
 
 Looking at the occupancy along the path, it can be seen that
 it is 41.7\% at each of the location. From this example traversal,
-finally it can be confirmed that bottleneck for the \texttt{g\_Q}
+it can be confirmed that bottleneck for the \texttt{g\_Q}
 buffer data movement is at \texttt{VOLUME} kernel as it is not
 able to read the data at the rate fed into channel
 \texttt{ch\_vol\_Q} as well as not able to provide data at
@@ -725,11 +781,40 @@ The data is being processed only 41.7\% of the total execution
 time in the \texttt{VOLUME} which can be derived from the occupancy
 value as that would cause the stall of 58.31\% at the \texttt{V\_IN}.
 
-In the figure \ref{fig:prof_analyis},
-the highlighted values show the percentage of stall for channels used to
-read data to be processed into the compute kernels \texttt{VOLUME} and \texttt{SURFACE}
-and write data out after processing. These small values of the stalls for
-each channel in/out of the compute kernels confirm that the other data paths
-also suffer similarly due to bottlenecks at the compute kernels.
+The values above show that synchronization via the channels does not effect
+the performance of the kernels and the bottleneck is with the compute
+kernels. As the timestep loops are included in the kernel,  the pipeline
+structure of the nested loops was not clear from the reports generated
+by Intel OpenCL compiler. The timestep loops could limit the Intel OpenCL compiler
+from optimizing the original compute kernel structure due to higher level of nested
+loops. To confirm this hypothesis another test was performed by removing the timestep
+loops. Figure \ref{fig:prof_analyis_2} shows the structure of the kernels which
+is similar to previous structure as only the loops are removed. We can see that
+the removal of loops have not much effect on the performance of the compute kernels.
+The kernels still are responsible to stall the pipeline before and after them.
+We can only see a minor improvements for the global memory access where the stalls
+values have reduced. The stalls and the occupancy for the channels writing into the compute kernels
+and reading out of the compute kernels remain similar.
 
+\begin{figure}[]%
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/bottleneck_analysis_noloops}
+    \caption{Structure of the kernels with the timestep removed along with the profile
+    information for the channels and memory access with kernels synthesized
+    with v18.1.1 and ran with 100k mesh for 35 timesteps}
+    \label{fig:prof_analyis_2}
+\end{figure}
 
+The highlighted values in the Figure \ref{fig:prof_analyis} and \ref{fig:prof_analyis_2}
+show the percentage of stall for channels used to read data to be processed into the
+compute kernels \texttt{VOLUME} and \texttt{SURFACE}
+and write data out after processing. The small values of the stalls for both kernels
+confirm that the computation in the compute kernel is not fast enough to process
+all the data fed by the pipeline. The \texttt{SURFACE} has a larger impact on the pipeline as it is slower
+out of the two compute kernels. As it can be seen from the occupancy values in the Figure \ref{fig:prof_analyis},
+the \texttt{SURFACE} kernel reduces the occupancy of the pipeline from 60\% to 30\% as the
+two sequential inner loops in the kernel are unbalanced.
+These results show that further improvement of processing in the compute kernel
+is required to improve performance. This can be achieved by restructuring the kernels to allow
+more parallel computation to improve the memory and channel occupancy of the complete
+pipeline.

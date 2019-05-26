@@ -9,7 +9,7 @@ Every iteration, the host uses the helper class \texttt{kernel\_group} method
 computation for that timestep and synchronize the kernel execution to sequentially
 execute the kernels on non-shared elements followed by shared elements after the completion
 of data transfers. This requires two host interactions per iteration, one to enqueue subgroup
-\texttt{compute\_inner} and other to enqueue subgroup \texttt{compute\_halo} shown in listing \ref{code:subgroups}.
+\texttt{compute\_inner} and other to enqueue subgroup \texttt{compute\_halo} shown in Listing \ref{code:subgroups}.
 The introduction of the IO channels for communication between the FPGAs allows the FPGAs
 to communicate with each other without the need of host
 for performing the communication.
@@ -34,6 +34,9 @@ to move the timestep loops to the \texttt{kernels} so that
 they can iterate for the specified timesteps without needing the host to start them
 every iteration. Implementing the timesteps in the kernels was easy. The timestep loops
 are added at the top level above the existing code as shown in the pseudo code in \ref{code:timestep}.
+To restrict the Intel OpenCL compiler from executing multiple iterations of the timestep iterations
+and Runge-Kutta stages, the \texttt{\#pragma max\_concurrency 1} is added to the loops. This
+Intel OpenCL directive, limits the concurrency of the loops to 1.
 The complete modifications done to kernel codes is explained in section \ref{sec:final_struc}.
 The actual timesteps are still computed in the \texttt{host application} and are passed as
 parameter \texttt{NSteps} to kernels from the host. The actual value of the timestep is only known
@@ -45,7 +48,8 @@ This section presents the designs evaluated to identify the
 best possible design for implementing the synchronization with
 minimum overhead.
 
-\begin{CppCode}[caption=Pseudo-code of kernel showing additional timestep loops added for creating FPGA only design, frame=tlrb, label=code:timestep]
+\begin{CppCode}[caption=Pseudo-code of kernel showing additional timestep loops added for
+    creating FPGA only design, frame=tlrb, label=code:timestep, float]
 __kernel void kernelName(__private int arg1,
                          __private int arg2,
                          __private int timesteps,
@@ -68,12 +72,12 @@ __kernel void kernelName(__private int arg1,
 }
 \end{CppCode}
 
-\subsection{Synchronization using blocking Intel OpenCL™ channels}
+\subsection{Synchronization using blocking Intel OpenCL channels}
 \label{sec:sync_iochan}
 
-The first design implemented utilizes the blocking Intel OpenCL™ channels
+The first design implemented utilizes the blocking Intel OpenCL channels
 to communicate the synchronization events via the channels between the kernels.
-As shown in figure \ref{fig:iochan_kernstruc}, the existing pipeline
+As shown in Figure \ref{fig:iochan_kernstruc}, the existing pipeline
 structure for the kernels is build up using the channels to separate the functionalities
 for data access into separate input kernels (\texttt{S\_IN} and \texttt{V\_IN}
 and computation kernels (\texttt{VOLUME} and \texttt{SURFACE}). The \texttt{RK}
@@ -100,12 +104,12 @@ the \texttt{host application} performs these synchronization. The host first sta
 to process non-shared data along with communication kernels which execute parallely. The hosts waits for
 kernels to finish the processing the non-shared elements using the \texttt{waitforcompletion()} method and
 for the MPI to finish communication using \texttt{MPI\_waitall()} API before starting
-kernels again to process shared elements. This sequence of operations is shown in figure
+kernels again to process shared elements. This sequence of operations is shown in Figure
 \ref{fig:sequence_comp} (a).
 
 The first iteration of this design used 5 blocking channels to synchronize the above mentioned
-events as shown in figure \ref{fig:channelsync_kernstruc}.
-The arrows in the figure denote the read/write dependency of the kernel on the channels.
+events as shown in Figure \ref{fig:channelsync_kernstruc}.
+The arrows in the Figure denote the read/write dependency of the kernel on the channels.
 Kernel from where the arrow starts is responsible for writing the data into the channel
 and the end kernel reads this data. The synchronization is achieved by the blocking
 nature of the channels. For example, to synchronize an event between two kernels,
@@ -124,7 +128,7 @@ to achieve the synchronization required in the MIDG2 kernels.
     \label{fig:channelsync_kernstruc}
 \end{figure}
 
-In the design, \texttt{ch\_sync\_1} between RK kernel and the send kernel is to synchronize
+In the design, \texttt{ch\_sync\_1} between \texttt{RK} kernel and the send kernel is to synchronize
 the start of communication at the beginning of each iteration. \texttt{ch\_sync\_2} and
 \texttt{ch\_sync\_3} is used to synchronize the completion of writing last element into
 the memory to start of reading the elements in the next iteration by the input kernels.
@@ -135,7 +139,7 @@ results which was identified due to large deviation in the analytical and the co
 nodal error values. After further analysis of the design it was noticed that the
 \acl{LSU} in input kernels used cached access for \texttt{g\_Q\_ping} and \texttt{g\_Q\_pong}
 buffer reads which could be a problem with the updated design. As the buffer is updated by the
-RK kernel and the kernels are suppose to switch the buffers in each iteration, cached reads
+\texttt{RK} kernel and the kernels are suppose to switch the buffers in each iteration, cached reads
 could lead to processing of stale values resulting in wrong field computation. To eliminate
 the cache for the memories, the buffer parameter were marked as \texttt{volatile} which allows
 to remove cached access \cite{noauthor_intel_2019,section 9.4} to ensure correct sequence of
@@ -150,7 +154,7 @@ Another probable issue with the design was with the difference in latency of mem
 and channel communication. As the channels are implemented as FIFOs in the hardware
 using registers or BRAMs, the latency of the channels is much smaller then that of a memory
 operation. This would cause the input kernels to access non-updated memory after receiving the
-event over the channels. As shown in the figure \ref{fig:memchan_latency} (a), due to higher latency
+event over the channels. As shown in the Figure \ref{fig:memchan_latency} (a), due to higher latency
 of the memory to handle the write request which is not visible in the kernel, an overlapped
 read is possible while using channels for synchronization.
 \begin{figure}[h]
@@ -179,12 +183,12 @@ the exact latency for the memory and no method to block on the
 completion of the memory operation, it was not possible to fix this issue with
 a deterministic solution. Alternatively, a latency could be introduced after the
 invocation of last element write to ensure that the write memory operation complete before
-the read is invoked in the next iteration. As addition of latency in the OpenCL™
+the read is invoked in the next iteration. As addition of latency in the OpenCL
 kernels in not trivial due to lack of standard APIs to add wait or sleep in the kernel,
 a latency logic was created using loops. A loop with an \ac{II}
 of 1 can be used to create a latency for a desired amount of time by varying the
 loopcount. This is achieved by placing a channel write instruction in a loop
-as shown in the listing \ref{code:latency}. The loop is pipelined with a II=1
+as shown in the Listing \ref{code:latency}. The loop is pipelined with a II=1
 is generated which is executed for \texttt{waitCount} iterations before writing
 the \texttt{token} into the channel. The \texttt{waitCount} is configured as a kernel
 parameter to vary the latency as per requirement as there is no easy deterministic way to measure
@@ -193,7 +197,7 @@ frequency of the synthesized design using the formula
 
 $$ latency(in seconds) = \frac{waitCount}{Frequency(Hz)} $$
 
-\begin{CppCode}[caption=Loop structure used to add latency in the kernels, frame=tlrb, label=code:latency]
+\begin{CppCode}[caption=Loop structure used to add latency in the kernels, frame=tlrb, label=code:latency, float]
 for(int time = 0; time < waitCount; ++time)
 {
     if (time == waitCount - 1)
@@ -204,11 +208,11 @@ for(int time = 0; time < waitCount; ++time)
 \end{CppCode}
 
 Using this loop structure, latency was introduced
-in RK and \texttt{recv} kernels placing the channels \texttt{ch\_sync\_1},
-\texttt{ch\_sync\_2} and \texttt{ch\_sync\_3} in a wait loop in the RK kernel and \texttt{ch\_sync\_4}
+in \texttt{RK} and \texttt{recv} kernels placing the channels \texttt{ch\_sync\_1},
+\texttt{ch\_sync\_2} and \texttt{ch\_sync\_3} in a wait loop in the \texttt{RK} kernel and \texttt{ch\_sync\_4}
 and \texttt{ch\_sync\_5} in the another wait loop in \texttt{recv} kernel to avoid
 overlapped access of \texttt{g\_Q} and \texttt{g\_partQ} buffers. Introduction
-of latency changes the sequence of operations as shown in the figure \ref{fig:memchan_latency} (b)
+of latency changes the sequence of operations as shown in the Figure \ref{fig:memchan_latency} (b)
 which shows no overlapping in the memory requests due to latency.
 
 % \begin{figure}[ht]%
@@ -221,12 +225,12 @@ which shows no overlapping in the memory requests due to latency.
 
 \subsection*{Removing channels \texttt{ch\_sync\_2} and \texttt{ch\_sync\_3}}
 
-Another issue reported by the Intel OpenCL™ compiler as warning was the formation of looping
+Another issue reported by the Intel OpenCL compiler as warning was the formation of looping
 structure within the kernels due to use of the channels for synchronization.
 Addition of the \texttt{ch\_sync\_2} between RK and \texttt{S\_IN1} kernel created
 a loop of the kernels \texttt{S\_IN1} -> \texttt{S\_IN2} -> \texttt{SURFACE} -> \texttt{RK} -> \texttt{S\_IN1}.
 Similarly addition of \texttt{ch\_sync\_3} created a loop \texttt{V\_IN} -> \texttt{VOLUME} -> \texttt{RK} -> \texttt{V\_IN}.
-Creation of these loops avoided Intel OpenCL™ compiler to optimize the channel depths
+Creation of these loops avoided Intel OpenCL compiler to optimize the channel depths
 which caused increased latency of the pipeline and decreased performance.
 
 After further analysis and tests with different kernel structure, it was identified that
@@ -241,11 +245,11 @@ compiler to optimize the channel depth and improve performance.
 Apart from using channels for synchronization another possibility to achieve
 the desired behavior was by using atomic memory operations in the kernels
 to create an locking/unlocking structure for synchronization. Intel
-OpenCL™ FPGA SDK supports the standard OpenCL™ \textit{Atomic Functions for 32-bit Integers}
+OpenCL FPGA SDK supports the standard OpenCL \textit{Atomic Functions for 32-bit Integers}
 listed in \ref{code:atomic_func}.
 
 \begin{CppCode}[caption=Interger versions of the atomic operations supported by Intel
-    OpenCL™ FPGA SDK, frame=tlrb, label=code:atomic_func]
+    OpenCL FPGA SDK, frame=tlrb, label=code:atomic_func, float]
 int atomic_add(volatile __global int *p, int val)
 int atomic_sub(volatile __global int *p, int val)
 int atomic_xchg(volatile __global int *p, int val)
@@ -263,18 +267,18 @@ The atomic operations were used to create a similar synchronization effect as do
 \texttt{atomic\_cmpxchg} and \texttt{atomic\_xchg} functions are used to check and update the
 memory as shown in code listed in \ref{code:atomic_impl}. Four memory locations in the global memory are used
 for four synchronization behavior. The first and second location is to synchronize the access to \text{g\_Q} memory
-between RK-volume and RK-surface pairs respectively. Volume and surface kernel wait for the RK kernel
+between \texttt{RK-VOLUME} and \texttt{RK-SURFACE} pairs respectively. \texttt{VOLUME} and \texttt{SURFACE} kernel wait for the \texttt{RK} kernel
 at start of every iteration to clear the memory to mark the start of new iteration. Immediately
 after clearing the memories, both write a specific token value to denote start.
 The third and fourth memory locations are to synchronize the start of communication and
 completion of communication. Send kernel waits for the memory location to be cleared
-by the volume and surface kernel at the start of every new iteration to start the communication.
-The same memory location is checked by volume and surface kernel after completion of processing
+by the volume and \texttt{SURFACE} kernel at the start of every new iteration to start the communication.
+The same memory location is checked by volume and \texttt{SURFACE} kernel after completion of processing
 the non-shared elements to have a specific token value written by the recv kernel after the completion
 of communication. This creates the synchronization between the start of communication to end of communication
 for processing the shared data.
 
-\begin{CppCode}[caption=Synchronization Implementation with atomic functions, frame=tlrb, label=code:atomic_impl]
+\begin{CppCode}[caption=Synchronization Implementation with atomic functions, frame=tlrb, label=code:atomic_impl, float]
 #pragma max_concurrency 1
 for (int step = 0; step < timesteps; ++step)
 {
@@ -310,7 +314,7 @@ in the kernel as well as in the host code.
 
 The final design with the selected optimization to maximize the performance of the kernel and achieve
 higher speed up was created using the design introduced in section \ref{sec:sync_iochan}.
-The final optimized design is shown in figure \ref{fig:fpgaonly_kernstruc}.
+The final optimized design is shown in Figure \ref{fig:fpgaonly_kernstruc}.
 
 \begin{figure}[ht]%
     \centering
@@ -325,7 +329,7 @@ elements are read processed and written back to the memory. The kernels form a p
 where the k\textsuperscript{th} element and other coefficients required are read by the
 input kernels from the global memory and forwarded to the compute kernels by channels.
 The compute kernels process the element to compute the right hand side field values and
-forwards it to RK kernel. There the field values are accumulated and stored in global memory.
+forwards it to \texttt{RK} kernel. There the field values are accumulated and stored in global memory.
 In between the shared data is communicated and used for computation. Due to the long pipeline,
 multiple elements are processed simultaneously in different stages of the pipeline giving
 higher throughput and performance.
@@ -342,14 +346,14 @@ optimized design is the introduction of the timestep loops in the kernels as sho
 code \ref{code:timestep}. The introduction of these loops removed the dependency of the kernels
 on the host code for the timestepping but at the same time created the problem of increased
 nested loop depth. The increased nested loop depth is not ideal as it makes it harder
-for the Intel OpenCL™ compilers to optimize the loop pipelining. Another problem is
+for the Intel OpenCL compilers to optimize the loop pipelining. Another problem is
 increase in the resource utilization as additional 'control hardware' resources are
 required to handle each of the nested loops. To reduce the effects of this necessary
 change, in the final design, the top two levels of the nested loops were coalesced
 using the pragma \texttt{loop\_coalesce} as shown in the kernel pseudo-code in \ref{code:coalesce}.
 Use of \texttt{loop\_coalesce} does not change the behavior of the actual loops instead
 only decreases the hardware resources required to handle the loops.
-\begin{CppCode}[caption=Loop coalescing used for additional timestep loops in FPGA only design, frame=tlrb, label=code:coalesce]
+\begin{CppCode}[caption=Loop coalescing used for additional timestep loops in FPGA only design, frame=tlrb, label=code:coalesce, float]
 __kernel void kernelName(__private int arg1,
                             __private int K,
                             __private int timesteps,
@@ -385,18 +389,18 @@ scheme explained in the Buffer Management section in the Intel FPGA SDK for Open
 \footnote{\url{https://www.intel.com/content/www/us/en/programmable/documentation/mwh1391807965224.html}}
 was implemented to complement the synchronization via channels. The \texttt{mem\_fence}
 with \texttt{CLK\_GLOBAL\_MEM\_FENCE} and \texttt{CLK\_CHANNEL\_MEM\_FENCE} flags were introduced
-after the buffer writes in the RK and \texttt{recv} kernels as explained in the document.
+after the buffer writes in the \texttt{RK} and \texttt{recv} kernels as explained in the document.
 
 \subsubsection*{Communication Channels}
 
 The final design uses only three channels for synchronization as shown in the kernel
-structure in figure \ref{fig:fpgaonly_kernstruc}. The first channel is used between RK and
+structure in Figure \ref{fig:fpgaonly_kernstruc}. The first channel is used between RK and
 \texttt{send} kernel to synchronize the start of the communication with the end of last iteration.
 The latency loop structure is used in the RK kernel which ensures that the \texttt{send}
 kernel reads the correct values from the \texttt{g\_Q} buffer. Channels 2 and 3 connect from
 \texttt{recv} to \texttt{VOLUME} and \texttt{SURFACE} kernels to synchronize the end of the
 communication with the start of processing the shared elements. These channels writes are also within
-latency loop to add a delay for the read of the \texttt{g\_partQ} buffer in surface kernel.
+latency loop to add a delay for the read of the \texttt{g\_partQ} buffer in \texttt{SURFACE} kernel.
 
 \subsubsection*{Moving RK coefficients into kernel}
 Moving timestep loops into the kernels allowed an additional minor optimization in the design.
@@ -407,10 +411,10 @@ and since the timestep and RK stage control was done in host application, the ho
 timestep-RK-stage coefficient and updated in the kernel private memory. Accessing the float coefficient
 add a small latency in each iteration of the execution and as the timestep loops were shifted to the kernels,
 the coefficients which are in total 10 float values are now stored in the kernel as constant arrays as shown
-in the code listing \ref{code:rkcoeff}. This removes an additional memory access required to select the
+in the code Listing \ref{code:rkcoeff}. This removes an additional memory access required to select the
 coefficient and improves the memory bandwidth and overall kernel performance.
 
-\begin{CppCode}[caption=Use of Runge-Kutta coefficients inside the RK kernel, frame=tlrb, label=code:rkcoeff]
+\begin{CppCode}[caption=Use of Runge-Kutta coefficients inside the \texttt{RK} kernel, frame=tlrb, label=code:rkcoeff, float]
 __kernel void rkkernel(..Args..)
 {
     const float rk4a[5] = {Vs1,Vs2,Vs3,Vs4,Vs5};
@@ -438,14 +442,12 @@ __kernel void rkkernel(..Args..)
 The change in the structure of the kernels due to introduction of the timestep loops
 required to move the buffer switching for the duplicated buffers \texttt{g\_Q\_ping} and
 \texttt{g\_Q\_pong} inside the kernels since host has no interactions with FPGA anymore
-during the timesteps. The input kernels and RK kernels receive both buffers as parameters
-and implement a switching logic as shown in the pseudo-code listing \ref{code:buf_switch}.
+during the timesteps. The input kernels and \texttt{RK} kernels receive both buffers as parameters
+and implement a switching logic as shown in the line number 17 and 18 in Listing \ref{code:buf_switch}.
 The switching is done to switch the input buffer and the output buffer after every iterations
 which allows parallel execution of the all the kernels for computation.
-\begin{CppCode}[caption=Buffer switching for FPGA only design within the kernel, frame=tlrb, label=code:buf_switch]
-__kernel void kernelName(__private int K,
-                        __private int arg2,
-                        __private int timesteps,
+\begin{CppCode}[caption=Buffer switching for FPGA only design within the kernel, frame=tlrb, label=code:buf_switch, float]
+__kernel void kernelName(__private int K,  __private int arg2,  __private int timesteps,
                         __global volatile float  *restrict g_Q_ping,
                         __global volatile float  *restrict g_Q_pong
                         )
@@ -479,10 +481,10 @@ __kernel void kernelName(__private int K,
 \end{CppCode}
 
 The buffer switching using the above logic works correctly though resulted in false memory
-dependencies identifications in RK kernel by the compiler. As \texttt{g\_Q\_in} and
+dependencies identifications in \texttt{RK} kernel by the compiler. As \texttt{g\_Q\_in} and
 \texttt{g\_Q\_out} are assigned the same buffers alternatively which compiler is unable to
 identify from the above structure and reports memory dependencies between the read and write
-memory operations which follow one another as shown in the pseudo-code \ref{code:buf_switch}.
+memory operations which follow one another as shown in the pseudo-code (line numbers 23-27) \ref{code:buf_switch}.
 Due to the identified memory dependencies, the compiler adds the write-ack LSU for the writing
 operations which have higher latency and ensure that write operation is completed before
 any other operation on the same buffer is started. This is a false memory dependency which
@@ -494,48 +496,27 @@ assigned to kernel and used to assign the double buffers as shown in the pseudo-
 In the \texttt{host application} the same OpenCL memory buffer is assigned to both the parameters instead of creating
 additional memories which is not required. This fools the compiler to accept them as two different
 memories and avoid write-ack LSU.
-\begin{CppCode}[caption=Buffer switching for FPGA only design within the kernel, frame=tlrb, label=code:resolve_alias]
-__kernel void kernelName(__private int K,
-                        __private int arg2,
-                        __private int timesteps,
+\begin{CppCode}[caption=Aliasing of the \texttt{g\_Q\_xx} buffer to avoid memory dependencies
+    identified by the Intel OpenCL compiler, frame=tlrb, label=code:resolve_alias, float]
+__kernel void kernelName(__private int K,  __private int arg2, __private int timesteps,
                         __global volatile float  *restrict g_Q_ping,
                         __global volatile float  *restrict g_Q_pong,
                         __global volatile float  *restrict g_Q_ping_2,
                         __global volatile float  *restrict g_Q_pong_2
                         )
 {
-    // Outer timestep loop
-    #pragma loop_coalesce 2
-    for (int step = 0; step < timesteps; ++step)
-    {
-        // 5 RK steps
-        for(int intrk = 0; intrk < 5; ++intrk)
-        {
-            // compute timestep
-            int stepCount = step*5 + intrk;
-
-            // switch the buffer: Ping in EVEN step, Pong in ODD
-            __global volatile float *restrict g_Q_in = (stepCount%2 == 0)? g_Q_ping:g_Q_pong;
-            __global volatile float *restrict g_Q_out = (stepCount%2 == 0)? g_Q_pong_2:g_Q_ping_2;
-
-            // Iterate over the elements
-            for (int k = 0; k < K k++)
-            {
-                float somevalue = g_Q_in[k];
-                ...
-                somevalue = somevalue + anothervalue;
-                ...
-                g_Q_out = someothervalue; // Cached LSU
-            }
-        }
-    }
+.....
+    // switch the buffer: Ping in EVEN step, Pong in ODD
+    __global volatile float *restrict g_Q_in = (stepCount%2 == 0)? g_Q_ping:g_Q_pong;
+    __global volatile float *restrict g_Q_out = (stepCount%2 == 0)? g_Q_pong_2:g_Q_ping_2;
+.....
 }
 \end{CppCode}
 
 Similar approach was used with \texttt{g\_resQ} memory also to
 avoid the same problem by aliasing the buffer into \texttt{g\_resQ\_in} and \texttt{g\_resQ\_out}.
 As the texttt{g\_resQ} write for a element is always scheduled after the read for that element in the
-\texttt{RK} kernel as shown in the kernel execution sequence in figure \ref{fig:resQSeq},
+\texttt{RK} kernel as shown in the kernel execution sequence in Figure \ref{fig:resQSeq},
 the operations have no dependencies and can be aliased.
 \begin{figure}[ht]%
     \centering
@@ -558,10 +539,10 @@ to the reader.
 \subsubsection*{Restructuring of the configuration module}
 
 The major change in the host code is done to the module structure of
-the code responsible for handling the the OpenCL™ platform initialization,
+the code responsible for handling the the OpenCL platform initialization,
 configuration and execution. With the addition of FPGA only design,
-three variants of the kernels are available viz. MPI MIDG2 FPGA (SingleFPGA),
-FPGA-FPGA communication using IO channels with host synchronization (MultiWithHost)
+three variants of the kernels are available viz. \texttt{MIDG2 MPI FPGA} (SingleFPGA),
+FPGA-to-FPGA communication using IO channels with host synchronization (MultiWithHost)
 and FPGA only design (MultiFPGAOnly). Initially different versions of the same
 configuration code was used by including or excluding design specific changes
 using preprocessor directives or by selecting different files for compilation.
@@ -572,11 +553,11 @@ with minor configuration changes which also increase the complexity of the host 
 
 To build a simpler and understandable host code which is able to support all the three
 designs in a single binary, the host code is restructured by introducing hierarchical
-structure for the OpenCL™ handling part. The structure of the modified host code is
-shown in figure \ref{fig:host_appstruc}. The restructuring does not modify the existing interface to the
-OpenCL™ configuration routine instead splits the configuration module into device
+structure for the OpenCL handling part. The structure of the modified host code is
+shown in Figure \ref{fig:host_appstruc}. The restructuring does not modify the existing interface to the
+OpenCL configuration routine instead splits the configuration module into device
 specific and design specific configuration modules. The \texttt{BuildRunCLDevice}
-provides the generic interface for OpenCL™ device configuration and execution.
+provides the generic interface for OpenCL device configuration and execution.
 The design specific run modules \texttt{RunSingleFpga}, \texttt{RunMultiWithHost}
 and \texttt{RunMultiFpgaOnly} performs the design specific memory configuration
 and setup to run the specific kernels on the device. The design specific run module
@@ -587,16 +568,16 @@ without requirement for a recompilation.
     \centering
     \includegraphics[width=0.8\textwidth]{images/host_appstruc}
     \caption{Module structure of the the host application after restructuring showing
-    three separate sub-modules to handle OpenCL™ device configuration}
+    three separate sub-modules to handle OpenCL device configuration}
     \label{fig:host_appstruc}
 \end{figure}
 
 To achieve this restructuring additional structures were included which allows to
 group the variables into functionality based groups. One of the important structure
 which holds the function pointers to design specific routines is created
-as shown in listing \ref{code:interface_func}. This structure is initialized
+as shown in Listing \ref{code:interface_func}. This structure is initialized
 with the design specific routines to handle device functionalities which
-include creation of OpenCL™ buffers, Initialization of kernel arguments,
+include creation of OpenCL buffers, Initialization of kernel arguments,
 writing data into the device global memory and design specific cleanup.
 Each of the design specific modules initializes individual structures
 with the specific routines. The top level \texttt{BuildRunCLDevice} requests
@@ -604,7 +585,7 @@ a pointer to this structure at the runtime using the \texttt{XXXX\_getDeviceIntf
 function. The handlers for only the selected design is requested and used to configure the
 FPGA with the selected design kernels.
 \begin{CppCode}[caption=Structure to hold the design specific interface function pointers
-    and initialization example, frame=tlrb, label=code:interface_func]
+    and initialization example, frame=tlrb, label=code:interface_func, float]
 // Structure to hold the interface functions
 typedef struct
 {
@@ -647,10 +628,10 @@ and evaluation of the designs.
 The BittWare 520N boards using Intel Stratix 10 FPGA provides 4 external memory channels
 to access the global memory. Each of the
 4 external memory channel can be used parallely by the kernels to read and write data
-into the global memory. Placing OpenCL™ buffers into different memory channels can
+into the global memory. Placing OpenCL buffers into different memory channels can
 improve memory bandwidth and overall performance of the kernels by reducing the stalls
 for simultaneous memory requests and reducing the latency of memory reads/writes.
-A OpenCL™ buffer can be configured in the host code to be placed in a specific channel
+A OpenCL buffer can be configured in the host code to be placed in a specific channel
 by using the \texttt{CL\_CHANNEL\_X\_INTELFPGA} flag during the creation of the memory
 as shown in the code below. \texttt{X} should be replaced with the channel number in which
 the buffer has to be placed. For Stratix 10 \texttt{X} can be from 1 to 4 as it supports 4 channels.
@@ -672,8 +653,8 @@ parallely as well as there are some memory buffers not used any more in the fina
 The profile information of the final kernel design was used to come up with a
 different channel assignment scheme which distributed the memory load to all the
 four channels equally. The updated scheme uses channel 4 for \texttt{Q2 Pong} buffer
-as it was noticed to have stalls of upto 60\% to 70\% on writes to the buffer in the RK
-kernel. Stalls in the RK kernel are propagated over the complete pipeline of the kernels
+as it was noticed to have stalls of upto 60\% to 70\% on writes to the buffer in the \texttt{RK}
+kernel. Stalls in the \texttt{RK} kernel are propagated over the complete pipeline of the kernels
 as all are connected via channels reducing the occupancy. Updating the channel reduced
 the memory stalls to 7\% to 10\% and improve the memory bandwidths and performance
 of the whole pipeline. Another change was to use channel 3 for the \texttt{g\_resQ}
@@ -682,14 +663,6 @@ and channel 2 is will only be occupied in the even or odd iterations due to buff
 this change reduces the stalls for the \texttt{g\_resQ} buffer read and write.
 The final channel assignment used for base \texttt{MIDG2 MPI FPGA} design, the \texttt{MIDG2 FPGA IO channels} and
 \texttt{FPGA only} design is shown in table \ref{tab:channel_assign} and the definitions of the symbols used for size computation as below.
-\begin{verbatim}
-    N = Order of the DG nodes
-    Np = ((N + 1) * (N+2) * (N+3)/6)
-    K = Number of elements
-    BSIZE = Np
-    Nfp = Number of DG nodes on each face of tetrahedral = (N+1) * (N+2)/2
-    Ntotalout = Number of shared fields
-\end{verbatim}
 \begin{table}[ht]
     \begin{center}
         \caption{Updated memory channel assignment for the buffers in \texttt{MIDG2 MPI FPGA}, the \texttt{MIDG2 FPGA IO channels} and
@@ -726,7 +699,14 @@ The final channel assignment used for base \texttt{MIDG2 MPI FPGA} design, the \
         \end{tabular}
     \end{center}
  \end{table}
-
+ \begin{verbatim}
+    N = Order of the DG nodes
+    Np = ((N + 1) * (N+2) * (N+3)/6)
+    K = Number of elements
+    BSIZE = Np
+    Nfp = Number of DG nodes on each face of tetrahedral = (N+1) * (N+2)/2
+    Ntotalout = Number of shared fields
+\end{verbatim}
 
 \subsubsection*{Alignment of the memory}
 
@@ -760,7 +740,7 @@ that the writes to the partitioned are not overlapped and also writes of 24 byte
 possible.
 
 \begin{CppCode}[caption=Alignment code introduced to ensure non-overlap writes of the
-    aliased buffers, frame=tlrb, label=code:align_mem]
+    aliased buffers, frame=tlrb, label=code:align_mem, float]
 mesh->parNtotalout = 0;
 int entries;
 for (p2 = 0; p2 < nprocs; ++p2)
@@ -776,9 +756,7 @@ for (p2 = 0; p2 < nprocs; ++p2)
         }
         if (p2 != procid && entries > 0)
             start[p2] = mesh->parNtotalout;
-            printf("[proc %d]: Start %d : %d: %d %f\n", procid, p2, start[p2], entries, value);
     }
-
     mesh->parNtotalout += entries;
 }
 \end{CppCode}
@@ -796,7 +774,7 @@ as shown in \ref{fig:rearrange}.
 \subsection{Issues identified with optimized design}
 
 The FPGA only implementation was initially implemented with Intel FPGA
-SDK for OpenCL™ version 18.0.1 which was supported by the BittWare
+SDK for OpenCL version 18.0.1 which was supported by the BittWare
 BSPs. The new tool chain version 18.1.1 was release in mid of the thesis
 and had modifications which promised improvements to the kernel performance.
 It was decided to evaluate the design further with the newer tool chain versions to
@@ -805,7 +783,7 @@ The kernels were then compiled with the newer toolchain and issues
 were noticed in the kernel memory replication and banking. The
 compiler introduced arbitration units for the local memory
 buffers used in the \texttt{VOLUME} and \texttt{SURFACE} kernels
-as shown in the figure \ref{fig:arb}. This resulted in a decrease
+as shown in the Figure \ref{fig:arb}. This resulted in a decrease
 of performance due to stalled local memory reads which are expensive
 and causes pipeline stalls.
 
@@ -825,7 +803,7 @@ banking and replication factors, the compiler was not able to optimize
 all the memory accesses and produced stallable memory architecture for the
 local memories. This was resolved by adding explicitly \texttt{pragma unroll 1} to the
 write loops, which prevented the duplication of store operations and
-restored the memory architecture as shown in figure \ref{fig:restored}
+restored the memory architecture as shown in Figure \ref{fig:restored}
 \begin{figure}[ht]%
     \centering
     \includegraphics[width=0.45\textwidth]{images/fixed_arb}
