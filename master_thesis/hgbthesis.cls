@@ -12,7 +12,7 @@
 
 \RequirePackage{xifthen}
 
-\RequirePackage{ifpdf}	% for checking PDF mode 
+\RequirePackage{ifpdf}	% for checking PDF mode
 \ifpdf{}% \typeout{hgbthesis: *** LaTeX in PDF mode ***}
 \else{\errmessage{hgbthesis: *** LaTeX NOT running in PDF mode ***}}
 \fi
@@ -61,7 +61,7 @@
 \reversemarginpar
 \RequirePackage[a4paper, twoside, left=30mm, right=20mm, top=30mm, bottom=30mm]{geometry} %showframe
 
- 
+
 \RequirePackage{hgb}	% load style file hgb.sty with options registered above
 
 
@@ -223,7 +223,7 @@
 }
 
 %% adds blank space after each letter (http://stackoverflow.com/a/3951837)
-\newcommand{\@addspaces}[1]{%  
+\newcommand{\@addspaces}[1]{%
   \@tfor\letter:=#1\do{%
     \letter\thinspace%	%\space
   }%
@@ -279,7 +279,7 @@
 			}
 			{\Large\uppercase{\@addspaces{Masterarbeit}}}%
 			\vskip 4mm%
-			{\large Submitted towards partial fullfilment} \vskip 1mm {of the requirements for the degree of}%
+			{\large Submitted towards partial fulfilment} \vskip 1mm {of the requirements for the degree of}%
 			\vskip 4mm%
 			{\large\@programname}%
 			\vskip 4mm%
@@ -290,7 +290,7 @@
 			{\Large\scshape\@author}%{\large\@author}%
 			\vskip 15mm%
 			{Advisor:}\\
-			\vspace{3mm} 
+			\vspace{3mm}
 			{\Large\sf \@advisor\\ \mbox{}}
 			\vskip 10mm%
 			\makelogo%
@@ -386,16 +386,16 @@
 }
 
 \newcommand{\@ccLicenseAt}{%
-Diese Arbeit wird unter den Bedingungen der 
-\textsf{Creative Commons Lizenz} 
-\emph{Attribution-NonCommercial-NoDerivatives 4.0 International} 
+Diese Arbeit wird unter den Bedingungen der
+\textsf{Creative Commons Lizenz}
+\emph{Attribution-NonCommercial-NoDerivatives 4.0 International}
 (CC BY-NC-ND 4.0) ver\"offentlicht --
 siehe \url{https://creativecommons.org/licenses/by-nc-nd/4.0/}.}
 
 \newcommand{\@ccLicenseEn}{%
-This work is published under the conditions of the 
-\textsf{Creative Commons License} 
-\emph{Attribution-NonCommercial-NoDerivatives 4.0 International} 
+This work is published under the conditions of the
+\textsf{Creative Commons License}
+\emph{Attribution-NonCommercial-NoDerivatives 4.0 International}
 (CC BY-NC-ND 4.0)---see
 \url{https://creativecommons.org/licenses/by-nc-nd/4.0/}.}
 
@@ -404,10 +404,10 @@ This work is published under the conditions of the
 	{\license{\@ccLicenseAt}} % german CC license text
 	{\license{\@ccLicenseEn}} % english CC license text (default)
 }
-	
+
 \cclicense	% Creative Commons License (default)
 
-\newcommand{\@makelicense}{ 
+\newcommand{\@makelicense}{
 	\sbox\@tempboxa{\@license}%
 	\ifdim \wd\@tempboxa >\hsize
 		\begin{sloppypar}\noindent\@license\end{sloppypar}
@@ -439,7 +439,7 @@ This work is published under the conditions of the
 \thispagestyle{plain}
 \rule{0mm}{1mm}
 \begin{center}
-\vspace{25mm} 
+\vspace{25mm}
 {Praktikumsstelle:}
 \\
 \vspace{3mm}
@@ -449,10 +449,10 @@ This work is published under the conditions of the
 \\
 {\sf \@companyUrl}
 \\
-\vspace{45mm} 
+\vspace{45mm}
 {Kontaktperson:}
 \\
-\vspace{3mm} 
+\vspace{3mm}
 {\Large\sf\@advisor\\ \mbox{}}
 \end{center}
 }
@@ -469,18 +469,18 @@ This work is published under the conditions of the
 	\rule{0mm}{1mm}
 	\begin{center}
 		%
-		\vspace{40mm} 
+		\vspace{40mm}
 		{Diese Arbeit entstand im Rahmen des Gegenstands}\\
-		\vspace{6mm} 
+		\vspace{6mm}
 		{\Large\sf \@coursetitle\\ \mbox{}}\\
 		\medskip
 		im\\
 		\bigskip
 		{\@semester}\\
 		%
-		\vspace{45mm} 
+		\vspace{45mm}
 		{Betreuung:}\\
-		\vspace{3mm} 
+		\vspace{3mm}
 		{\Large\sf \@advisor\\ \mbox{}}
 	\end{center}
 }
@@ -494,18 +494,18 @@ This work is published under the conditions of the
 	\rule{0mm}{1mm}
 	\begin{center}
 		%
-		\vspace{40mm} 
+		\vspace{40mm}
 		{This thesis was created as part of the course}\\
-		\vspace{6mm} 
+		\vspace{6mm}
 		{\Large\sf \@coursetitle\\ \mbox{}}\\
 		\medskip
 		during\\
 		\bigskip
 		{\@semester}\\
 		%
-		\vspace{45mm} 
+		\vspace{45mm}
 		{Advisor:}\\
-		\vspace{3mm} 
+		\vspace{3mm}
 		{\Large\sf \@advisor\\ \mbox{}}
 	\end{center}
 }
@@ -526,9 +526,9 @@ This work is published under the conditions of the
 		\chapter{Erkl\"arung}
 		\noindent
 		%Standardfassung der FH-OOe ab 04.04.2012:
-		Ich erkl\"are eidesstattlich, dass ich die vorliegende Arbeit selbstst\"andig und ohne fremde Hilfe verfasst, 
-		andere als die angegebenen Quellen nicht benutzt und die den benutzten Quellen entnommenen Stellen als 
-		solche gekennzeichnet habe. Die Arbeit wurde bisher in gleicher oder \"ahnlicher Form keiner anderen 
+		Ich erkl\"are eidesstattlich, dass ich die vorliegende Arbeit selbstst\"andig und ohne fremde Hilfe verfasst,
+		andere als die angegebenen Quellen nicht benutzt und die den benutzten Quellen entnommenen Stellen als
+		solche gekennzeichnet habe. Die Arbeit wurde bisher in gleicher oder \"ahnlicher Form keiner anderen
 		Pr\"ufungsbeh\"orde vorgelegt.
 		\par
 		\vspace{10mm}
@@ -549,13 +549,13 @@ This work is published under the conditions of the
 	\begin{english}
 		\chapter{Declaration}
 		\noindent
-		I hereby declare and confirm that this thesis is entirely the result of my own original work. 
-		Where other sources of information have been used, they have been indicated as such and properly 
+		I hereby declare and confirm that this thesis is entirely the result of my own original work.
+		Where other sources of information have been used, they have been indicated as such and properly
 		acknowledged. I further declare that this or similar work has not been submitted for credit elsewhere.
 		\par
 		\vspace{10mm}
 		\noindent
-		%\@placeofstudy, \the\year-\leadingzero{\month}-\leadingzero{\day} %http://de.wikibooks.org/wiki/LaTeX-W%F6rterbuch:_today 
+		%\@placeofstudy, \the\year-\leadingzero{\month}-\leadingzero{\day} %http://de.wikibooks.org/wiki/LaTeX-W%F6rterbuch:_today
 		\@placeofstudy, {\usdate\formatdate{\value{@dayofsubmission}}{\value{@monthofsubmission}}{\value{@yearofsubmission}}}
 		\par
 		\vspace{12mm}
@@ -577,7 +577,7 @@ This work is published under the conditions of the
 	\@mastertitle
 	\@declarationpage
 }
-     
+
 \renewcommand{\@diplomatitlepages}{
 	\@diplomatitle
 	\@copyrightpage
