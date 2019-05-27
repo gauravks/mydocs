@@ -124,7 +124,7 @@ implementation and evaluation done for this topology as part of the thesis.
 \label{sec:toroidal}
 
 The last feasible topology for the FPGA network is the toroid. As explained by
-\textcite{robertazzi_toroidal_1988}, A two dimensional toroidal network is
+\textcite{robertazzi_toroidal_1988}, A two-dimensional toroidal network is
 a network in which the nodes on the left and right boundaries and the
 nodes on the top and bottom boundaries are connected to each other giving
 a \texttt{fully connected} network. The length and breadth of the network can vary
@@ -296,11 +296,11 @@ channel float8 ch_eth_out2 __attribute((io("kernel_output_ch2")));
 
 The implementation of the \texttt{sender\_all} kernel is shown in Listing \ref{code:send_fc}.
 The kernel requires three separate memories and length, one for each of the channels, as
-parameters from \texttt{Host application}. The kernels iterates over the input buffers for the maximum length
+parameters from \texttt{Host application}. The kernels iterate over the input buffers for the maximum length
 among the three lengths, sending 256 bits in each iteration over each channel. Individual
 length for each channel is used to stop the sends for the specific channel in following
-iterations. The structure shown in the Listing creates three channel write units and three
-memory load \ac{LSU} which allows sending the data parallely on all the three channels
+iterations. The structure shown in the Listing creates write units for three channels and three
+memory load \ac{LSU}s which allows sending the data parallely on all the three channels
 in each iteration.
 
 \begin{CppCode} [caption=Sender Kernel for \texttt{fully connected}, frame=tlrb, label=code:send_fc, float]
@@ -386,7 +386,7 @@ The first set of evaluation tests was carried out using the prototypes
 developed for the different topologies which are described in this chapter.
 The aim of the tests was to measure the bandwidth possible to achieve with the
 developed OpenCL kernels for the topologies and compare it with the
-the communication architecture which utilizes \texttt{HOST} to communicate the
+communication architecture which utilizes \texttt{HOST} to communicate the
 FPGA data.
 
 \subsection{Setup}
@@ -516,7 +516,7 @@ bandwidth for all the channels. Within node topology either uses 1 channel or al
 
 Plots in Figure \ref{plot:wn} shows the bandwidth variation for Within node design using single channel
 and all the 4 channels. Irregular data sizes perform similar to regular data sizes which suggests that
-there are no major over head involved with the handling of the irregular data types in applications.
+there are no major overhead involved with the handling of the irregular data types in applications.
 For the single channel design, there are no effects of the global memory interleaving as the slower
 external channel is the bottleneck instead of the global memory. On the other hand, for the 4 channels,
 use of non-interleaved memory affects the bandwidth performance and the effective bandwidth peak bandwidth
@@ -545,7 +545,7 @@ is used only to read/write data to/from a specific external channel which ensure
 and writes without latency and stalls. Separate memory channels were used to show the full potential
 of the \texttt{fully topology} but another set of tests were performed by using a single memory
 channel for all the buffers. This variant evaluates the bandwidth performance of the fully connected
-topology in a typical application use case. In a application such as the MIDG2, the global memory
+topology in a typical application use case. In an application such as the MIDG2, the global memory
 has multiple buffers used by many kernels and separating the data for each external channel into individual
 buffers mapped to separate memory channel could not be trivial.
 
@@ -560,15 +560,15 @@ half of the peak bandwidth. The plot in the Figure \ref{plot:fc} shows the varia
     The \texttt{il\_xxx} in the name is used for variants with interleaved memory and \texttt{nonil\_xxx} for non-interleaved memory.
     \texttt{xxx\_reg} variant uses regular data sizes for the tests and \texttt{xxx\_irreg} uses Irregular data sizes.
     The \texttt{xxx\_xxx\_single} variant uses a single global memory channel for the buffers linked with all the
-    three external channel similar to MIDG2 application }
+    three external channels similar to MIDG2 application }
     \label{plot:fc}
 \end{figure}
 The error bars are added to plot using the measured minimum and maximum bandwidths to show the actual
 variations. The bandwidth has higher variations for data sizes below 2 MB with a maximum of 2.76 GB/s
-difference for 256 Kbytes size. We can see that the \texttt{fully connected} topology is capable of
-achieving high bandwidth with almost 100\% efficiency if the global memory is available for parallel
+difference for 256 Kbytes size. We can see that the \texttt{fully connected} topology can achieve
+high bandwidth with almost 100\% efficiency if the global memory is available for parallel
 reads and writes. The efficiency decreases to 50\% when only one memory is available for all the channels
-as the global memory can not handle multiple parallel requests on the same channel due to congestion
+as the global memory cannot handle multiple parallel requests on the same channel due to congestion
 and stalls the IO operations.
 
 The MPI prototypes are only able to achieve a maximum peak bandwidth of 1.94 GB/s with 2 Node system
@@ -588,8 +588,8 @@ Figure \ref{plot:mpipcie}.
 \end{figure}
 
 The peak bandwidth observed for the designs is summarized in table \ref{tab:obs_peakbw} and a plot comparing the variation
-of the bandwidth over data size as shown in Figure \ref{plot:allreg}. The IO channels prototypes are able
-to utilize the 99.2\% of the peak bandwidth of using regular and non-regular data sizes in ping-ping
+of the bandwidth over data size as shown in Figure \ref{plot:allreg}. The IO channels prototypes can
+utilize the 99.2\% of the peak bandwidth of using regular and non-regular data sizes in ping-ping
 communication pattern. The MPI+PCIe based communication is only able to utilize the 65\% of the available
 bandwidth which shows that this communication is less efficient and can be clear bottleneck for applications
 which require large data communications.

@@ -35,7 +35,7 @@ was to remove the \texttt{partial\_get\_kernel} and replace it with two kernels
 is similar to the prototype \texttt{send} and \texttt{recv} kernels described in
 section \ref{sec:proto_topo}. Two different set of kernels for the two topologies,
 the \texttt{within node} and \texttt{fully connected} are developed. The \texttt{within node}
-scales the application to two FPGAs and the fully connected to 4 FPGAs.
+scales the application to two FPGAs and the \texttt{fully connected} to 4 FPGAs.
 
 As explained in the section \ref{sec:midge_mpi_struc}, \texttt{partial\_get\_kernel} reads
 the shared from the \texttt{g\_Q} memory and writes them back into another buffer
@@ -43,13 +43,13 @@ to coalesce the shared data. The new \texttt{partial\_send} and \texttt{partial\
 split these operations and also perform the communication with the
 other FPGA over the IO channels. The \texttt{partial\_send} kernel reads the
 shared elements from the \texttt{g\_Q} buffer and sends the shared elements data
-over a single or multiple external channels to other FPGA(s).
+over a single or multiple external channel to other FPGA(s).
 The \texttt{partial\_recv} receives the data from other FPGAs over the channels and
 then stores it in \texttt{g\_partQ} buffer which is passed to the \texttt{SURFACE}
 kernel for processing.
 
 In the \texttt{within node} topology, the data is only exchanged between two nodes
-which simplifies the channel assignment for the shared data. All the shared data is send and received
+which simplifies the channel assignment for the shared data. All the shared data is sent and received
 to/from only one node using one or four channels. In the \texttt{fully connected} topology,
 the communication is not straight forward. In a 4 node system, the shared elements are mapped
 to different nodes. The \texttt{partial\_send} and \texttt{partial\_recv} kernels need this mapping
@@ -67,10 +67,10 @@ and the \texttt{nout<x>} specifies number of index to receive for channel \textt
 channel is assigned to a specific FPGA node, \texttt{start<x>} and \texttt{nout<x>} map
 the data for a target FPGA to the channel used to connect with the target FPGA.
 
-With these information, The \texttt{partial\_send} is able to read data from \texttt{g\_Q}
+With this information, The \texttt{partial\_send} is able to read data from \texttt{g\_Q}
 for all channels simultaneously, and send them over the respective channel. Also, the \texttt{partial\_recv}
 kernel is able to receive the data and write them into \texttt{g\_partQ} simultaneously. The first
-version of the \texttt{partial\_send} and \texttt{partial\_recv} kernels used these information for
+version of the \texttt{partial\_send} and \texttt{partial\_recv} kernels used this information for
 mapping the memories to channels but memory dependencies were reported in \texttt{partial\_recv} kernel by the Intel OpenCL FPGA compiler.
 As the received data in the \texttt{partial\_recv} is written into the same \texttt{g\_partQ} buffer,
 the Intel OpenCL compiler identified the multiple memory writes as interdependent and serialized the channel
@@ -79,14 +79,14 @@ read and memory writes as shown in Figure \ref{fig:serial_reads}.
     \centering
     \includegraphics[width=0.45\textwidth]{images/serial_reads}
     \caption{Memory dependency resulting in serial channel reads in the \texttt{partial\_recv}
-    for fully connected design}
+    for \texttt{fully connected} design}
     \label{fig:serial_reads}
 \end{figure}
 As the data from each channel is written
 into different location in the buffer (different \texttt{start<x>} values), there is no
 dependencies or overlaps the parallel writes would not create any memory corruption. The Intel OpenCL compiler
 was unable to understand it from the existing structure and also there is no way to correctly specify this in the kernel code.
-So to resolve this issue, \texttt{g\_partQ} buffer was aliased into four
+So, to resolve this issue, \texttt{g\_partQ} buffer was aliased into four
 different names \texttt{g\_partQ[1-4]}. Each of the \texttt{g\_partQ<x>} buffer is used
 for individual writes of the data received from channel \texttt{x} though they are initialized by the same
 OpenCL buffer in the \texttt{Host application}. This change allowed
@@ -99,10 +99,10 @@ of computation for both shared and non-shared data separately. Though there was 
 \texttt{RK} still executed after the compute kernels which was not desirable. Further optimization
 by introducing Intel OpenCL channels between \texttt{VOLUME/SURFACE} to \texttt{RK} to replace
 \texttt{volrhsQ} and \texttt{surrhsQ} was possible but was not implemented before the start of the thesis.
-So this optimization to the kernel pipeline is introduced in this thesis as part of the IO channel implementation
+So, this optimization to the kernel pipeline is introduced in this thesis as part of the IO channel implementation
 which could help to improve the performance of the kernels marginally.
 The OpenCL kernels implementation is updated to include internal channels to
-communicate the right hand side field values
+communicate the right-hand side field values
 from \texttt{VOLUME/SURFACE} to \texttt{RK} as shown in the kernel structure
 in Figure \ref{fig:iochan_kernstruc}. Use of channels allows execution of all three
 kernels simultaneously giving a deeper pipeline structure and improving the throughput
@@ -176,7 +176,7 @@ in Figure \ref{fig:host_appstruc} and would be explained in detail in the sectio
 
 The host application requires an additional json file to get the information about the kernels in the binary such as
 the kernel parameter information, dependencies among the kernels and groups of kernels to be executed parallely.
-These information is used to configure the kernel buffers as well as setup a execution order tree which is used
+This information is used to configure the kernel buffers as well as setup a execution order tree which is used
 to enqueue the kernels in required order and setup other kernel to kernel synchronization using the events.
 The main benefit of using the configuration json file is to ease the setup effort for the dependent kernel.
 The subgroup structure of the kernels in IO channels design is shown in Listing \ref{code:subgroups}.

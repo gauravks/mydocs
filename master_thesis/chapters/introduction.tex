@@ -24,19 +24,19 @@ multiple nodes with the FPGA/GPU accelerators allow to speedup the execution by 
 \end{figure}
 
 The FPGA based accelerators in the nodes are mostly used to implement mathematical computations such
-as matrix multiplication, fast fourier transformation and string manipulation which form the
+as matrix multiplication, fast Fourier transformation and string manipulation which form the
 basis for most of the application. Using the FPGA's features such as data and instruction pipelining,
 replication and memory localization, the FPGAs can be used to decrease the execution time of
 these mathematical operations. Increasing popularity of the FPGAs in the high performance
 computing has led to new innovations for the FPGAs. Higher memory bandwidths, increased count
-of logical units and bigger local memory are some of these. Also, alternative hardware design development
+of logical units and bigger local memory are some of them. Also, alternative hardware design development
 flows and tools are now used such as OpenCL which provide a C/C++ based design flow for
 the FPGAs. The OpenCL design flow is simpler and abstracts the complex hardware design
 challenges from a typical user of the High performance computing cluster making
 the application development with the FPGA accelerators simple.
 
 To utilize the benefits of the FPGA accelerators, the new Noctua \ac{HPC} cluster at Paderborn Center for
-Parallel Computing (PC\textsuperscript{2}) contains 32 BittWare 520N
+Parallel Computing (PC\textsuperscript{2}) apart from having 256 compute nodes contains additional 16 nodes with 2 BittWare 520N
 FPGA accelerator boards having Intel Stratrix 10 FPGAs. Apart from having the high performance FPGA, the BittWare 520N boards
 are also equipped with four 100/40/25/10G QSFP28 network ports. These Network ports can be used as
 high speed serial IO channels to set up communication infrastructure between the FPGAs.
@@ -66,13 +66,13 @@ and evaluating the possible topologies for point-to-point communication. In the 
 stage of the thesis, the existing OpenCL based FPGA implementation for
 the MIDG2 application would be extended to use IO channels.
 
-Considering the two stages as individual sub-tasks, the first task involves building
+The two stages can be considered as individual sub-tasks. The first sub-task involves building
 prototypes using OpenCL IO channels which would utilize the four 100/40/25/10G QSFP28
 network ports available on the BittWare 520N boards. These prototypes would be used
 to evaluate the point-to-point topologies using bandwidths and latency to give an
 overview of possible benefits. The prototypes would also serve as the basis for
 understanding the implementation opportunities available in the OpenCL and
-BittWare BSP for the channels. The second task would be then to utilize the
+BittWare BSP for the channels. The second sub-task would be then to utilize the
 understanding and extend the OpenCL kernels for the MIDG2 application
 such that the need for \ac{MPI} communication to communicate information or the shared
 surfaces is eliminated and overheads are removed.
@@ -93,7 +93,7 @@ The popularity of the \ac{DG} method has led researchers to develop parallel met
 which can speed up the application to reduce the execution time. As the DG method
 performs operations on local elements followed by accumulation, this allows parallelization
 of the operations on elements and has been utilized to create various parallel systems.
-\textcite{baggag_parallel_1999} presents a parallel system which is used to simulate aeroacoustic
+\textcite{baggag_parallel_1999} presents a parallel system which is used to simulate aeroacoustics
 scattering and uses \ac{MPI} data exchange. \textcite{klockner_nodal_2009} showed the benefits
 of using GPU for accelerating the computation by utilizing the capability of the GPU to
 process data in parallel. They use CUDA programming for GPUs to get improved memory bandwidths
@@ -125,11 +125,11 @@ and higher latency for the PCIe + \ac{MPI} combination \cite{kobayashi_opencl-re
 Systems have been investigated where the FPGAs could
 communicate directly without the need of host. \textcite{sheng_hpc_2017} presents a design
 for 3D FFT solver which uses a 3D-torus FPGA-based network using a table-based routing
-scheme. The evaluation results of such design shows 30\% improvement over the reference design.
+scheme. The evaluation results of such design show 30\% improvement over the reference design.
 \textcite{kobayashi_opencl-ready_2018} used an OpenCL based design implementation to
 compare the latency of \ac{MPI}+PCIe based system and FPGA-to-FPGA system which uses Ethernet
 IP for communication over a switch. The results show a large difference between the achievable
-bandwidths and latency for the two system proving the benefits of such system. The system
+bandwidths and latency for the two-system proving the benefits of such system. The system
 design presented in this thesis uses a similar approach like in \cite{kobayashi_opencl-ready_2018}
 but does not utilize the Ethernet-IP core and relies on the serial communication
 support provided in the BittWare BSP.

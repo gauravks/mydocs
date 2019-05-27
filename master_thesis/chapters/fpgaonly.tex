@@ -100,7 +100,7 @@ following synchronization needs to be achieved among the kernels.
 \end{enumerate}
 
 In the previous versions \texttt{MIDG2 FPGA}, \texttt{MIDG2 MPI FPGA} and \texttt{MIDG2 FPGA IO channels},
-the \texttt{host application} performs these synchronization. The host first starts the kernels
+the \texttt{host application} performs these synchronizations. The host first starts the kernels
 to process non-shared data along with communication kernels which execute parallely. The hosts waits for
 kernels to finish the processing the non-shared elements using the \texttt{waitforcompletion()} method and
 for the MPI to finish communication using \texttt{MPI\_waitall()} API before starting
@@ -114,7 +114,7 @@ Kernel from where the arrow starts is responsible for writing the data into the 
 and the end kernel reads this data. The synchronization is achieved by the blocking
 nature of the channels. For example, to synchronize an event between two kernels,
 \texttt{kernel1} and \texttt{kernel2}, they are connected with a channel named \texttt{syncChannel}.
-Whenever \texttt{kernel1} should wait for a event from the \texttt{kernel2},
+Whenever \texttt{kernel1} should wait for an event from the \texttt{kernel2},
 \texttt{kernel1} invokes a blocking read using \texttt{read\_channel\_intel(syncChannel)} on the
 \texttt{syncChannel} between the kernels which makes
 \texttt{kernel1} block on the channel read. Once the event happens \texttt{kernel2} writes a token in the channel
@@ -139,9 +139,9 @@ results which was identified due to large deviation in the analytical and the co
 nodal error values. After further analysis of the design it was noticed that the
 \acl{LSU} in input kernels used cached access for \texttt{g\_Q\_ping} and \texttt{g\_Q\_pong}
 buffer reads which could be a problem with the updated design. As the buffer is updated by the
-\texttt{RK} kernel and the kernels are suppose to switch the buffers in each iteration, cached reads
+\texttt{RK} kernel and the kernels are supposed to switch the buffers in each iteration, cached reads
 could lead to processing of stale values resulting in wrong field computation. To eliminate
-the cache for the memories, the buffer parameter were marked as \texttt{volatile} which allows
+the cache for the memories, the buffer parameters were marked as \texttt{volatile} which allows
 to remove cached access \cite{noauthor_intel_2019,section 9.4} to ensure correct sequence of
 reads and writes. This allowed removal
 of the cache for all the read \texttt{LSU} but still deviation in the nodal errors were
@@ -152,7 +152,7 @@ present and further analysis was done to identify the cause.
 
 Another probable issue with the design was with the difference in latency of memory operation
 and channel communication. As the channels are implemented as FIFOs in the hardware
-using registers or BRAMs, the latency of the channels is much smaller then that of a memory
+using registers or BRAMs, the latency of the channels is much smaller than that of a memory
 operation. This would cause the input kernels to access non-updated memory after receiving the
 event over the channels. As shown in the Figure \ref{fig:memchan_latency} (a), due to higher latency
 of the memory to handle the write request which is not visible in the kernel, an overlapped
@@ -229,7 +229,7 @@ Another issue reported by the Intel OpenCL compiler as warning was the formation
 structure within the kernels due to use of the channels for synchronization.
 Addition of the \texttt{ch\_sync\_2} between RK and \texttt{S\_IN1} kernel created
 a loop of the kernels \texttt{S\_IN1} -> \texttt{S\_IN2} -> \texttt{SURFACE} -> \texttt{RK} -> \texttt{S\_IN1}.
-Similarly addition of \texttt{ch\_sync\_3} created a loop \texttt{V\_IN} -> \texttt{VOLUME} -> \texttt{RK} -> \texttt{V\_IN}.
+Similarly, addition of \texttt{ch\_sync\_3} created a loop \texttt{V\_IN} -> \texttt{VOLUME} -> \texttt{RK} -> \texttt{V\_IN}.
 Creation of these loops avoided Intel OpenCL compiler to optimize the channel depths
 which caused increased latency of the pipeline and decreased performance.
 
@@ -244,7 +244,7 @@ compiler to optimize the channel depth and improve performance.
 
 Apart from using channels for synchronization another possibility to achieve
 the desired behavior was by using atomic memory operations in the kernels
-to create an locking/unlocking structure for synchronization. Intel
+to create a locking/unlocking structure for synchronization. Intel
 OpenCL FPGA SDK supports the standard OpenCL \textit{Atomic Functions for 32-bit Integers}
 listed in \ref{code:atomic_func}.
 
@@ -328,7 +328,7 @@ In each timestep iteration 5 RK stages are executed. Within each RK stage, \text
 elements are read processed and written back to the memory. The kernels form a pipeline
 where the k\textsuperscript{th} element and other coefficients required are read by the
 input kernels from the global memory and forwarded to the compute kernels by channels.
-The compute kernels process the element to compute the right hand side field values and
+The compute kernels process the element to compute the right-hand side field values and
 forwards it to \texttt{RK} kernel. There the field values are accumulated and stored in global memory.
 In between the shared data is communicated and used for computation. Due to the long pipeline,
 multiple elements are processed simultaneously in different stages of the pipeline giving
@@ -404,7 +404,7 @@ latency loop to add a delay for the read of the \texttt{g\_partQ} buffer in \tex
 
 \subsubsection*{Moving RK coefficients into kernel}
 Moving timestep loops into the kernels allowed an additional minor optimization in the design.
-The Low storage Runge-Kutta coefficients used for the accumulating the right hand side field values from
+The Low storage Runge-Kutta coefficients used for the accumulating the right-hand side field values from
 \texttt{VOLUME} and \texttt{SURFACE} kernels were passed from the host application in each time step
 iteration. This was done from host as for each of the 5 Runge-Kutta stages a different coefficient is used
 and since the timestep and RK stage control was done in host application, the host selected the respective
@@ -444,7 +444,7 @@ required to move the buffer switching for the duplicated buffers \texttt{g\_Q\_p
 \texttt{g\_Q\_pong} inside the kernels since host has no interactions with FPGA anymore
 during the timesteps. The input kernels and \texttt{RK} kernels receive both buffers as parameters
 and implement a switching logic as shown in the line number 17 and 18 in Listing \ref{code:buf_switch}.
-The switching is done to switch the input buffer and the output buffer after every iterations
+The switching is done to switch the input buffer and the output buffer after every iteration
 which allows parallel execution of the all the kernels for computation.
 \begin{CppCode}[caption=Buffer switching for FPGA only design within the kernel, frame=tlrb, label=code:buf_switch, float]
 __kernel void kernelName(__private int K,  __private int arg2,  __private int timesteps,
@@ -544,9 +544,9 @@ configuration and execution. With the addition of FPGA only design,
 three variants of the kernels are available viz. \texttt{MIDG2 MPI FPGA} (SingleFPGA),
 FPGA-to-FPGA communication using IO channels with host synchronization (MultiWithHost)
 and FPGA only design (MultiFPGAOnly). Initially different versions of the same
-configuration code was used by including or excluding design specific changes
+configuration code were used by including or excluding design specific changes
 using preprocessor directives or by selecting different files for compilation.
-These intermediate solution allows the host code to support only single design
+This intermediate solution allows the host code to support only single design
 and requires modifications and recompilation of the code every time to use other
 design. Additionally, the designs with IO channel communication also have two variants
 with minor configuration changes which also increase the complexity of the host code.
@@ -573,8 +573,8 @@ without requirement for a recompilation.
 \end{figure}
 
 To achieve this restructuring additional structures were included which allows to
-group the variables into functionality based groups. One of the important structure
-which holds the function pointers to design specific routines is created
+group the variables into functionality based groups. A important structure
+to hold the function pointers to design specific routines is created
 as shown in Listing \ref{code:interface_func}. This structure is initialized
 with the design specific routines to handle device functionalities which
 include creation of OpenCL buffers, Initialization of kernel arguments,
@@ -627,7 +627,7 @@ and evaluation of the designs.
 
 The BittWare 520N boards using Intel Stratix 10 FPGA provides 4 external memory channels
 to access the global memory. Each of the
-4 external memory channel can be used parallely by the kernels to read and write data
+4 external memory channels can be used parallely by the kernels to read and write data
 into the global memory. Placing OpenCL buffers into different memory channels can
 improve memory bandwidth and overall performance of the kernels by reducing the stalls
 for simultaneous memory requests and reducing the latency of memory reads/writes.
@@ -720,7 +720,7 @@ was not efficient for the non-aligned memory access. To avoid this, the transfer
 were modified to send 24 bytes of actual data and pad the rest 8 bytes with 0s.
 This allowed to coalesce the 24 byte reads and improve the performance.
 
-The similar approach was initially used for fully connected topology where
+The similar approach was initially used for \texttt{fully connected} topology where
 24 bytes of data on all 4 channels were transferred simultaneously. The send had
 no issues with this structure but as explained in section \ref{sec:struc_iochan},
 the writes to \texttt{g\_partQ} buffer were identified as dependent leading
@@ -734,7 +734,7 @@ required as the the reads from the buffer are at 24 byte aligned as explained in
 To achieve this, modifications
 were done in the \texttt{BuildMaps3d} function which collects the shared elements information
 and computes the indexes of the elements in the \texttt{g\_Q} buffer. The individual partitions
-are aligned to a 192 bytes (48 floats) boundary which is the \ac{LCM} of 24 and 64 using the code
+are aligned to 192 bytes (48 floats) boundary which is the \ac{LCM} of 24 and 64 using the code
 is \ref{code:align_mem}. The code adds a padding in between the partitions ensures
 that the writes to the partitioned are not overlapped and also writes of 24 bytes are
 possible.

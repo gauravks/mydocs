@@ -121,7 +121,7 @@ all the data in single operation \cite{noauthor_intel_2019_best, section 3.2}.
 The Intel FPGA SDK for OpenCL Offline Compiler uses the on board SDRAM as the global memory
 \cite{noauthor_intel_2019_best, chapter 7}. The global memory is organized into multiple
 partitions and the number of available global memory banks depends on the
-FPGA board used. By default the global memory is configured as burst-interleaved
+FPGA board used. By default, the global memory is configured as burst-interleaved
 across the available memory banks. This configuration is suitable for memory
 access patterns which require sequential memory access of a very large single memory
 buffer accessed by a single kernel \cite{noauthor_intel_2019_best, section 7.2.1}.
@@ -262,7 +262,7 @@ on the faces of the tetrahedra are part of two adjacent $ D^k $ elements and hav
 field values require coupling of the local solution. The coupling of the solution is done
 by computing the electric and magnetic field differences \cite{kenter_opencl-based_2018} $\Delta \textbf{E}
 = \textbf{E}^+-\textbf{E}^-, \Delta \textbf{H} = \textbf{H}^+ - \textbf{H}^-$.
-The global approximate solutions is then achieved from the local solutions \cite{kenter_opencl-based_2018, busch_discontinuous_2011}
+The global approximate solutions are then computed from the local solutions \cite{kenter_opencl-based_2018, busch_discontinuous_2011}
 by a pair of \ac{ODE} for the semi-discrete system derivation which combines the local and global
 field values as explained in \cite{hesthaven_nodal_2008}:
 \begin{equation}\label{eqn:pde_e}
@@ -406,7 +406,7 @@ Using this design, multiple FPGAs can be used to speed up the computation for la
 Though speedup can be achieved with this design, the communication which involves
 movement of data through PCIe bus and the network interconnect between the nodes,
 reduces the combined communication bandwidth a lot. This communication setup also
-requires to have synchronization constructs between the FPGA kernels and the host
+requires having synchronization constructs between the FPGA kernels and the host
 application to ensure data correctness which has overheads and contribute to the increase
 of the overall execution time. This thesis uses this design as the base versions and replaces
 the communication with point-to-point communication between FPGAs which allows
@@ -449,7 +449,7 @@ start and end element parameters to be invoked for processing the shared and non
 
 Prior to start of the thesis, we further optimized the original pipeline developed in MIDG2 FPGA
 by introducing separate buffers \texttt{volrhsQ} and \texttt{surrhsQ} instead of the single
-right hand side \texttt{rhsQ} buffer which was earlier accumulated in \texttt{SURFACE} kernel.
+right-hand side \texttt{rhsQ} buffer which was earlier accumulated in \texttt{SURFACE} kernel.
 This change allows the \texttt{VOLUME} and \texttt{SURFACE} kernel to execute parallely and write data into
 two separate buffers. The \texttt{RK} kernel reads both the buffers after \texttt{VOLUME} and \texttt{SURFACE} kernel
 are finished processing shared and non-shared data and accumulates the values using Runge-Kutta
@@ -470,7 +470,7 @@ The \texttt{g\_Q} buffer is duplicated into two buffers \texttt{g\_Q\_ping} and 
 which use two aliases \texttt{g\_Q\_in} and \texttt{g\_Q\_out} in the kernel. The \texttt{g\_Q\_in}
 serves as the buffer from which the kernels read the elements values for the current iteration whereas
 \texttt{g\_Q\_out} serves as buffer in which the values
-are updated. After each time step iteration the alias of the buffers is switched as shown
+are updated. After each time step iteration, the alias of the buffers is switched as shown
 in pseudo code in \ref{code:buff_switch}, exchanging the functionality of the buffers for the next iteration.
 \begin{CppCode}[caption=Buffer switching for double buffers in each iteration, frame=tlrb, label=code:buff_switch, float]
 for (itr = 0; itr < MaxTimeStep; itr++)
@@ -492,9 +492,9 @@ for (itr = 0; itr < MaxTimeStep; itr++)
 This concept helps to improve the performance of the \texttt{RK} kernel
 by removing read and write memory dependency on the same buffer and also allows executing
 \texttt{RK} individually for shared and non-shared data as shown in Figure \ref{fig:seq_singlefpga}.
-In each time step, the \texttt{VOLUME} kernel and \texttt{SURFACE} kernel first execute to compute the right hand side values for the
+In each time step, the \texttt{VOLUME} kernel and \texttt{SURFACE} kernel first execute to compute the right-hand side values for the
 non-shared elements while the shared data is exchanged. After computation is finished, \texttt{RK} kernel Once the shared data is available,
-the right hand side values for the shared elements is computed. After the computation,
+the right-hand side values for the shared elements is computed. After the computation,
 the \texttt{RK} kernels reads the field values from \texttt{g\_Q\_in} and \texttt{resQ} values
 for the last time steps and computes the accumulated field values using
 \texttt{volrhsQ} and \texttt{surrhsQ}. The computed values are then saved in \texttt{g\_Q\_out}.
