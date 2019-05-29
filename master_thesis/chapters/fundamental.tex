@@ -325,7 +325,7 @@ allows to use multiple nodes or MPI ranks speedup the computation by distributin
 The step wise process for partitioning and distribution is shown in Figure \ref{fig:partitioning}.
 \begin{figure}[h]%
     \centering
-    \includegraphics[width=0.7\textwidth]{images/partition_proc}
+    \includegraphics[width=0.8\textwidth]{images/partition_proc}
     \caption{Parallelization achieved with partitioning and processing by multiple processes}
     \label{fig:partitioning}
 \end{figure}
@@ -367,7 +367,7 @@ by fully unrolling the inner loops in \texttt{VOLUME} and \texttt{SURFACE} as sh
 in Figure \ref{fig:loop_report}
 \begin{figure}[ht]%
     \centering
-    \includegraphics[width=0.7\textwidth]{images/loop_report}
+    \includegraphics[width=0.8\textwidth]{images/loop_report}
     \caption{Loop analysis report for the kernels showing fully unrolled inner
     loops of \texttt{VOLUME} and \texttt{SURFACE} kernels using \texttt{pragma unroll}.
     This replicates the floating-point units and perform parallel computation in
@@ -397,7 +397,7 @@ The updated \texttt{host application} then reads this data from the FPGA global 
 \ref{fig:mpi_fpga} shows the system level architecture of this design for two nodes.
 \begin{figure}[ht]%
     \centering
-    \includegraphics[width=0.7\textwidth]{images/mpi_fpga}
+    \includegraphics[width=0.8\textwidth]{images/mpi_fpga}
     \caption{System level architecture for MPI FPGA design communicating using MPI and PCIe}
     \label{fig:mpi_fpga}
 \end{figure}
@@ -441,7 +441,7 @@ elements as shown in Figure \ref{fig:rearrange}. This allowed to use the same ke
 start and end element parameters to be invoked for processing the shared and non-shared elements separately.
 \begin{figure}%
     \centering
-    \includegraphics[width=0.7\textwidth]{images/rearrange}
+    \includegraphics[width=0.8\textwidth]{images/rearrange}
     \caption{Rearrangement of \texttt{g\_Q} buffer elements by sorting and bringing the
     shared elements in the beginning of the buffer}
     \label{fig:rearrange}
@@ -455,10 +455,9 @@ two separate buffers. The \texttt{RK} kernel reads both the buffers after \textt
 are finished processing shared and non-shared data and accumulates the values using Runge-Kutta
 constants to produce the field values for the timestep. The sequence of operations
 showing the overlapped execution of the \texttt{SURFACE} and \texttt{VOLUME} kernel is shown in Figure \ref{fig:seq_singlefpga}.
-
 \begin{figure}[ht]%
     \centering
-    \includegraphics[width=0.8\textwidth]{seq_singlefpga}
+    \includegraphics[width=0.9\textwidth]{seq_singlefpga}
     \caption{Sequence of \texttt{MIDG2 MPI FPGA} OpenCL kernels after including \texttt{volrhsQ} and \texttt{surrhsQ}
     showing them executing simultaneously}
     \label{fig:seq_singlefpga}
@@ -497,12 +496,6 @@ non-shared elements while the shared data is exchanged. After computation is fin
 the right-hand side values for the shared elements is computed. After the computation,
 the \texttt{RK} kernels reads the field values from \texttt{g\_Q\_in} and \texttt{resQ} values
 for the last time steps and computes the accumulated field values using
-\texttt{volrhsQ} and \texttt{surrhsQ}. The computed values are then saved in \texttt{g\_Q\_out}.
-As the read and write buffers are separated, the memory dependency on the same buffer is reduced,
-reducing the latency to read and write to the memory. As explained, this structure also allows
-to overlap the communication via MPI with the computation of the fields for the non-shared data
-and reducing the effects of delayed communication. The kernel structure for base \texttt{MIDG2 MPI FPGA}
-is shown in Figure \ref{fig:base_kernstruc}.
 \begin{figure}[ht]%
     \centering
     \includegraphics[width=1.0\textwidth]{images/base_kernstruc}
@@ -511,3 +504,9 @@ is shown in Figure \ref{fig:base_kernstruc}.
      of \texttt{volrhsQ} and \texttt{surrhsQ} which allows the kernels to execute simultaneously as shown}
     \label{fig:base_kernstruc}
 \end{figure}
+\texttt{volrhsQ} and \texttt{surrhsQ}. The computed values are then saved in \texttt{g\_Q\_out}.
+As the read and write buffers are separated, the memory dependency on the same buffer is reduced,
+reducing the latency to read and write to the memory. As explained, this structure also allows
+to overlap the communication via MPI with the computation of the fields for the non-shared data
+and reducing the effects of delayed communication. The kernel structure for base \texttt{MIDG2 MPI FPGA}
+is shown in Figure \ref{fig:base_kernstruc}.

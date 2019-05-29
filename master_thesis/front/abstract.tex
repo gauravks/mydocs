@@ -2,14 +2,18 @@
 
 FPGA based accelerators provide the flexibility to adapt to application
 characteristics and are becoming popular among the high performance computing
-community. The Noctua HPC cluster at the Paderborn Center for Parallel
-Computing (PC\textsuperscript{2}) contains 16 high performance nodes
-equipped with BittWare 520N, Stratix 10 FPGA accelerator boards.
-These boards add a huge processing speedup capabilities with the Stratix 10
-FPGA and provides 4 100/40/25/10G QSFP28 network ports for serial FPGA-to-FPGA
-communication.
+community. To utilize multiple of these FPGA accelerators in a parallel application,
+FPGA-to-FPGA communication is required over the nodes. This is
+currently performed by creating multiple copies of the data to be
+shared between the FPGA and CPU. This causes increase in the latency
+of the communication between the FPGAs and affects the application performance.
+This can be improved by using direct point-to-point communication
+between the FPGAs. To evaluate the benefits of the point-to-point
+communication, this thesis extends the parallel FPGA implementation
+of the MIDG2 application to use 4 100/40/25/10G QSFP28 network ports
+in the BittWare 520N accelerator boards to perform serial FPGA-to-FPGA communication.
 
-This thesis first evaluates the possible point-to-point topologies between
+The thesis first evaluates the possible point-to-point topologies between
 FPGAs using the 4 ports by implementing prototypes for 2 different topologies.
 The evaluation shows that the point-to-point communication can achieve a 10
 times higher communication bandwidth than the existing MPI+PCIe communication.
@@ -19,6 +23,6 @@ for \texttt{MIDG2 MPI FPGA} application which uses \acl{DG} method to solve Maxw
 in time domain using multiple FPGAs. The existing OpenCL kernels are extended to
 use the point-to-point communication with 2 and 4 FPGAs and an optimized OpenCL
 kernel design is implemented to eliminate overheads due to FPGA to CPU interactions.
-The evaluation of the extended designs show a 20\% to 40\% improvement in the
+The evaluation of the extended designs show a 20\% to 30\% improvement in the
 execution time of the application allowing the FPGA design to achieve linear speedup for
 scaling over 2 and 4 FPGAs.

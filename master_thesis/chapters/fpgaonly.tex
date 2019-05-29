@@ -142,7 +142,7 @@ buffer reads which could be a problem with the updated design. As the buffer is 
 \texttt{RK} kernel and the kernels are supposed to switch the buffers in each iteration, cached reads
 could lead to processing of stale values resulting in wrong field computation. To eliminate
 the cache for the memories, the buffer parameters were marked as \texttt{volatile} which allows
-to remove cached access \cite{noauthor_intel_2019,section 9.4} to ensure correct sequence of
+to remove cached access \cite{noauthor_intel_2019_best,section 2.8.7} to ensure correct sequence of
 reads and writes. This allowed removal
 of the cache for all the read \texttt{LSU} but still deviation in the nodal errors were
 present and further analysis was done to identify the cause.
